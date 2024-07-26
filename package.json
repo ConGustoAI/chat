@@ -13,7 +13,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun db:generate && bun drizzle-kit migrate",
 		"db:squash": "rm -rf supabase/migrations/* && bun db:generate && bun db:migrate",
-		"db:studio": "drizzle-kit studio --config drizzle.config.ts"
+		"db:studio": "drizzle-kit studio --config drizzle.config.ts",
+		"db:drop": "drizzle-kit drop"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
@@ -47,12 +48,19 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"bits-ui": "^0.21.12",
 		"clsx": "^2.1.1",
+		"daisyui": "^4.12.10",
 		"dotenv": "^16.4.5",
 		"drizzle-orm": "^0.32.1",
+		"formsnap": "^1.0.1",
+		"lucide-svelte": "^0.414.0",
+		"mode-watcher": "^0.4.0",
 		"pg": "^8.12.0",
 		"postgres": "^3.4.4",
+		"sveltekit-superforms": "^2.16.1",
 		"tailwind-merge": "^2.4.0",
-		"tailwind-variants": "^0.2.1"
+		"tailwind-variants": "^0.2.1",
+		"zod": "^3.23.8"
 	}
 }

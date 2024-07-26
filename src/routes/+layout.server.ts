@@ -1,17 +1,14 @@
 import type { LayoutServerLoad } from './$types';
-import { profilesTable } from '$lib/db/schema';
+import { usersTable } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
-import {db} from '$lib/db';
+import { db } from '$lib/db';
 export const load: LayoutServerLoad = async ({ locals: { session, user }, cookies }) => {
-	console.log("layout.server.ts load", {session, cookies: cookies.getAll()});
+	console.log('layout.server.ts load', { session, cookies: cookies.getAll() });
 	let db_user;
 	if (user) {
-		db_user = await db
-			.select()
-			.from(profilesTable)
-			.where(eq(profilesTable.user_id, user.id))
+		db_user = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
 	}
-	console.log("layout.server.ts load", {db_user});
+	console.log('layout.server.ts load', { db_user });
 
 	return {
 		db_user

@@ -6,14 +6,15 @@ const AuthUsersTable = authSchema.table('users', {
 	id: uuid('id').primaryKey()
 });
 
-export const profilesTable = pgTable('users', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	user_id: uuid('user_id')
-		.references(() => AuthUsersTable.id)
-		.notNull(),
-	name: text('name').notNull(),
-	default_model: text('default_agent').notNull(),
-	default_about: text('default_about').notNull(),
+export const usersTable = pgTable('users', {
+	id: uuid('id')
+		.references(() => AuthUsersTable.id, { onDelete: 'cascade' })
+		.primaryKey(),
+	name: text('name')
+		.notNull()
+		.$default(() => 'User'),
+	default_model: text('default_agent'),
+	default_about: text('default_about'),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
@@ -24,7 +25,7 @@ export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 export const messagesTable = pgTable('messages', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	conversation_id: uuid('conversation_id')
-		.references(() => conversationsTable.id)
+		.references(() => conversationsTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	role: messageRoleEnum('role').notNull(),
 	text: text('text').notNull(),
@@ -36,11 +37,9 @@ export const messagesTable = pgTable('messages', {
 export const conversationsTable = pgTable('conversations', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	user_id: uuid('user_id')
-		.references(() => profilesTable.id)
+		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	assistant_id: uuid('assistant_id')
-		.references(() => assistantsTable.id)
-		.notNull(),
+	assistant_id: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
@@ -48,16 +47,12 @@ export const conversationsTable = pgTable('conversations', {
 export const assistantsTable = pgTable('assistants', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	user_id: uuid('user_id')
-		.references(() => profilesTable.id)
+		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	name: text('name').notNull(),
 	about: text('about').notNull(),
-	model: uuid('model')
-		.references(() => modelsTable.id)
-		.notNull(),
-	apiKey: uuid('api_key')
-		.references(() => apiKeysTable.id)
-		.notNull(),
+	model: uuid('model').references(() => modelsTable.id, { onDelete: 'set null' }),
+	apiKey: uuid('api_key').references(() => apiKeysTable.id, { onDelete: 'set null' }),
 	systemPrompt: text('system_prompt').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
@@ -69,18 +64,22 @@ export const modelsTable = pgTable('models', {
 	images: boolean('images').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
 	name: text('name').notNull(),
-	provider: uuid('provider')
-		.references(() => apiProvidersTable.id)
-		.notNull(),
+	provider: uuid('provider').references(() => apiProvidersTable.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
+export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'google']);
+
 export const apiProvidersTable = pgTable('api_providers', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	userID: uuid('user_id')
+		.references(() => usersTable.id)
+		.notNull(),
 	name: text('name').notNull().unique(),
-	type: text('type').notNull(),
-	base_url: text('base_url').notNull(),
+	displayName: text('display_name').notNull().unique(),
+	type: providerTypes('type').notNull(),
+	baseURL: text('base_url').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
@@ -88,7 +87,7 @@ export const apiProvidersTable = pgTable('api_providers', {
 export const apiKeysTable = pgTable('api_keys', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	user_id: uuid('user_id')
-		.references(() => profilesTable.id)
+		.references(() => usersTable.id)
 		.notNull(),
 	provider: uuid('provider')
 		.references(() => apiProvidersTable.id)
@@ -98,5 +97,5 @@ export const apiKeysTable = pgTable('api_keys', {
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
-export type InsertUser = typeof profilesTable.$inferInsert;
-export type SelectUser = typeof profilesTable.$inferSelect;
+export type InsertUser = typeof usersTable.$inferInsert;
+export type SelectUser = typeof usersTable.$inferSelect;
