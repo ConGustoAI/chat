@@ -1,31 +1,18 @@
 <script>
-	import { ModeWatcher } from 'mode-watcher';
-
-
 	import '../app.css';
 
-	// import { invalidate } from '$app/navigation';
-	// import { onMount } from 'svelte';
+	import { ModeWatcher, mode, setTheme } from 'mode-watcher';
+	import { toggleMode } from 'mode-watcher';
 
-	// export let data;
-	// $: ({ session, supabase } = data);
-
-	// onMount(() => {
-	// 	const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
-	// 		if (newSession?.expires_at !== session?.expires_at) {
-	// 			invalidate('supabase:auth');
-	// 		}
-	// 	});
-
-	// 	return () => data.subscription.unsubscribe();
-	// });
-
-
-
-
+	function cycleTheme() {
+		toggleMode();
+		const theme = $mode === 'dark' ? 'dark' : 'light';
+		setTheme(theme);
+		document.documentElement.setAttribute('data-theme', theme);
+	}
 </script>
 
 <ModeWatcher />
-
+<!-- <button on:click={cycleTheme}>Toggle Mode</button> -->
 
 <slot />

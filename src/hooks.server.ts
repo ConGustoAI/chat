@@ -50,7 +50,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 	event.locals.user = user;
 
-	console.log('hook:', { supabase: event.locals.supabase, session, user });
+	// console.log('hook:', { supabase: event.locals.supabase, session, user });
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {

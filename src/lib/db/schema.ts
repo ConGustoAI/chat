@@ -1,5 +1,7 @@
+import { relations } from 'drizzle-orm';
 import { pgTable, boolean, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { pgSchema, pgEnum } from 'drizzle-orm/pg-core';
+import { mode } from 'mode-watcher';
 
 const authSchema = pgSchema('auth');
 const AuthUsersTable = authSchema.table('users', {
@@ -64,38 +66,56 @@ export const modelsTable = pgTable('models', {
 	images: boolean('images').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
 	name: text('name').notNull(),
-	provider: uuid('provider').references(() => apiProvidersTable.id, { onDelete: 'set null' }),
+	provider: uuid('provider').references(() => providersTable.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
 export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'google']);
 
-export const apiProvidersTable = pgTable('api_providers', {
+export const providersTable = pgTable('api_providers', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	userID: uuid('user_id')
 		.references(() => usersTable.id)
 		.notNull(),
 	name: text('name').notNull().unique(),
-	displayName: text('display_name').notNull().unique(),
 	type: providerTypes('type').notNull(),
 	baseURL: text('base_url').notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
+	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
 export const apiKeysTable = pgTable('api_keys', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	user_id: uuid('user_id')
-		.references(() => usersTable.id)
-		.notNull(),
 	provider: uuid('provider')
-		.references(() => apiProvidersTable.id)
+		.references(() => providersTable.id)
 		.notNull(),
+	label: text('label'),
 	key: text('key').notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
+	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
-export type InsertUser = typeof usersTable.$inferInsert;
-export type SelectUser = typeof usersTable.$inferSelect;
+// RELATIONS
+
+export const userTableRelations = relations(usersTable, ({ many }) => ({
+	providers: many(providersTable),
+	assistants: many(assistantsTable),
+	conversations: many(conversationsTable),
+	apiKeys: many(apiKeysTable)
+}));
+
+export const providerTableRelations = relations(providersTable, ({ one, many }) => ({
+	users: one(usersTable, {
+		fields: [providersTable.userID],
+		references: [usersTable.id]
+	}),
+	apiKeys: many(apiKeysTable)
+}));
+
+export const apiKeyTableRelations = relations(apiKeysTable, ({ one }) => ({
+	providers: one(providersTable, {
+		fields: [apiKeysTable.provider],
+		references: [providersTable.id]
+	})
+}));

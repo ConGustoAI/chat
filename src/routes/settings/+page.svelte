@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from "./$types.js";
-	import ProfileForm from "./profile-form.svelte";
-	import { Separator } from "$lib/components/ui/separator";
+	// import ProfileForm from "./profile-form.svelte";
+
 	export let data: PageData;
 </script>
 
@@ -10,6 +10,6 @@
 		<h3 class="text-lg font-medium">Profile</h3>
 		<!-- <p class="text-muted-foreground text-sm">This is how others will see you on the site.</p> -->
 	</div>
-	<Separator />
-	<ProfileForm data={data.form} />
+	<div class="divider"></div>
+	<!-- <ProfileForm data={data.form} /> -->
 </div>

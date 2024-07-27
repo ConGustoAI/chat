@@ -1,18 +1,61 @@
 <script lang="ts">
-	import { Separator } from '$lib/components/ui/separator';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from "$lib/components/ui/button";
-	import * as Select from '$lib/components/ui/select';
-	import { providerTypes } from '$lib/db/schema';
+	import { invalidateAll } from '$app/navigation';
+	import { providerTypes, providersTable, apiKeysTable } from '$lib/db/schema';
+	import type { InferModel } from 'drizzle-orm';
 	export let data;
 
-	import { Accordion } from 'bits-ui';
+	import { Plus } from 'lucide-svelte';
 	import { ChevronDown, Trash, Trash2 } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
+
+	export let providers = data.providers;
 
 	let types = providerTypes.enumValues.map((type) => {
 		return { value: type, label: type };
 	});
+
+	async function submitData(provider: (typeof providers)[0]) {
+		console.log('submit', provider);
+
+		const { id, name, type, baseURL } = provider;
+		const res1 = await fetch('/api/provider', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+
+			body: JSON.stringify({ id, name, type, baseURL })
+		});
+
+		if (!res1.ok) {
+
+		}
+
+		const res2 = await fetch('/api/apikeys/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(provider.apiKeys)
+		});
+
+		if (res1.ok) {
+			provider.apiKeys = (await response.json()).updated;
+			// await invalidateAll();
+		}
+	}
+
+	async function addKey(provider: (typeof data.providers)[0]) {
+		console.log('add key', provider);
+		provider.apiKeys = [...provider.apiKeys, { provider: provider.id, label: '', key: '' }];
+		providers = providers;
+	}
+
+	function delteteAPIKey(provider: (typeof data.providers)[0], i: number) {
+		console.log('delete key', provider, i);
+		provider.apiKeys = provider.apiKeys.filter((_, index) => index !== i);
+		providers = providers;
+	}
 
 	//     [
 	//         { value: "apple", label: "Apple" },
@@ -23,36 +66,105 @@
 	//   ];
 </script>
 
-<div class="space-y-6">
+<div class="space-y-2">
 	<div>
 		<h3 class="text-lg font-medium">API providers</h3>
 		<!-- <p class="text-muted-foreground text-sm">This is how others will see you on the site.</p> -->
 	</div>
-	<Separator />
+	<div class="divider"></div>
 
-	<Accordion.Root class="w-full sm:max-w-[70%]" multiple>
-		{#each data.providers as provider}
-			<Accordion.Item value="${provider.id}" class="group border-b border-dark-10 px-1.5">
-				<Accordion.Header>
-					<Accordion.Trigger
-						class="flex w-full flex-1 items-center justify-between py-5 text-[15px] font-medium transition-all [&[data-state=open]>div>span>svg]:rotate-180"
-					>
-						<div class="div flex items-center">
-							<span class="inline-flex size-8 items-center justify-center rounded-[7px] bg-transparent transition-all hover:bg-dark-10">
-								<ChevronDown class="size-[18px] transition-all duration-200" />
-							</span>
-							{provider.name}
+	{#each providers as provider, i}
+		<div class="collapse collapse-arrow bg-base-200">
+			<input type="radio" name="providers" checked={i == 0} />
+			<div class="collapse-title text-xl font-medium">{provider.name}</div>
+			<div class="collapse-content">
+				<div class="divider" />
+				<div class="flex items-end">
+					<!-- <div class="hidden">
+						<div class="label">
+							<span class="label-text">Provider id</span>
 						</div>
-						<Button variant="outline" size="icon"><Trash2 class="size-5" strokeWidth=1 /></Button>
+						<input name="providerID" type="text" class="input input-bordered" value={data.providers[0].id} />
+					</div> -->
 
-					</Accordion.Trigger>
-				</Accordion.Header>
-				<Accordion.Content transition={slide} transitionConfig={{ duration: 200 }} class="pb-[25px] text-sm tracking-[-0.01em]">
-					<!-- {item.content} -->
-				</Accordion.Content>
-			</Accordion.Item>
-		{/each}
-	</Accordion.Root>
+					<div>
+						<div class="label">
+							<span class="label-text">Provider name</span>
+						</div>
+						<input name="providerName" type="text" class="input input-bordered" bind:value={provider.name} />
+					</div>
+
+					<div>
+						<div class="label">
+							<span class="label-text">Provider type</span>
+						</div>
+						<select name="providerType" class="select select-bordered">
+							{#each types as type}
+								<option value={type.value} selected={provider.type === type.value}>{type.label}</option>
+							{/each}
+						</select>
+					</div>
+
+					<div>
+						<div class="label">
+							<span class="label-text">Base URL</span>
+						</div>
+						<input name="providerBaseURL" type="text" class="input input-bordered" value={provider.baseURL} />
+					</div>
+					<button
+						class="btn btn-outline"
+						on:click={() => {
+							deleteProvider(provider);
+						}}>Delete</button
+					>
+				</div>
+
+				<div>
+					<p class="text-lg font-medium">API keys</p>
+					{#if provider.apiKeys.length}
+						{#each provider.apiKeys as apiKey, i}
+							<div class="flex items-end">
+								{#if i == 0}
+									<button
+										class="btn btn-outline btn-circle size-8"
+										on:click={() => {
+											addKey(provider);
+										}}><Plus /></button
+									>
+								{/if}
+
+								<div>
+									<div class="label">
+										<span class="label-text">Label</span>
+									</div>
+									<input name="apiKeyLabel" type="text" class="input input-bordered" bind:value={apiKey.label} />
+								</div>
+								<div>
+									<div class="label">
+										<span class="label-text">Key</span>
+									</div>
+									<input name="apiKey" type="text" class="input input-bordered" bind:value={apiKey.key} />
+								</div>
+								<button
+									on:click={() => {
+										delteteAPIKey(provider, i);
+									}}
+									class="btn btn-outline">Delete key</button
+								>
+							</div>
+						{/each}
+					{/if}
+				</div>
+
+				<button
+					class="btn btn-primary"
+					on:click={() => {
+						submitData(provider);
+					}}>Submit</button
+				>
+			</div>
+		</div>
+	{/each}
 
 	<!-- {#each data.providers as provider}
 		<div class="div flex">
