@@ -1,54 +1,57 @@
 <script lang="ts">
+	import { providerTypes } from '$lib/db/schema';
+	import { Plus, Trash2, SaveAll } from 'lucide-svelte';
+	import { getIncrementedName } from '$lib/utils';
 	import { invalidateAll } from '$app/navigation';
-	import { providerTypes, providersTable, apiKeysTable } from '$lib/db/schema';
-	import type { InferModel } from 'drizzle-orm';
+	import { SpinButton } from '$lib/components';
 	export let data;
 
-	import { Plus } from 'lucide-svelte';
-	import { ChevronDown, Trash, Trash2 } from 'lucide-svelte';
-	import { slide } from 'svelte/transition';
+	import { ProviderApiKeys } from '$lib/components';
 
-	export let providers = data.providers;
+	let providers = data.providers as ProviderApiKeysInterface[];
 
-	let types = providerTypes.enumValues.map((type) => {
-		return { value: type, label: type };
-	});
+	let saving = false;
+	let save_message = '';
+	let save_success = true;
 
-	async function submitData(provider: (typeof providers)[0]) {
-		console.log('submit', provider);
+	$: {
+		providers, (save_message = '');
+	}
 
-		const { id, name, type, baseURL } = provider;
-		const res1 = await fetch('/api/provider', {
+	async function submitData() {
+		console.log('submit');
+		saving = true;
+		// const { id, name, type, baseURL } = provider;
+		const res1 = await fetch('/settings/providers/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 
-			body: JSON.stringify({ id, name, type, baseURL })
-		});
-
-		if (!res1.ok) {
-
-		}
-
-		const res2 = await fetch('/api/apikeys/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(provider.apiKeys)
+			body: JSON.stringify(providers)
 		});
 
 		if (res1.ok) {
-			provider.apiKeys = (await response.json()).updated;
-			// await invalidateAll();
+			save_message = 'Settings saved successfully';
+			save_success = true;
+		} else {
+			save_message = (await res1.json()).message;
+			save_success = false;
 		}
+
+		saving = false;
+		invalidateAll();
 	}
 
-	async function addKey(provider: (typeof data.providers)[0]) {
-		console.log('add key', provider);
-		provider.apiKeys = [...provider.apiKeys, { provider: provider.id, label: '', key: '' }];
-		providers = providers;
+	function addProvider() {
+		console.log('add provider');
+		const newName = getIncrementedName(
+			'Untitled Provider ',
+			providers.map((p) => p.name)
+		);
+
+		providers = [{ name: newName, type: 'openai', baseURL: '', apiKeys: [] }, ...providers];
+		// Check the first radio input with name "providers"
 	}
 
 	function delteteAPIKey(provider: (typeof data.providers)[0], i: number) {
@@ -57,135 +60,33 @@
 		providers = providers;
 	}
 
-	//     [
-	//         { value: "apple", label: "Apple" },
-	//         { value: "banana", label: "Banana" },
-	//         { value: "blueberry", label: "Blueberry" },
-	//         { value: "grapes", label: "Grapes" },
-	//         { value: "pineapple", label: "Pineapple" }
-	//   ];
+	function onDeleteProvider(idx: number) {
+		console.log('delete provider', idx);
+		providers = providers.filter((_, index) => index !== idx);
+	}
 </script>
 
-<div class="space-y-2">
-	<div>
-		<h3 class="text-lg font-medium">API providers</h3>
-		<!-- <p class="text-muted-foreground text-sm">This is how others will see you on the site.</p> -->
+<div class="gap-1 flex flex-col">
+	<div class="div flex gap-2">
+		<div>
+			<button
+				class="btn btn-outline"
+				on:click={() => {
+					addProvider();
+				}}><Plus /> Add API Provider</button>
+		</div>
+		<h2 class="card-title">API providers</h2>
+		<div class="divider m-1"></div>
 	</div>
-	<div class="divider"></div>
 
 	{#each providers as provider, i}
-		<div class="collapse collapse-arrow bg-base-200">
-			<input type="radio" name="providers" checked={i == 0} />
-			<div class="collapse-title text-xl font-medium">{provider.name}</div>
-			<div class="collapse-content">
-				<div class="divider" />
-				<div class="flex items-end">
-					<!-- <div class="hidden">
-						<div class="label">
-							<span class="label-text">Provider id</span>
-						</div>
-						<input name="providerID" type="text" class="input input-bordered" value={data.providers[0].id} />
-					</div> -->
-
-					<div>
-						<div class="label">
-							<span class="label-text">Provider name</span>
-						</div>
-						<input name="providerName" type="text" class="input input-bordered" bind:value={provider.name} />
-					</div>
-
-					<div>
-						<div class="label">
-							<span class="label-text">Provider type</span>
-						</div>
-						<select name="providerType" class="select select-bordered">
-							{#each types as type}
-								<option value={type.value} selected={provider.type === type.value}>{type.label}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<div class="label">
-							<span class="label-text">Base URL</span>
-						</div>
-						<input name="providerBaseURL" type="text" class="input input-bordered" value={provider.baseURL} />
-					</div>
-					<button
-						class="btn btn-outline"
-						on:click={() => {
-							deleteProvider(provider);
-						}}>Delete</button
-					>
-				</div>
-
-				<div>
-					<p class="text-lg font-medium">API keys</p>
-					{#if provider.apiKeys.length}
-						{#each provider.apiKeys as apiKey, i}
-							<div class="flex items-end">
-								{#if i == 0}
-									<button
-										class="btn btn-outline btn-circle size-8"
-										on:click={() => {
-											addKey(provider);
-										}}><Plus /></button
-									>
-								{/if}
-
-								<div>
-									<div class="label">
-										<span class="label-text">Label</span>
-									</div>
-									<input name="apiKeyLabel" type="text" class="input input-bordered" bind:value={apiKey.label} />
-								</div>
-								<div>
-									<div class="label">
-										<span class="label-text">Key</span>
-									</div>
-									<input name="apiKey" type="text" class="input input-bordered" bind:value={apiKey.key} />
-								</div>
-								<button
-									on:click={() => {
-										delteteAPIKey(provider, i);
-									}}
-									class="btn btn-outline">Delete key</button
-								>
-							</div>
-						{/each}
-					{/if}
-				</div>
-
-				<button
-					class="btn btn-primary"
-					on:click={() => {
-						submitData(provider);
-					}}>Submit</button
-				>
-			</div>
-		</div>
+		<ProviderApiKeys bind:provider={provider} onDeleteProvider={() => onDeleteProvider(i)} />
 	{/each}
 
-	<!-- {#each data.providers as provider}
-		<div class="div flex">
-			<Input type="text" bind:value={provider.name} class="max-w-xs" />
-
-			<Select.Root portal={null} bind:selected={provider.type}>
-				<Select.Trigger class="w-[180px]">
-					<Select.Value />
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Group>
-
-						{#each types as type}
-							<Select.Item value={type.value} label={type.label}>{type.label}</Select.Item>
-						{/each}
-					</Select.Group>
-				</Select.Content>
-				<Select.Input name="providerType" />
-			</Select.Root>
+	<SpinButton class="rounded-md mt-10" loading={saving} onClick={submitData} IconComponent={SaveAll}>Save all</SpinButton>
+	{#if save_message}
+		<div class="alert" class:alert-success={save_success} class:alert-error={!save_success}>
+			<span>{save_message}</span>
 		</div>
-	{/each} -->
-
-	<pre>{JSON.stringify(data, null, 2)}</pre>
+	{/if}
 </div>

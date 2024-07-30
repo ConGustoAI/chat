@@ -1,6 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* .input {
+	@apply rounded-none;
+}
+
+.select {
+	@apply rounded-none;
+} */
+
 /*
 @layer base {
   :root {

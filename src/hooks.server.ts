@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
-import { type Handle, redirect } from '@sveltejs/kit';
+import { type Handle } from '@sveltejs/kit';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
@@ -50,7 +50,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 	event.locals.user = user;
 
-	// console.log('hook:', { supabase: event.locals.supabase, session, user });
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
@@ -62,22 +61,3 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
-
-// const authGuard: Handle = async ({ event, resolve }) => {
-// 	const { session, user } = await event.locals.safeGetSession();
-// 	event.locals.session = session;
-// 	event.locals.user = user;
-
-// 	console.log('event.locals.session', event.locals.session);
-// 	// if (!event.locals.session && event.url.pathname.startsWith('/private')) {
-// 	//   redirect(303, '/auth')
-// 	// }
-
-// 	// if (event.locals.session && event.url.pathname === '/auth') {
-// 	//   redirect(303, '/private')
-// 	// }
-
-// 	return resolve(event);
-// };
-
-// export const handle: Handle = sequence(supabase, authGuard);
