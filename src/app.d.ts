@@ -48,7 +48,7 @@ declare global {
 	interface AssistantInterface {
 		id?: string;
 		userID: string;
-		name?: string;
+		name: string;
 		about?: string;
 		model?: string;
 		apiKey?: string;
@@ -57,6 +57,8 @@ declare global {
 		assistantInstructions?: string;
 		assistantInstructionsFromUser: boolean;
 		systemPrompt?: string;
+		images?: boolean;
+		prefill?: boolean;
 	}
 
 	interface ProviderAssistantInterface {
@@ -78,7 +80,22 @@ declare global {
 		}[];
 	}
 
-
+	interface ConversationInterface {
+		id: string;
+		assistant?: string;
+		summary?: string;
+		like?: boolean;
+		messages?: {
+			id?: string;
+			conversationId?: string;
+			role: 'user' | 'assistant';
+			text: string;
+			usageIn?: number;
+			usageOut?: number;
+			finishReason?: string;
+			deleted?: boolean;
+		}[];
+	}
 }
 
 export {};

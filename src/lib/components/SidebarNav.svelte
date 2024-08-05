@@ -20,13 +20,10 @@
 		<slot />
 	</div>
 
-	<div class="drawer-side h-auto pr-20">
-		<label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-		<ul class="menu text-base-content p-4 text-xl">
-			{#each items as item}
-				{@const selected = $page.route.id == item.href}
-				<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>
-			{/each}
-		</ul>
-	</div>
+	<ul class="menu drawer-side h-auto p-4 pr-20 text-xl">
+		{#each items as item}
+			{@const selected = $page.route.id == item.href}
+			<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>
+		{/each}
+	</ul>
 </div>

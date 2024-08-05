@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+.prose {
+	blockquote,
+	dl,
+	dd,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	hr,
+	figure,
+	p,
+	li,
+	ul,
+	ol,
+	pre {
+		margin: 0;
+    border-radius: 0;
+	}
+}
+
+.divider {
+	height: auto;
+	margin: auto;
+}
+
+.divider-horizontal {
+	height: 100%;
+}
+
 /* .input {
 	@apply rounded-none;
 }
