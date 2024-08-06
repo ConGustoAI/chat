@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	// import { useChat } from '@ai-sdk/svelte';
 	import { readDataStream } from '@ai-sdk/ui-utils';
-	import { fetchAssistants, fetchHistory, fetchConversation } from '$lib/utils';
+	import { fetchAssistants, fetchHistory, fetchConversation } from '$lib/api-client';
 	import { DrawerButton, ChatHistory, ChatTitle, ChatMessages, ChatInput } from '$lib/components';
 	import {
 		UserCircleIcon,

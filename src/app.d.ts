@@ -18,6 +18,29 @@ declare global {
 		// interface Platform {}
 	}
 
+	interface ProviderInterface {
+		id?: string;
+		userID?: string;
+		name: string;
+		type: ProviderType;
+		baseURL: string;
+		apiKeys?: KeyInterface[];
+		models?: modelInterface[];
+		// status?: string; // Used in the UI only.
+		// statusMessage?: string; // Used in the UI only.
+		// updateTimer?: number | NodeJS.Timeout;
+	}
+
+	interface KeyInterface {
+		id?: string;
+		providerID: string;
+		key: string;
+		label: string;
+		// status?: string; // Used in the UI only.
+		// statusMessage?: string; // Used in the UI only.
+		// updateTimer?: number | NodeJS.Timeout;
+	}
+
 	interface ProviderApiKeysInterface {
 		id?: string;
 		name: string;

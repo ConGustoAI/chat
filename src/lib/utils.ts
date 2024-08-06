@@ -20,36 +20,15 @@ export function getIncrementedName(baseName: string, existingNames: string[]): s
 	return name;
 }
 
-export async function fetchAssistants() {
-	const res = await fetch('/api/assistants');
-	if (!res.ok) throw new Error('Failed to fetch assistants');
-	const data = await res.json();
-
-	const assistantsDict: Record<string, AssistantInterface> = {};
-
-	for (const assistant of data) {
-		assistantsDict[assistant.id] = assistant;
-	}
-	return assistantsDict;
-}
-
-export async function fetchHistory() {
-	const res = await fetch('/api/history');
-	if (!res.ok) throw new Error('Failed to fetch conversations');
-	const data = await res.json();
-
-	const historyDict: Record<string, ConversationInterface> = {};
-
-	for (const conversation of data) {
-		historyDict[conversation.id] = conversation;
-	}
-	return historyDict;
-}
-
-export async function fetchConversation(id: string) {
-	const res = await fetch(`/api/conversation/${id}`);
-	if (!res.ok) throw new Error('Failed to fetch conversation');
-	const data = await res.json();
-
-	return data;
+export function undefineExtras<T extends object>(
+	obj: T
+): Omit<T, 'createdAt' | 'updatedAt' | 'status' | 'statusMessage' | 'updateTimer'> {
+	return {
+		...obj,
+		createdAt: undefined,
+		updatedAt: undefined,
+		status: undefined,
+		statusMessage: undefined,
+		updateTimer: undefined
+	};
 }

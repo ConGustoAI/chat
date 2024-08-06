@@ -1,7 +1,7 @@
 <script lang="ts">
 	import 'katex/dist/katex.min.css';
 	import 'highlight.js/styles/github-dark.min.css';
-	import { Computer, Smile, type IconProps } from 'lucide-svelte';
+	import { Computer, Smile } from 'lucide-svelte';
 
 	import rehypeStringify from 'rehype-stringify';
 	import remarkParse from 'remark-parse';
@@ -49,11 +49,11 @@
 						'span .click-formula',
 						{
 							onClick: `
-							this.childNodes.forEach((node) => {
-								console.log('click-formula');
-								node.style.display = node.style.display != 'none' ? 'none' : '${isMathInline ? 'inline' : 'block'}';
-							});
-							`
+this.childNodes.forEach((node) => {
+	console.log('click-formula');
+	node.style.display = node.style.display != 'none' ? 'none' : '${isMathInline ? 'inline' : 'block'}';
+});
+`
 						},
 						newChildren
 					);
@@ -66,16 +66,14 @@
 	function rehypeCopyButton() {
 		return function (tree: Root) {
 			visit(tree, 'element', function (node) {
-				if (['pre'].includes(node.tagName)) console.log(JSON.stringify(node, null, 2));
 				if (
-					['pre'].includes(node.tagName) &&
+					node.tagName === 'pre' &&
 					(!Array.isArray(node.properties.className) || !node.properties.className.includes('copy-button'))
 				) {
 					// There may be a more elegant way to implement this!
 					const copyButton: Element = h(
-						'.btn .btn-sm .rounded-md .absolute .top-1',
+						'.btn .btn-sm .rounded-md .absolute .top-1 .right-1',
 						{
-							style: 'top: 5px; right: 5px;',
 							onClick: `
 const preElement = this.closest('pre');
 if (preElement) {
@@ -128,10 +126,6 @@ if (preElement) {
 			.processSync(text);
 		return res.toString();
 	}
-
-	// $: {
-	// 	await parseMarkdown(conversation);
-	// }
 </script>
 
 <div class="flex max-w-full flex-col">

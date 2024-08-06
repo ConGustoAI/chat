@@ -1,109 +1,71 @@
 <script lang="ts">
-	import { providerTypes } from '$lib/db/schema';
-	import { Plus, Trash2 } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-	import { capitalize } from '$lib/utils';
-	import { getIncrementedName } from '$lib/utils';
+	import { Trash2, Check } from 'lucide-svelte';
+	import { upsertProvider, upsertKey, deleteProvider, deleteKey } from '$lib/api-client.js';
+	import { beforeNavigate } from '$app/navigation';
 
-	export let provider: ProviderApiKeysInterface;
-	export let onDeleteProvider;
-
-	let types = providerTypes.enumValues.map((type) => {
-		return { value: type, label: type };
+	export let apiKey: KeyInterface;
+	export let onDeleteKey;
+	// Don't let the user navigate off if changes are unsaved
+	let hasUnsavedChanges = false;
+	beforeNavigate((navigation) => {
+		if (hasUnsavedChanges) {
+			if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
+				navigation.cancel();
+			}
+		}
 	});
 
-	async function addKey(p: typeof provider) {
-		console.log('add key', provider);
-		provider.apiKeys = [
-			{
-				label: getIncrementedName(
-					provider.name + '-Key-',
-					provider.apiKeys.map((a) => a.label)
-				),
-				key: ''
-			},
-			...provider.apiKeys
-		];
-		provider = provider;
+	let status: string | null = null;
+	let errorMessage: string | null = null;
+	let updateTimer: number | NodeJS.Timeout;
+
+	function debounceKeysUpdate() {
+		if (status === 'changed') {
+			clearTimeout(updateTimer);
+			updateTimer = setTimeout(() => {
+				status = 'saving';
+				upsertKey(apiKey)
+					.then((res) => {
+						status = 'saved';
+						updateTimer = setTimeout(() => {
+							status = null;
+						}, 2000);
+					})
+					.catch((e) => {
+						status = 'error';
+						errorMessage = e.message;
+					});
+			}, 750);
+		}
 	}
 
-	async function delteteAPIKey(p: typeof provider, idx: number) {
-		console.log('delete key', p, idx);
-		provider.apiKeys = provider.apiKeys.filter((_, index) => index !== idx);
-		provider = provider;
+	function statusChanged() {
+		status = 'changed';
+	}
+
+	$: {
+		debounceKeysUpdate();
+		hasUnsavedChanges = !!(status && status != 'saved');
 	}
 </script>
 
-<!-- <div class="divider m-0" /> -->
-
-<div class="card shadow-xl rounded-sm bg-sec">
-	<div class="card-body p-3">
-		<div class="div flex gap-2">
-			<div class="card-actions items-end">
-				<button
-					class="btn btn-outline btn-sm"
-					on:click={() => {
-						addKey(provider);
-					}}><Plus />API key</button>
-			</div>
-			<h2 class="card-title">{provider.name}</h2>
-		</div>
-		<div class="card-actions items-end">
-			<div>
-				<div class="label">
-					<span class="label-text">Label</span>
-				</div>
-				<input name="providerName" type="text" class="input input-bordered" bind:value={provider.name} />
-			</div>
-
-			<div>
-				<div class="label">
-					<span class="label-text">Type</span>
-				</div>
-				<select name="providerType" class="select select-bordered" bind:value={provider.type}>
-					{#each types as type}
-						<option value={type.value}>{capitalize(type.label)}</option>
-					{/each}
-				</select>
-			</div>
-
-			<div class="grow">
-				<div class="label">
-					<span class="label-text">Base URL</span>
-				</div>
-				<input name="providerBaseURL" type="text" class="input input-bordered w-full" bind:value={provider.baseURL} />
-			</div>
-			<button
-				class="btn btn-outline"
-				on:click={() => {
-					onDeleteProvider();
-				}}><Trash2 /></button>
-		</div>
-
-		<div class="pl-10">
-			<!-- <p class="text-lg font-medium">API keys</p> -->
-			{#if provider.apiKeys.length}
-				<div class="divider m-0" >API keys</div>
-				<div class="grid grid-cols-[10rem,auto,min-content] gap-2 items-end">
-					<div class="label">
-						<span class="label-text">Label</span>
-					</div>
-					<div class="label">
-						<span class="label-text">Key</span>
-					</div>
-					<div></div>
-
-					{#each provider.apiKeys as apiKey, i}
-						<input name="apiKeyLabel" type="text" class="input input-bordered col-span-" bind:value={apiKey.label} />
-						<input name="apiKey" type="text" class="input input-bordered" bind:value={apiKey.key} />
-						<button
-							on:click={() => {
-								delteteAPIKey(provider, i);
-							}}
-							class="btn btn-outline col-span-1"><Trash2 /></button>
-					{/each}
-				</div>
-			{/if}
-		</div>
+<input type="text" class="input input-bordered" bind:value={apiKey.label} on:input={statusChanged} spellcheck="false" />
+<input type="text" class="input input-bordered" bind:value={apiKey.key} on:input={statusChanged} spellcheck="false" />
+<button
+	class="btn btn-outline col-span-1"
+	on:click={() => {
+		status = 'saving';
+		onDeleteKey();
+	}}>
+	<Trash2 />
+</button>
+<div class="relative size-full self-center">
+	<!-- <div class="absolute">{provider.status}</div> -->
+	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
+	<div class="absolute" class:hidden={status !== 'saved'}>
+		<Check />
 	</div>
+</div>
+<div class="col-span-full text-error" class:hidden={status !== 'error'}>
+	<span>{errorMessage}</span>
 </div>

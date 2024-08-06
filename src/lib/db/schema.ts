@@ -20,7 +20,10 @@ export const usersTable = pgTable('users', {
 	aboutUser: text('about_user'),
 	assistantInstructions: text('assistant_instructions'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video']);
@@ -41,7 +44,10 @@ export const mediaTable = pgTable('media', {
 	duration: integer('duration'),
 	uploadStatus: mediaUploadStatus('upload_status').notNull().default('pending'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
@@ -50,6 +56,7 @@ export const messagesTable = pgTable('messages', {
 	conversationId: uuid('conversation_id')
 		.references(() => conversationsTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	assistant: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
 	role: messageRoleEnum('role').notNull(),
 	text: text('text').notNull(),
 	usageIn: integer('usage_in').default(0),
@@ -58,7 +65,10 @@ export const messagesTable = pgTable('messages', {
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const messageMediaTable = pgTable('message_media', {
@@ -68,7 +78,7 @@ export const messageMediaTable = pgTable('message_media', {
 	mediaId: uuid('media_id')
 		.references(() => mediaTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow()
+	createdAt: timestamp('created_at').notNull().defaultNow().notNull().defaultNow()
 });
 
 export const conversationsTable = pgTable('conversations', {
@@ -81,7 +91,10 @@ export const conversationsTable = pgTable('conversations', {
 	like: boolean('like').default(false),
 	deleted: boolean('deleted').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const assistantsTable = pgTable('assistants', {
@@ -103,7 +116,10 @@ export const assistantsTable = pgTable('assistants', {
 	video: boolean('video').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const modelsTable = pgTable('models', {
@@ -125,7 +141,10 @@ export const modelsTable = pgTable('models', {
 		.notNull()
 		.references(() => providersTable.id, { onDelete: 'cascade' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'google']);
@@ -139,7 +158,10 @@ export const providersTable = pgTable('providers', {
 	type: providerTypes('type').notNull(),
 	baseURL: text('base_url').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 export const apiKeysTable = pgTable('api_keys', {
@@ -150,7 +172,10 @@ export const apiKeysTable = pgTable('api_keys', {
 	label: text('label').notNull(),
 	key: text('key').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
 });
 
 // RELATIONS
