@@ -1,7 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { S_getProviders, S_upsertsProvider } from '$lib/api-server';
-import { info } from 'console';
+import { DBgetProviders, DBupsertProvider } from '$lib/db/utils/providers';
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {
@@ -14,13 +13,13 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 		return error(400, 'Provider ID should not be set for a new provider');
 	}
 
-	const updatedAssistant = await S_upsertsProvider(provider, user.id);
+	const updatedAssistant = await DBupsertProvider(provider, user.id);
 	return json(updatedAssistant);
 };
 
 //
-export const GET: RequestHandler = async ({ request, url, locals: { user } }) => {
-	info('GET /api/provider');
+export const GET: RequestHandler = async ({ url, locals: { user } }) => {
+	// info('GET /api/provider');
 
 	if (!user) {
 		error(401, 'Unauthorized');
@@ -29,9 +28,7 @@ export const GET: RequestHandler = async ({ request, url, locals: { user } }) =>
 	const withKeys = url.searchParams.has('keys');
 	const withModels = url.searchParams.has('models');
 
-	console.log('request', request);
-
-	const providers = await S_getProviders(user.id, withKeys, withModels);
-	info('GET /api/providers', providers);
+	const providers = await DBgetProviders(user.id, withKeys, withModels);
+	// info('GET /api/providers', providers);
 	return json(providers);
 };

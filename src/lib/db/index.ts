@@ -1,8 +1,7 @@
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import * as schema from './schema';
 import postgres from 'postgres';
-// import { seed } from './seed';
+import * as schema from './schema';
 
 config({ path: '.env' });
 

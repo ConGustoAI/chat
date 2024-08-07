@@ -1,7 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { S_getAssistants, S_upsertsAssistant } from '$lib/api-server';
+
 import { info } from 'console';
+import { DBgetAssistants, DBupsertsAssistant } from '$lib/db/utils/assistants';
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {
@@ -14,7 +15,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 		return error(400, 'Assistant ID should not be provided');
 	}
 
-	const updatedAssistant = S_upsertsAssistant(assistant, user.id);
+	const updatedAssistant = await DBupsertsAssistant(assistant, user.id);
 	return json(updatedAssistant);
 };
 
@@ -24,7 +25,7 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 		error(401, 'Unauthorized');
 	}
 
-	const assistants = await S_getAssistants(user.id);
+	const assistants = await DBgetAssistants(user.id);
 	info('GET /api/assistant', assistants);
 	return json(assistants);
 };

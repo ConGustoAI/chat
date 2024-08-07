@@ -1,6 +1,5 @@
+import { DBdeleteProvider, DBgetProvider, DBupsertProvider } from '$lib/db/utils/providers';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-
-import { S_deleteProvider, S_getProvider, S_upsertsProvider } from '$lib/api-server';
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	if (!user) {
@@ -13,7 +12,9 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 		return error(400, 'Provider ID in URL does not match assistant ID in body');
 	}
 
-	const updatedAssistant = await S_upsertsProvider(provider, user.id);
+	// console.log('provider', provider);
+
+	const updatedAssistant = await DBupsertProvider(provider, user.id);
 	return json(updatedAssistant);
 };
 
@@ -26,7 +27,7 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) 
 		return error(400, 'Provider ID is required');
 	}
 
-	const assistant = await S_getProvider(id, user.id);
+	const assistant = await DBgetProvider(id, user.id);
 	return json(assistant);
 };
 
@@ -39,6 +40,6 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 		return error(400, 'Provider ID is required');
 	}
 
-	await S_deleteProvider(id, user.id);
+	await DBdeleteProvider(id, user.id);
 	return json({ id });
 };

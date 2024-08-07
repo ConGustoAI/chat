@@ -20,15 +20,18 @@ export function getIncrementedName(baseName: string, existingNames: string[]): s
 	return name;
 }
 
-export function undefineExtras<T extends object>(
-	obj: T
-): Omit<T, 'createdAt' | 'updatedAt' | 'status' | 'statusMessage' | 'updateTimer'> {
+export function undefineExtras<T extends object>(obj: T): Omit<T, 'createdAt' | 'updatedAt' | 'apiKeys' | 'models'> {
 	return {
 		...obj,
 		createdAt: undefined,
 		updatedAt: undefined,
-		status: undefined,
-		statusMessage: undefined,
-		updateTimer: undefined
+		apiKeys: undefined,
+		models: undefined
 	};
+}
+
+export function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message);
+	}
 }

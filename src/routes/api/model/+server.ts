@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { S_getModels, S_upsertModel } from '$lib/api-server';
 import { info } from 'console';
+import { DBgetModels, DBupsertModel } from '$lib/db/utils/models';
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {
@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 		return error(400, 'ID should not be set for a new model');
 	}
 
-	const updatedAssistant = S_upsertsModel(model, user.id);
+	const updatedAssistant = await DBupsertModel(model, user.id);
 	return json(updatedAssistant);
 };
 
@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 		error(401, 'Unauthorized');
 	}
 
-	const models = await S_getModels(user.id);
+	const models = await DBgetModels(user.id);
 	info('GET /api/models', models);
 	return json(models);
 };

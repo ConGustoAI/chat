@@ -18,6 +18,15 @@ declare global {
 		// interface Platform {}
 	}
 
+	interface UserInterface {
+		id: string;
+		name?: string;
+		email?: string;
+		defaultAgent?: string;
+		aboutUser?: string;
+		assistantInstructions?: string;
+	}
+
 	interface ProviderInterface {
 		id?: string;
 		userID?: string;
@@ -25,10 +34,7 @@ declare global {
 		type: ProviderType;
 		baseURL: string;
 		apiKeys?: KeyInterface[];
-		models?: modelInterface[];
-		// status?: string; // Used in the UI only.
-		// statusMessage?: string; // Used in the UI only.
-		// updateTimer?: number | NodeJS.Timeout;
+		models?: ModelInterface[];
 	}
 
 	interface KeyInterface {
@@ -36,9 +42,18 @@ declare global {
 		providerID: string;
 		key: string;
 		label: string;
-		// status?: string; // Used in the UI only.
-		// statusMessage?: string; // Used in the UI only.
-		// updateTimer?: number | NodeJS.Timeout;
+	}
+
+	interface ModelInterface {
+		id?: string;
+		name: string;
+		displayName: string;
+		images?: boolean;
+		audio?: boolean;
+		video?: boolean;
+		prefill?: boolean;
+		inputContext: number;
+		providerID: string;
 	}
 
 	interface ProviderApiKeysInterface {
@@ -70,7 +85,7 @@ declare global {
 
 	interface AssistantInterface {
 		id?: string;
-		userID: string;
+		userID?: string;
 		name: string;
 		about?: string;
 		model?: string;
@@ -81,6 +96,8 @@ declare global {
 		assistantInstructionsFromUser: boolean;
 		systemPrompt?: string;
 		images?: boolean;
+		audio?: boolean;
+		video?: boolean;
 		prefill?: boolean;
 	}
 

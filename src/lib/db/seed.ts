@@ -1,6 +1,6 @@
 import { db } from '$lib/db';
 import { eq } from 'drizzle-orm';
-import { AuthUsersTable, assistantsTable, defaultsUUID, modelsTable, providersTable, usersTable } from './schema';
+import { assistantsTable, modelsTable, providersTable, usersTable } from './schema';
 
 const myUSerID = '7c48c881-dd3b-4611-9d63-00358a7a500a';
 
@@ -52,7 +52,7 @@ export const seed = async () => {
 			.values([
 				// OpenAI models
 				{
-					display_name: 'GPT 3.5 Turbo',
+					displayName: 'GPT 3.5 Turbo',
 					images: false,
 					prefill: false,
 					name: 'gpt-3.5-turbo',
@@ -60,21 +60,21 @@ export const seed = async () => {
 					inputContext: 8192
 				},
 				{
-					display_name: 'GPT 4o',
+					displayName: 'GPT 4o',
 					images: true,
 					name: 'gpt-4o',
 					providerID: providers[0].id,
 					inputContext: 128000
 				},
 				{
-					display_name: 'GPT 4o mini',
+					displayName: 'GPT 4o mini',
 					images: true,
 					name: 'gpt-4o-mini',
 					providerID: providers[0].id,
 					inputContext: 128000
 				},
 				{
-					display_name: 'GPT 4',
+					displayName: 'GPT 4',
 					images: false,
 					prefill: false,
 					name: 'gpt-4',
@@ -82,7 +82,7 @@ export const seed = async () => {
 					inputContext: 8192
 				},
 				{
-					display_name: 'GPT 4 Turbo',
+					displayName: 'GPT 4 Turbo',
 					images: false,
 					prefill: false,
 					name: 'gpt-4-turbo-preview',
@@ -92,7 +92,7 @@ export const seed = async () => {
 
 				// Anthropic models
 				{
-					display_name: 'Claude 3.5 Sonnet',
+					displayName: 'Claude 3.5 Sonnet',
 					images: true,
 					maxImages: 20,
 					imageTokens: 1 / 750,
@@ -102,7 +102,7 @@ export const seed = async () => {
 					inputContext: 200000
 				},
 				{
-					display_name: 'Claude 3 Opus',
+					displayName: 'Claude 3 Opus',
 					images: true,
 					maxImages: 20,
 					imageTokens: 1 / 750,
@@ -112,7 +112,7 @@ export const seed = async () => {
 					inputContext: 200000
 				},
 				{
-					display_name: 'Claude 3 Sonnet',
+					displayName: 'Claude 3 Sonnet',
 					images: true,
 					maxImages: 20,
 					imageTokens: 1 / 750,
@@ -122,7 +122,7 @@ export const seed = async () => {
 					inputContext: 200000
 				},
 				{
-					display_name: 'Claude 3 Haiku',
+					displayName: 'Claude 3 Haiku',
 					images: true,
 					maxImages: 20,
 					imageTokens: 1 / 750,
@@ -134,7 +134,7 @@ export const seed = async () => {
 
 				// Google models
 				{
-					display_name: 'Gemini 1.5 Pro',
+					displayName: 'Gemini 1.5 Pro',
 					images: true,
 					maxImages: 3600,
 					video: true,
@@ -146,7 +146,7 @@ export const seed = async () => {
 					inputContext: 2097152
 				},
 				{
-					display_name: 'Gemini 1.5 Pro Flash',
+					displayName: 'Gemini 1.5 Pro Flash',
 					maxImages: 7200,
 					video: true,
 					maxVideo: 2 * 3600,

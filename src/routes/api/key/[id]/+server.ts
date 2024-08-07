@@ -1,6 +1,5 @@
+import { DBdeleteKey, DBgetKey, DBupsertKey } from '$lib/db/utils/keys';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-
-import { S_deleteKey, S_getKey, S_upsertKey } from '$lib/api-server';
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	if (!user) {
@@ -13,7 +12,7 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 		return error(400, 'Key ID in URL does not match the ID in body');
 	}
 
-	const updatedKey = await S_upsertKey(key, user.id);
+	const updatedKey = await DBupsertKey(key, user.id);
 	return json(updatedKey);
 };
 
@@ -26,8 +25,8 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) 
 		return error(400, 'Key ID is required');
 	}
 
-	const assistant = await S_getKey(id, user.id);
-	return json(assistant);
+	const key = await DBgetKey(id, user.id);
+	return json(key);
 };
 
 export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } }) => {
@@ -39,6 +38,6 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 		return error(400, 'Key ID is required');
 	}
 
-	await S_deleteKey(id, user.id);
-	return json({ id });
+	const res = await DBdeleteKey(id, user.id);
+	return json({ res });
 };

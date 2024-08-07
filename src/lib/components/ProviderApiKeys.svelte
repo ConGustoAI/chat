@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Trash2, Check } from 'lucide-svelte';
-	import { upsertProvider, upsertKey, deleteProvider, deleteKey } from '$lib/api-client.js';
 	import { beforeNavigate } from '$app/navigation';
+	import { upsertKey } from '$lib/api';
+	import { assert } from '$lib/utils';
+	import { Check, Trash2 } from 'lucide-svelte';
 
 	export let apiKey: KeyInterface;
 	export let onDeleteKey;
@@ -27,6 +28,9 @@
 				upsertKey(apiKey)
 					.then((res) => {
 						status = 'saved';
+						console.log('res', res);
+						assert(!apiKey.id || res.id == apiKey.id, 'ID mismatch');
+						apiKey.id = res.id;
 						updateTimer = setTimeout(() => {
 							status = null;
 						}, 2000);
@@ -52,17 +56,16 @@
 <input type="text" class="input input-bordered" bind:value={apiKey.label} on:input={statusChanged} spellcheck="false" />
 <input type="text" class="input input-bordered" bind:value={apiKey.key} on:input={statusChanged} spellcheck="false" />
 <button
-	class="btn btn-outline col-span-1"
+	class="btn btn-outline"
 	on:click={() => {
 		status = 'saving';
 		onDeleteKey();
 	}}>
 	<Trash2 />
 </button>
-<div class="relative size-full self-center">
-	<!-- <div class="absolute">{provider.status}</div> -->
+<div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
-	<div class="absolute" class:hidden={status !== 'saved'}>
+	<div class="absolute top-1" class:hidden={status !== 'saved'}>
 		<Check />
 	</div>
 </div>

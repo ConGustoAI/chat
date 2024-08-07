@@ -13,6 +13,5 @@
 </script>
 
 <ModeWatcher />
-<!-- <button on:click={cycleTheme}>Toggle Mode</button> -->
 
 <slot />

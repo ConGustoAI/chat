@@ -2,99 +2,75 @@
 	import { Plus, SaveAll } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { SpinButton } from '$lib/components';
-	export let data;
 
 	import { Assistant } from '$lib/components';
+	import { onMount } from 'svelte';
+	import { deleteAssistant, fetchAssistants, fetchProviders, fetchUser } from '$lib/api';
 
-	let { userData, providers } = data;
-	let assistants: AssistantInterface[] = data.assistants;
+	let assistants: AssistantInterface[] = [];
+	let providers: ProviderInterface[] = [];
+	let user: UserInterface | undefined;
+	let models: ModelInterface[] = [];
 
-	let saving = false;
-	let save_message = '';
-	let save_success = true;
-
-	$: {
-		assistants, (save_message = '');
-	}
-
-	async function submitData() {
-		console.log('submit');
-		saving = true;
-		const res1 = await fetch('/settings/assistants/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-
-			body: JSON.stringify(assistants)
-		});
-		console.log(res1);
-
-		if (res1.ok) {
-			save_message = 'Settings saved successfully';
-			save_success = true;
-		} else {
-			save_message = (await res1.json()).message;
-			save_success = false;
-		}
-
-		saving = false;
-		invalidateAll();
-	}
+	onMount(async () => {
+		const [fetchedAssistants, fetchedProviders, fetchedUser] = await Promise.all([
+			fetchAssistants(),
+			fetchProviders(true, true),
+			fetchUser()
+		]);
+		assistants = fetchedAssistants;
+		providers = fetchedProviders;
+		user = fetchedUser;
+		models = providers.flatMap((p) => p.models ?? []);
+		console.log('assistants 2', { assistants, providers, user, models });
+	});
 
 	function addAssistant() {
+		console.log('add assistant');
 		assistants = [
+			...assistants,
 			{
+				userID: user!.id,
 				name: 'New assistant',
-				userID: userData?.id,
 				aboutUserFromUser: true,
 				assistantInstructionsFromUser: true,
 				images: false,
 				prefill: false
-			},
-			...assistants
+			}
 		];
 	}
 
-	function deleteAssistant(toDelete: (typeof assistants)[0]) {
-		assistants = assistants.filter((a) => a !== toDelete);
+	async function doDeleteAssistant(idx: number) {
+		console.log('delete assistant', idx);
+		if (assistants[idx].id) {
+			// Delete from the database
+			await deleteAssistant(assistants[idx].id);
+		}
+		assistants = assistants.filter((_, index) => index !== idx);
 	}
 </script>
 
 <div class="flex flex-col gap-1">
-	<div class="divider m-1"></div>
 	<div class="div flex gap-2">
-		<div>
-			<button
-				class="btn btn-outline"
-				on:click={() => {
-					addAssistant();
-				}}><Plus /> Add assistant</button>
-		</div>
 		<h2 class="card-title">Assistants</h2>
-		<div class="divider m-1"></div>
 	</div>
 
-	{#each assistants as assistant, i}
-		<Assistant
-			bind:assistant={assistant}
-			providers={providers}
-			aboutUser={userData?.aboutUser ?? ''}
-			instructions={userData?.assistantInstructions ?? ''}
-			deleteAssistant={deleteAssistant} />
-	{/each}
+	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,12rem,12rem,auto,6rem,6rem,0] gap-4 gap-y-2">
+		<div class="font-bold">Name</div>
+		<div class="font-bold">Model</div>
+		<div class="font-bold">API key</div>
+		<div class="font-bold">Descripton</div>
+		<div />
+		<div />
+		<div />
 
-	<!-- {#each providers as provider, i}
-		<ProviderModels bind:provider={provider} />
-	{/each} -->
-
-	<SpinButton class="mt-10 rounded-md" loading={saving} onClick={submitData} IconComponent={SaveAll}
-		>Save all</SpinButton>
-	{#if save_message}
-		<div class="alert" class:alert-success={save_success} class:alert-error={!save_success}>
-			<span>{save_message}</span>
-		</div>
-	{/if}
+		{#each assistants as assistant, i}
+			<Assistant bind:assistant {models} {providers} {user} {i} onDeleteAssistant={() => doDeleteAssistant(i)} />
+		{/each}
+		<button class="btn btn-outline w-fit" on:click={addAssistant}>
+			<Plus />Assistant
+		</button>
+	</div>
 </div>
 
-<pre>{JSON.stringify({ assistants, userData, providers }, null, 2)}</pre>
+<!-- <pre>{JSON.stringify({ assistants, user, models }, null, 2)}</pre> -->
