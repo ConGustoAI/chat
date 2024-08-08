@@ -28,7 +28,6 @@ export async function DBupdateUser(user: UserInterface) {
 				name: sql`excluded.name`,
 				email: sql`excluded.email`,
 				defaultAgent: sql`excluded.default_agent`,
-				defaultAbout: sql`excluded.default_about`,
 				aboutUser: sql`excluded.about_user`,
 				assistantInstructions: sql`excluded.assistant_instructions`
 			}

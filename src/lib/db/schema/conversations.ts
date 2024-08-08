@@ -10,7 +10,7 @@ export const conversationsTable = pgTable('conversations', {
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	assistant: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
-	summary: text('title'),
+	summary: text('summary'),
 	like: boolean('like').default(false),
 	deleted: boolean('deleted').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -19,8 +19,6 @@ export const conversationsTable = pgTable('conversations', {
 		.defaultNow()
 		.$onUpdate(() => new Date())
 });
-
-
 
 export const conversationTableRelations = relations(conversationsTable, ({ one, many }) => ({
 	user: one(usersTable, {

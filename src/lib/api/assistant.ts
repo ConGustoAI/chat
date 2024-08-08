@@ -2,13 +2,13 @@ export async function fetchAssistants() {
 	const res = await fetch('/api/assistant');
 	if (!res.ok) throw new Error(`Failed to fetch assistants: ${await res.text()}`);
 
-	return await res.json();
+	return (await res.json()) as AssistantInterface[];
 }
 
 export async function fetchAssistant(id: string) {
 	const res = await fetch(`/api/assistant/${id}`);
 	if (!res.ok) throw new Error(`Failed to fetch assistant: ${await res.text()}`);
-	return await res.json();
+	return (await res.json()) as AssistantInterface;
 }
 
 export async function upsertAssistant(assistant: AssistantInterface) {
@@ -28,7 +28,7 @@ export async function upsertAssistant(assistant: AssistantInterface) {
 	}
 
 	if (!res.ok) throw new Error(`Failed to update assistant: ${await res.text()}`);
-	return await res.json();
+	return (await res.json()) as AssistantInterface;
 }
 
 export async function deleteAssistant(id: string) {
@@ -39,5 +39,5 @@ export async function deleteAssistant(id: string) {
 
 	console.log('deleteAssistant', res);
 	if (!res.ok) throw new Error(`Failed to delete assistant: ${await res.text()}`);
-	return await res.json();
+	return (await res.json()) as AssistantInterface;
 }

@@ -1,8 +1,8 @@
+import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '..';
 import { apiKeysTable } from '../schema';
-import { undefineExtras } from '$lib/utils';
-import { eq, sql } from 'drizzle-orm';
 
 export async function DBgetKeys(userID: string) {
 	const keys = await db.query.providersTable.findMany({
@@ -34,6 +34,7 @@ export async function DBgetKey(id: string, userID: string) {
 }
 
 export async function DBupsertKey(key: KeyInterface, userID: string) {
+	key = undefineExtras(key);
 	if (key.id) {
 		// Check the key belongs to the user
 		const userProviders = await db.query.providersTable.findFirst({
@@ -44,31 +45,23 @@ export async function DBupsertKey(key: KeyInterface, userID: string) {
 		if (!userProviders) {
 			error(403, 'Tried to update a key for a provider that does not belong to the user');
 		}
+
+		const update = await db.update(apiKeysTable).set(key).where(eq(apiKeysTable.id, key.id)).returning();
+
+		if (!update?.length) {
+			error(403, 'Failed to update key');
+		}
+
+		return update[0];
 	}
 
-	key = undefineExtras(key);
+	const insert = await db.insert(apiKeysTable).values(key).onConflictDoNothing().returning();
 
-	const insertionResult = await db
-		.insert(apiKeysTable)
-		.values(undefineExtras(key))
-		.onConflictDoUpdate({
-			target: [apiKeysTable.id],
-			set: {
-				id: sql`excluded.id`,
-				providerID: sql`excluded.provider`,
-				label: sql`excluded.label`,
-				key: sql`excluded.key`
-			}
-		})
-		.returning();
-
-	console.log('key insert', insertionResult);
-
-	if (!insertionResult || !insertionResult.length) {
-		error(500, 'Failed to update key');
+	if (!insert || !insert.length) {
+		error(500, 'Failed to insert key');
 	}
 
-	return insertionResult[0];
+	return insert[0];
 }
 
 export async function DBdeleteKey(id: string, userID: string) {

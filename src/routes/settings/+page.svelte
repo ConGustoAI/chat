@@ -5,7 +5,7 @@
 	import { Check } from 'lucide-svelte';
 
 	let user: UserInterface | undefined;
-	let assistants: ProviderInterface[] = [];
+	let assistants: AssistantInterface[] = [];
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -76,12 +76,7 @@
 		<div class="flex gap-4">
 			<label class="flex flex-col">
 				<span class="label label-text">Name</span>
-				<input
-					type="text"
-					class="input input-bordered w-full"
-					bind:value={user.name}
-					on:input={statusChanged}
-					spellcheck="false" />
+				<input type="text" class="input input-bordered w-full" bind:value={user.name} on:input={statusChanged} spellcheck="false" />
 			</label>
 
 			<label class="flex flex-col">
@@ -97,20 +92,12 @@
 		<div class="divider w-full">Information for the Assistant</div>
 		<label class="flex flex-col">
 			<span class="label label-text">About you</span>
-			<textarea
-				class="textarea textarea-bordered h-24 w-full"
-				bind:value={user.aboutUser}
-				on:input={statusChanged}
-				spellcheck="false"></textarea>
+			<textarea class="textarea textarea-bordered h-24 w-full" bind:value={user.aboutUser} on:input={statusChanged} spellcheck="false"></textarea>
 		</label>
 
 		<label class="flex flex-col">
 			<span class="label label-text">Instructions</span>
-			<textarea
-				class="textarea textarea-bordered h-24 w-full"
-				bind:value={user.assistantInstructions}
-				on:input={statusChanged}
-				spellcheck="false"></textarea>
+			<textarea class="textarea textarea-bordered h-24 w-full" bind:value={user.assistantInstructions} on:input={statusChanged} spellcheck="false"></textarea>
 		</label>
 	</section>
 {/if}

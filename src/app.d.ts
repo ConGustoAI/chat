@@ -120,21 +120,25 @@ declare global {
 		}[];
 	}
 
+	interface MessageInterface {
+		id?: string;
+		conversationId: string;
+		role: 'user' | 'assistant';
+		text: string;
+		usageIn?: number;
+		usageOut?: number;
+		finishReason?: string;
+		deleted?: boolean;
+	}
+
 	interface ConversationInterface {
 		id: string;
+		userID?: string;
 		assistant?: string;
 		summary?: string;
 		like?: boolean;
-		messages?: {
-			id?: string;
-			conversationId?: string;
-			role: 'user' | 'assistant';
-			text: string;
-			usageIn?: number;
-			usageOut?: number;
-			finishReason?: string;
-			deleted?: boolean;
-		}[];
+		deleted?: boolean;
+		messages?: MessageInterface[];
 	}
 }
 

@@ -1,19 +1,16 @@
-export async function fetchHistory() {
-	const res = await fetch('/api/history');
-	if (!res.ok) throw new Error('Failed to fetch conversations');
+export async function fetchConversations() {
+	const res = await fetch('/api/conversation');
+	if (!res.ok) throw new Error('Failed to fetch conversations: ' + (await res.json()).message);
 	const data = await res.json();
 
-	const historyDict: Record<string, ConversationInterface> = {};
-
-	for (const conversation of data) {
-		historyDict[conversation.id] = conversation;
-	}
-	return historyDict;
+	return data as ConversationInterface[];
 }
 
-export async function fetchConversation(id: string) {
-	const res = await fetch(`/api/conversation/${id}`);
-	if (!res.ok) throw new Error('Failed to fetch conversation');
+export async function fetchConversation(id: string, withMessages = false) {
+	const queryParams = new URLSearchParams();
+	if (withMessages) queryParams.append('messages', 'true');
+	const res = await fetch(`/api/conversation/${id}?${queryParams}`);
+	if (!res.ok) throw new Error('Failed to fetch conversation: ' + (await res.json()).message);
 
 	return await res.json();
 }
@@ -34,7 +31,7 @@ export async function upsertConversation(conversation: ConversationInterface) {
 		});
 	}
 
-	if (!res.ok) throw new Error('Failed to update conversation');
+	if (!res.ok) throw new Error('Failed to update conversation: ' + (await res.json()).message);
 	return await res.json();
 }
 
@@ -44,6 +41,6 @@ export async function deleteConversation(id: string) {
 		headers: { 'Content-Type': 'application/json' }
 	});
 
-	if (!res.ok) throw new Error('Failed to delete conversation');
+	if (!res.ok) throw new Error('Failed to delete conversation: ' + (await res.json()).message);
 	return await res.json();
 }

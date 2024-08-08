@@ -6,7 +6,6 @@
 	import { goto } from '$app/navigation';
 
 	export let message: string;
-	// export let conversations: Record<string, ConversationInterface>;
 	export let conversation: ConversationInterface | undefined;
 	let chatLoading: boolean;
 	let chatError: string | undefined;

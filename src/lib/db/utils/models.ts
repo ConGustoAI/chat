@@ -1,8 +1,8 @@
+import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '../index';
 import { modelsTable } from '../schema';
-import { undefineExtras } from '$lib/utils';
-import { eq, sql } from 'drizzle-orm';
 
 export async function DBgetModels(userID: string) {
 	const models = await db.query.providersTable.findMany({
@@ -34,6 +34,7 @@ export async function DBgetModel(id: string, userID: string) {
 }
 
 export async function DBupsertModel(model: ModelInterface, userID: string) {
+	model = undefineExtras(model);
 	if (model.id) {
 		// Check the model belongs to the user
 		const userProviders = await db.query.providersTable.findFirst({
@@ -41,34 +42,15 @@ export async function DBupsertModel(model: ModelInterface, userID: string) {
 			columns: { id: true }
 		});
 
-		if (!userProviders) {
-			error(403, 'Tried to update a model for a provider that does not belong to the user');
-		}
+		if (!userProviders) error(403, 'Tried to update a model for a provider that does not belong to the user');
+
+		const update = await db.update(modelsTable).set(model).where(eq(modelsTable.id, model.id)).returning();
+		if (!update?.length) error(403, 'Failed to update model');
+		return update[0];
 	}
-	model = undefineExtras(model);
 
-	console.log(model);
-
-	const insertionResult = await db
-		.insert(modelsTable)
-		.values(undefineExtras(model))
-		.onConflictDoUpdate({
-			target: [modelsTable.id],
-			set: {
-				id: sql`excluded.id`,
-				name: sql`excluded.name`,
-				displayName: sql`excluded.display_name`,
-				images: sql`excluded.images`,
-				prefill: sql`excluded.prefill`,
-				inputContext: sql`excluded.input_context`,
-				providerID: sql`excluded.provider`
-			}
-		})
-		.returning();
-
-	if (!insertionResult || !insertionResult.length) {
-		error(500, 'Failed to update model');
-	}
+	const insertionResult = await db.insert(modelsTable).values(undefineExtras(model)).onConflictDoNothing().returning();
+	if (!insertionResult || !insertionResult.length) error(500, 'Failed to update model');
 
 	return insertionResult[0];
 }

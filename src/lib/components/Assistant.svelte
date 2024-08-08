@@ -36,7 +36,6 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				console.log('assistant', assistant);
 				upsertAssistant(assistant)
 					.then((res) => {
 						console.log('res', res);
@@ -66,12 +65,7 @@
 	let detailsToggled = false;
 </script>
 
-<input
-	type="text"
-	class="input input-bordered w-full"
-	bind:value={assistant.name}
-	on:input={statusChanged}
-	spellcheck="false" />
+<input type="text" class="input input-bordered w-full" bind:value={assistant.name} on:input={statusChanged} spellcheck="false" />
 
 <select class="select select-bordered w-full" bind:value={assistant.model} on:change={statusChanged}>
 	{#each providers as provider}
@@ -94,12 +88,7 @@
 	{/if}
 </select>
 
-<input
-	type="text"
-	class="input input-bordered w-full"
-	bind:value={assistant.about}
-	spellcheck="false"
-	on:change={statusChanged} />
+<input type="text" class="input input-bordered w-full" bind:value={assistant.about} spellcheck="false" on:change={statusChanged} />
 <button class="btn btn-outline w-full" on:click={() => (detailsToggled = !detailsToggled)}> Details </button>
 
 <button
@@ -167,16 +156,11 @@
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
 				<div class="label">
-					<span class="label-text"
-						>About user. Include into system prompt with <code class="font-bold">{@html `{about}`}</code></span>
+					<span class="label-text">About user. Include into system prompt with <code class="font-bold">{@html `{about}`}</code></span>
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="aboutUserFromUser" class="cursor-pointer text-sm">From user's profile</label>
-					<input
-						type="checkbox"
-						class="checkbox checkbox-xs"
-						bind:checked={assistant.aboutUserFromUser}
-						id="aboutUserFromUser" />
+					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.aboutUserFromUser} id="aboutUserFromUser" />
 				</div>
 			</div>
 
@@ -190,19 +174,12 @@
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
 				<div class="label">
-					<span class="label-text"
-						>Assistant instructions. Include into system prompt with <code class="font-bold"
-							>{@html `{instructions}`}</code
-						></span>
+					<span class="label-text">Assistant instructions. Include into system prompt with <code class="font-bold">{@html `{instructions}`}</code></span>
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="instructionsFromUser" class="cursor-pointer text-sm">From user's profile</label>
 
-					<input
-						type="checkbox"
-						class="checkbox checkbox-xs"
-						bind:checked={assistant.assistantInstructionsFromUser}
-						id="instructionsFromUser" />
+					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.assistantInstructionsFromUser} id="instructionsFromUser" />
 				</div>
 			</div>
 

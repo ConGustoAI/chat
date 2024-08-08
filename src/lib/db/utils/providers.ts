@@ -1,8 +1,8 @@
+import { undefineExtras } from '$lib/utils';
 import { error } from 'console';
+import { and, eq } from 'drizzle-orm';
 import { db } from '..';
 import { providersTable } from '../schema';
-import { and, eq, sql } from 'drizzle-orm';
-import { undefineExtras } from '$lib/utils';
 
 export async function DBgetProviders(userID: string, withKeys: boolean, withModels: boolean) {
 	const providers = await db.query.providersTable.findMany({
@@ -39,45 +39,28 @@ export async function DBdeleteProvider(id: string, userID: string) {
 }
 
 export async function DBupsertProvider(provider: ProviderInterface, userID: string) {
-	const updatedProvider = await db.transaction(async (tx) => {
-		if (provider.id) {
-			// Check the provider belongs to the user
-			const userProviders = await tx.query.providersTable.findFirst({
-				where: (table, { eq, and }) => and(eq(table.id, provider.id!), eq(table.userID, userID)),
-				columns: { id: true }
-			});
+	provider = undefineExtras(provider);
 
-			if (!userProviders) {
-				error(403, 'Tried to update a provider that does not belong to the user');
-			}
-		} else {
-			provider.userID = userID;
-		}
-
-		provider = undefineExtras(provider);
-
-		const insertionResult = await tx
-			.insert(providersTable)
-			// @ts-expect-error provider.userID is not undefined here.
-			.values(undefineExtras(provider))
-			.onConflictDoUpdate({
-				target: [providersTable.id],
-				set: {
-					id: sql`excluded.id`,
-					name: sql`excluded.name`,
-					type: sql`excluded.type`,
-					baseURL: sql`excluded.base_url`,
-					userID: sql`excluded.user_id`
-				}
-			})
+	if (provider.id) {
+		const update = await db
+			.update(providersTable)
+			.set(provider)
+			.where(and(eq(providersTable.id, provider.id), eq(providersTable.userID, userID)))
 			.returning();
 
-		if (!insertionResult || insertionResult.length === 0) {
-			error(500, 'Failed to update provider');
-		}
+		if (!update.length) error(403, 'Tried to update a provider that does not exist or does not belong to the user');
+		return update[0];
+	}
 
-		return insertionResult[0];
-	});
+	provider.userID = userID;
+	const insertionResult = await db
+		.insert(providersTable)
+		// @ts-expect-error provider.userID is not undefined here.
+		.values(undefineExtras(provider))
+		.onConflictDoNothing()
+		.returning();
 
-	return updatedProvider;
+	if (!insertionResult.length) error(500, 'Failed to update provider');
+
+	return insertionResult[0];
 }

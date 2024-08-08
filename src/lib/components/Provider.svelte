@@ -95,7 +95,6 @@
 				status = 'saving';
 				upsertProvider(provider)
 					.then((res) => {
-						console.log(res);
 						status = 'saved';
 						assert(!provider.id || provider.id === res.id, "Returned provider ID doesn't match");
 						provider.id = res.id;
@@ -120,23 +119,13 @@
 	let modelToggled = false;
 </script>
 
-<input
-	type="text"
-	class="input input-bordered w-full"
-	bind:value={provider.name}
-	on:input={statusChanged}
-	spellcheck="false" />
+<input type="text" class="input input-bordered w-full" bind:value={provider.name} on:input={statusChanged} spellcheck="false" />
 <select class="select select-bordered w-full" bind:value={provider.type} on:change={statusChanged}>
 	{#each types as type}
 		<option value={type.value}>{capitalize(type.label)}</option>
 	{/each}
 </select>
-<input
-	type="text"
-	class="input input-bordered w-full"
-	bind:value={provider.baseURL}
-	spellcheck="false"
-	on:change={statusChanged} />
+<input type="text" class="input input-bordered w-full" bind:value={provider.baseURL} spellcheck="false" on:change={statusChanged} />
 
 <button class="btn btn-outline w-full" on:click={() => (keysToggled = !keysToggled)}> API Keys </button>
 <button class="btn btn-outline w-full" on:click={() => (modelToggled = !modelToggled)}> Models </button>
@@ -163,8 +152,7 @@
 	<span />
 	<div class="col-span-6 mb-6 w-full">
 		<div class="divider">{provider.name} Models</div>
-		<div
-			class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+		<div class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 			<span class="label-text">Display name</span>
 			<span class="label-text">Model name</span>
 			<span class="label-text w-full">Input context</span>
@@ -177,7 +165,7 @@
 
 			{#if provider.models}
 				{#each provider.models as model, j}
-					<ProviderModels bind:model={model} onDeleteModel={() => onDeleteModel(provider, j)} />
+					<ProviderModels bind:model onDeleteModel={() => onDeleteModel(provider, j)} />
 				{/each}
 			{/if}
 			<button
