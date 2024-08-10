@@ -1,13 +1,19 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
+import dbg from 'debug';
+
+const debug = dbg('/api/history');
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { user } = locals;
 
+	debug('GET');
+
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
+
 	const conversations = await db.query.conversationsTable.findMany({
 		where: (table, { eq }) => eq(table.userID, user.id),
 		columns: {
@@ -20,5 +26,6 @@ export const GET: RequestHandler = async ({ locals }) => {
 		orderBy: (table, { desc }) => desc(table.createdAt)
 	});
 
+	debug('GET -> ', conversations);
 	return json(conversations);
 };

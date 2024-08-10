@@ -4,20 +4,33 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable } from '../schema';
 
-export async function DBgetConversations(userID: string) {
+export async function DBgetConversations(userID: string, withDeleted: boolean = false) {
 	const conversations = await db.query.conversationsTable.findMany({
-		where: (table, { eq, and }) => and(eq(table.userID, userID), eq(table.deleted, false)),
-		orderBy: (table, { desc }) => [desc(table.updatedAt)]
+		where: (table, { eq }) => eq(table.userID, userID),
+		orderBy: (table, { desc }) => [desc(table.order)]
 	});
+
+	if (!conversations) {
+		error(500, 'Failed to fetch conversations');
+	}
+
+	if (!withDeleted) {
+		return conversations.filter((conversation) => !conversation.deleted);
+	}
 
 	return conversations;
 }
 
-export async function DBgetConversation(id: string, userID: string, withMessages: boolean = false) {
+export async function DBgetConversation(
+	id: string,
+	userID: string,
+	withMessages: boolean = false,
+	withDeleted: boolean = false
+) {
 	const conversation = await db.query.conversationsTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, userID), eq(table.deleted, false)),
+		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, userID)),
 		with: {
-			...(withMessages && { messages: true })
+			...(withMessages && { messages: { orderBy: (table, { asc }) => [asc(table.order)] } })
 		}
 	});
 
@@ -25,25 +38,29 @@ export async function DBgetConversation(id: string, userID: string, withMessages
 		error(404, 'Conversation not found or does not belong to the user');
 	}
 
+	if (!withDeleted) {
+		conversation.messages = conversation.messages.filter((message) => !message.deleted);
+	}
+
 	return conversation;
 }
 
 export async function DBupsertConversation(conversation: ConversationInterface, userID: string) {
-    conversation = undefineExtras(conversation);
-    conversation.userID = userID; // Ensure userID is set
+	conversation = undefineExtras(conversation);
+	conversation.userID = userID; // Ensure userID is set
 
-    if (conversation.id) {
-		const upsete = await db
+	if (conversation.id) {
+		const upsert = await db
 			.update(conversationsTable)
 			.set(conversation)
 			.where(eq(conversationsTable.id, conversation.id))
 			.returning();
 
-        if (!upsete?.length) {
-            error(403, 'Tried to update a conversation that does not exist or does not belong to the user');
-        }
+		if (!upsert?.length) {
+			error(403, 'Tried to update a conversation that does not exist or does not belong to the user');
+		}
 
-        return upsete[0];
+		return upsert[0];
 	}
 
 	const insert = await db

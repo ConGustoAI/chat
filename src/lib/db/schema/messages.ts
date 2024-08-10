@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { relations } from 'drizzle-orm';
@@ -7,6 +7,7 @@ import { messageMediaTable } from './media';
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 export const messagesTable = pgTable('messages', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	order: serial('order'),
 	conversationId: uuid('conversation_id')
 		.references(() => conversationsTable.id, { onDelete: 'cascade' })
 		.notNull(),

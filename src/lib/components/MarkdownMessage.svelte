@@ -1,21 +1,22 @@
 <script lang="ts">
-	import 'katex/dist/katex.min.css';
 	import 'highlight.js/styles/github-dark.min.css';
-	import { Computer, Smile } from 'lucide-svelte';
+	import 'katex/dist/katex.min.css';
 
+	import rehypeHighlight from 'rehype-highlight';
+	import rehypeKatex from 'rehype-katex';
 	import rehypeStringify from 'rehype-stringify';
+	import remarkGfm from 'remark-gfm';
+	import remarkMath from 'remark-math';
 	import remarkParse from 'remark-parse';
 	import remarkRehype from 'remark-rehype';
-	import remarkMath from 'remark-math';
-	import rehypeKatex from 'rehype-katex';
 	import { unified } from 'unified';
-	import rehypeHighlight from 'rehype-highlight';
 
-	export let conversation: ConversationInterface;
-	export let displayStyle: 'markdown' | 'markdown+' | 'raw';
+	import { common } from 'lowlight';
 
+	export let message: MessageInterface;
+
+	import type { Element, Node, Root } from 'hast';
 	import { visit } from 'unist-util-visit';
-	import type { Element, Root } from 'hast';
 
 	import { h, s } from 'hastscript';
 
@@ -31,7 +32,6 @@
 				) {
 					const isMathInline = node.properties.className?.includes('math-inline');
 
-					console.log(JSON.stringify(node, null, 2));
 					const newChildren = [
 						// @ts-ignore
 						h('code', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value),
@@ -70,14 +70,26 @@ this.childNodes.forEach((node) => {
 					node.tagName === 'pre' &&
 					(!Array.isArray(node.properties.className) || !node.properties.className.includes('copy-button'))
 				) {
-					// There may be a more elegant way to implement this!
+					let className = (node.children as Element[])[0].properties.className;
+					let language = 'unknown';
+
+					if (typeof className === 'string') className = className.split(' ');
+					if (Array.isArray(className)) {
+						for (const cls of className) {
+							if (typeof cls === 'string' && cls.startsWith('language-')) {
+								language = cls.slice(9);
+								break;
+							}
+						}
+					}
+
 					const copyButton: Element = h(
-						'.btn .btn-sm .rounded-md .absolute .top-1 .right-1',
+						'.btn btn-ghost  .rounded-md size-5 p-0 mr-1 min-h-fit',
 						{
 							onClick: `
 const preElement = this.closest('pre');
 if (preElement) {
-	navigator.clipboard.writeText(preElement.textContent);
+	navigator.clipboard.writeText(preElement.childNodes[1].textContent);
 }`
 						},
 						[
@@ -85,8 +97,6 @@ if (preElement) {
 								'svg',
 								{
 									xmlns: 'http://www.w3.org/2000/svg',
-									width: '18',
-									height: '18',
 									viewBox: '0 0 24 24',
 									fill: 'none',
 									stroke: 'currentColor',
@@ -103,8 +113,15 @@ if (preElement) {
 						]
 					);
 
-					const newNode = h('pre .relative .p-0 copy-button');
-					newNode.children = [...node.children, copyButton];
+					const header = h('div', { class: 'flex justify-between items-center bg-secondary-content' }, [
+						s('span', { class: 'text-sm text-gray-500' }, language),
+						copyButton
+					]);
+
+					// There may be a more elegant way to implement this!
+
+					const newNode = h('pre .relative copy-button');
+					newNode.children = [header, ...node.children];
 
 					Object.assign(node, newNode);
 				}
@@ -112,12 +129,12 @@ if (preElement) {
 		};
 	}
 
-	function parseMarkdown(text: string, style: typeof displayStyle) {
-		if (style === 'raw') return `<pre>${text}</pre>`;
+	function parseMarkdown(text: string) {
 		const res = unified()
 			.use(remarkParse)
+			.use(remarkGfm)
 			.use(remarkMath)
-			.use(remarkRehype)
+			.use(remarkRehype, { allowDangerousHtml: true })
 			.use(rehypeHighlight, { detect: true })
 			.use(rehypeCopyButton)
 			.use(rehypeClickFormulas)
@@ -128,21 +145,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="flex max-w-full flex-col">
-	{#if conversation?.messages}
-		{#each conversation.messages as m}
-			<div class="flex w-full items-start" class:bg-secondary-content={m.role == 'user'}>
-				<div class="div items-start px-3 py-3">
-					{#if m.role == 'user'}
-						<Smile size="24" />
-					{:else}
-						<Computer size="24" />
-					{/if}
-				</div>
-				<div class=" prose max-w-none grow pt-2">
-					{@html parseMarkdown(m.text, displayStyle)}
-				</div>
-			</div>
-		{/each}
-	{/if}
+<div class="prose max-w-none grow pt-2">
+	{@html parseMarkdown(message.text)}
 </div>

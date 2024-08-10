@@ -81,7 +81,7 @@
 
 			<label class="flex flex-col">
 				<span class="label label-text">Default Assistant</span>
-				<select class="select select-bordered w-full" bind:value={user.defaultAgent} on:change={statusChanged}>
+				<select class="select select-bordered w-full" bind:value={user.assistant} on:change={statusChanged}>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}
@@ -92,12 +92,17 @@
 		<div class="divider w-full">Information for the Assistant</div>
 		<label class="flex flex-col">
 			<span class="label label-text">About you</span>
-			<textarea class="textarea textarea-bordered h-24 w-full" bind:value={user.aboutUser} on:input={statusChanged} spellcheck="false"></textarea>
+			<textarea class="textarea textarea-bordered h-24 w-full" bind:value={user.aboutUser} on:input={statusChanged} spellcheck="false"
+			></textarea>
 		</label>
 
 		<label class="flex flex-col">
 			<span class="label label-text">Instructions</span>
-			<textarea class="textarea textarea-bordered h-24 w-full" bind:value={user.assistantInstructions} on:input={statusChanged} spellcheck="false"></textarea>
+			<textarea
+				class="textarea textarea-bordered h-24 w-full"
+				bind:value={user.assistantInstructions}
+				on:input={statusChanged}
+				spellcheck="false"></textarea>
 		</label>
 	</section>
 {/if}

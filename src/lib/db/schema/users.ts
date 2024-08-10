@@ -18,7 +18,7 @@ export const usersTable = pgTable('users', {
 		.primaryKey(),
 	name: text('name'),
 	email: text('email'),
-	defaultAgent: text('default_agent'),
+	assistant: text('assistant'),
 	aboutUser: text('about_user'),
 	assistantInstructions: text('assistant_instructions'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),

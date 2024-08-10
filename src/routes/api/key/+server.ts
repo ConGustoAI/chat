@@ -1,30 +1,34 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { info } from 'console';
 import { DBgetKeys, DBupsertKey } from '$lib/db/utils/keys';
+import dbg from 'debug';
+
+const debug = dbg('/api/key');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {
-		return error(401, 'Unauthorized');
+		error(401, 'Unauthorized');
 	}
 
 	const key = await request.json();
+	debug('POST <- ', key);
 
 	if (key.id) {
-		return error(400, 'ID should not be set for a new key');
+		error(400, 'ID should not be set for a new key');
 	}
 
-	const updatedKey = await DBupsertKey(key, user.id);
-	return json(updatedKey);
+	const updated = await DBupsertKey(key, user.id);
+	debug('POST -> ', updated);
+	return json(updated);
 };
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
-	info('GET /api/key');
+	debug('GET');
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
 
 	const keys = await DBgetKeys(user.id);
-	info('GET /api/providers', keys);
+	debug('GET -> ', keys);
 	return json(keys);
 };

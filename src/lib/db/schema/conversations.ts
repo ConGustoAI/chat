@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
@@ -13,6 +13,7 @@ export const conversationsTable = pgTable('conversations', {
 	summary: text('summary'),
 	like: boolean('like').default(false),
 	deleted: boolean('deleted').default(false),
+	order: serial('order').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

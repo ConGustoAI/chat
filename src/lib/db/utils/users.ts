@@ -1,8 +1,8 @@
+import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '../index';
 import { usersTable } from '../schema';
-import { undefineExtras } from '$lib/utils';
-import { eq, sql } from 'drizzle-orm';
 
 export async function DBgetUser(userID: string) {
 	const user = await db.query.usersTable.findFirst({
@@ -19,26 +19,13 @@ export async function DBgetUser(userID: string) {
 export async function DBupdateUser(user: UserInterface) {
 	user = undefineExtras(user);
 
-	const insertionResult = await db
-		.insert(usersTable)
-		.values(user)
-		.onConflictDoUpdate({
-			target: [usersTable.id],
-			set: {
-				name: sql`excluded.name`,
-				email: sql`excluded.email`,
-				defaultAgent: sql`excluded.default_agent`,
-				aboutUser: sql`excluded.about_user`,
-				assistantInstructions: sql`excluded.assistant_instructions`
-			}
-		})
-		.returning();
+	const update = await db.update(usersTable).set(user).where(eq(usersTable.id, user.id)).returning();
 
-	if (!insertionResult || !insertionResult.length) {
+	if (!update || !update.length) {
 		error(500, 'Failed to update user');
 	}
 
-	return insertionResult[0];
+	return update[0];
 }
 
 export async function DBdeleteUser(userID: string) {

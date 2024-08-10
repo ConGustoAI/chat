@@ -1,38 +1,34 @@
-export async function fetchConversations() {
-	const res = await fetch('/api/conversation');
+export async function fetchConversations(withMessages = false) {
+	const queryParams = new URLSearchParams();
+	if (withMessages) queryParams.append('messages', 'true');
+	const res = await fetch('/api/conversation?' + queryParams);
 	if (!res.ok) throw new Error('Failed to fetch conversations: ' + (await res.json()).message);
 	const data = await res.json();
 
 	return data as ConversationInterface[];
 }
 
-export async function fetchConversation(id: string, withMessages = false) {
+export async function fetchConversation(id: string, withMessages = false, withDeleted = false) {
 	const queryParams = new URLSearchParams();
 	if (withMessages) queryParams.append('messages', 'true');
+	if (withMessages && withDeleted) queryParams.append('deleted', 'true');
 	const res = await fetch(`/api/conversation/${id}?${queryParams}`);
 	if (!res.ok) throw new Error('Failed to fetch conversation: ' + (await res.json()).message);
 
-	return await res.json();
+	const data = await res.json();
+	if (!data.id) throw new Error('The conversation ID is missing.');
+	return data as ConversationInterface;
 }
 
 export async function upsertConversation(conversation: ConversationInterface) {
-	let res;
-	if (conversation.id) {
-		res = await fetch(`/api/conversation/${conversation.id}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(conversation)
-		});
-	} else {
-		res = await fetch('/api/conversation', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(conversation)
-		});
-	}
+	const res = await fetch(`/api/conversation` + conversation.id ? '/' + conversation.id : '', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(conversation)
+	});
 
 	if (!res.ok) throw new Error('Failed to update conversation: ' + (await res.json()).message);
-	return await res.json();
+	return (await res.json()) as ConversationInterface;
 }
 
 export async function deleteConversation(id: string) {
@@ -42,5 +38,5 @@ export async function deleteConversation(id: string) {
 	});
 
 	if (!res.ok) throw new Error('Failed to delete conversation: ' + (await res.json()).message);
-	return await res.json();
+	return (await res.json()) as ConversationInterface;
 }

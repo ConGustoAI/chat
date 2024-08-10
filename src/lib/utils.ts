@@ -35,3 +35,14 @@ export function assert(condition: unknown, message: string): asserts condition {
 		throw new Error(message);
 	}
 }
+
+export function errorToMessage(error: unknown): string {
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return 'Unknown error';
+}
+
+export const newConversation = (assistant?: string) => ({
+	assistant
+});

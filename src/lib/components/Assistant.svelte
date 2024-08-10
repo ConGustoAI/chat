@@ -160,14 +160,14 @@
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="aboutUserFromUser" class="cursor-pointer text-sm">From user's profile</label>
-					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.aboutUserFromUser} id="aboutUserFromUser" />
+					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.aboutUserFromUser} id="aboutUserFromUser" on:change={statusChanged} />
 				</div>
 			</div>
 
 			{#if assistant.aboutUserFromUser}
 				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={user?.aboutUser} />
 			{:else}
-				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.aboutUser} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.aboutUser} on:change={statusChanged} />
 			{/if}
 		</div>
 
@@ -179,14 +179,14 @@
 				<div class="flex items-center gap-2">
 					<label for="instructionsFromUser" class="cursor-pointer text-sm">From user's profile</label>
 
-					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.assistantInstructionsFromUser} id="instructionsFromUser" />
+					<input type="checkbox" class="checkbox checkbox-xs" bind:checked={assistant.assistantInstructionsFromUser} id="instructionsFromUser" on:change={statusChanged} />
 				</div>
 			</div>
 
 			{#if assistant.assistantInstructionsFromUser}
 				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={user?.assistantInstructions} />
 			{:else}
-				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.assistantInstructions} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.assistantInstructions} on:change={statusChanged} />
 			{/if}
 		</div>
 
@@ -197,7 +197,7 @@
 				</div>
 			</div>
 
-			<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.systemPrompt} />
+			<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.systemPrompt} on:change={statusChanged} />
 		</div>
 	</div>
 {/if}

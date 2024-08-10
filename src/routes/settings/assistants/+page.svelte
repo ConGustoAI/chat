@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { Plus, SaveAll } from 'lucide-svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { SpinButton } from '$lib/components';
+	import { Plus } from 'lucide-svelte';
 
+	import { deleteAssistant, fetchAssistants, fetchProviders, fetchUser } from '$lib/api';
 	import { Assistant } from '$lib/components';
 	import { onMount } from 'svelte';
-	import { deleteAssistant, fetchAssistants, fetchProviders, fetchUser } from '$lib/api';
 
 	let assistants: AssistantInterface[] = [];
 	let providers: ProviderInterface[] = [];

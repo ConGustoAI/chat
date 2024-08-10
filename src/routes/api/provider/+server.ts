@@ -1,25 +1,30 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { DBgetProviders, DBupsertProvider } from '$lib/db/utils/providers';
+import dbg from 'debug';
+
+const debug = dbg('/api/provider');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
+	debug('POST');
 	if (!user) {
-		return error(401, 'Unauthorized');
+		error(401, 'Unauthorized');
 	}
 
 	const provider = await request.json();
+	debug('POST <- ', provider);
 
 	if (provider.id) {
-		return error(400, 'Provider ID should not be set for a new provider');
+		error(400, 'Provider ID should not be set for a new provider');
 	}
 
-	const updatedAssistant = await DBupsertProvider(provider, user.id);
-	return json(updatedAssistant);
+	const updatedProvider = await DBupsertProvider(provider, user.id);
+	debug('POST -> ', updatedProvider);
+	return json(updatedProvider);
 };
 
-//
 export const GET: RequestHandler = async ({ url, locals: { user } }) => {
-	// info('GET /api/provider');
+	debug('GET');
 
 	if (!user) {
 		error(401, 'Unauthorized');
@@ -29,6 +34,6 @@ export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 	const withModels = url.searchParams.has('models');
 
 	const providers = await DBgetProviders(user.id, withKeys, withModels);
-	// info('GET /api/providers', providers);
+	debug('GET -> ', providers);
 	return json(providers);
 };

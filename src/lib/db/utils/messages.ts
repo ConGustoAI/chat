@@ -49,7 +49,8 @@ export async function DBupsertMessage(message: MessageInterface, userID: string)
 		});
 
 		if (!userMessage) error(404, 'Message not found');
-		if (userMessage.conversationId !== message.conversationId) error(403, 'Tried to update a message that does not belong to the conversation');
+		if (userMessage.conversationId !== message.conversationId)
+			error(403, 'Tried to update a message that does not belong to the conversation');
 		if (userMessage.conversation.userID !== userID) error(403, 'Tried to update a message that does not belong to the user');
 
 		const update = await db.update(messagesTable).set(message).where(eq(messagesTable.id, message.id)).returning();
@@ -58,6 +59,8 @@ export async function DBupsertMessage(message: MessageInterface, userID: string)
 		return update[0];
 	}
 
+	if (!message.conversationId) error(400, 'Missing conversationId');
+	// @ts-expect-error - conversationId is checked above
 	const insertionResult = await db.insert(messagesTable).values(message).onConflictDoNothing().returning();
 
 	if (!insertionResult || !insertionResult.length) {

@@ -14,8 +14,8 @@ const config = {
 			{
 				dark: {
 					...dark,
-					'--rounded-btn': '0'
-
+					'--rounded-btn': '0',
+					'--scrollbar-thumb': '#4B5563'
 					// '--rounded-box': '0'
 				},
 				light: {

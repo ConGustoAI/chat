@@ -1,33 +1,39 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { info } from 'console';
 import { DBgetUser, DBupdateUser } from '$lib/db/utils/users';
+import dbg from 'debug';
+
+const debug = dbg('/api/user');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
+	debug('POST');
 	if (!user) {
-		return error(401, 'Unauthorized');
+		error(401, 'Unauthorized');
 	}
 
 	const userData = await request.json();
+	debug('POST <- ', userData);
 
 	if (!userData.id) {
-		return error(400, 'ID should not set');
+		error(400, 'ID should not set');
 	}
 
 	if (userData.id !== user.id) {
-		return error(400, 'Tried to update a different user');
+		error(400, 'Tried to update a different user');
 	}
 
-	const updatedUserDAta = await DBupdateUser(userData);
-	return json(updatedUserDAta);
+	const updatedUserData = await DBupdateUser(userData);
+	debug('POST -> ', updatedUserData);
+	return json(updatedUserData);
 };
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
+	debug('GET');
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
 
 	const userData = await DBgetUser(user.id);
-	info('GET /api/user', userData);
+	debug('GET -> ', userData);
 	return json(userData);
 };

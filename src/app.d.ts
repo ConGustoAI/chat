@@ -22,7 +22,7 @@ declare global {
 		id: string;
 		name?: string;
 		email?: string;
-		defaultAgent?: string;
+		assistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;
 	}
@@ -122,7 +122,8 @@ declare global {
 
 	interface MessageInterface {
 		id?: string;
-		conversationId: string;
+		order?: number;
+		conversationId?: string;
 		role: 'user' | 'assistant';
 		text: string;
 		usageIn?: number;
@@ -132,7 +133,8 @@ declare global {
 	}
 
 	interface ConversationInterface {
-		id: string;
+		id?: string;
+		order?: number;
 		userID?: string;
 		assistant?: string;
 		summary?: string;

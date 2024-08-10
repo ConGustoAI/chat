@@ -8,9 +8,10 @@
 	export let conversation: ConversationInterface | undefined;
 	export let assistants: AssistantInterface[];
 	export let updatingLike: boolean;
+	export let chatLoading: boolean;
 
 	async function updateLike(e: Event) {
-		if (!conversation || updatingLike || conversation?.id === 'new') return;
+		if (!conversation || updatingLike || !conversation.id) return;
 
 		updatingLike = true;
 
@@ -29,11 +30,11 @@
 	let editingSummary = false;
 </script>
 
-{#if conversation}
-	<div class="navbar min-h-0 bg-primary-content">
-		<div class="navbar-start">
-			{#if conversation?.id === 'new'}
-				<select class="select select-bordered" bind:value={conversation.assistant}>
+<div class="navbar min-h-12 bg-primary-content">
+	<div class="navbar-start">
+		{#if conversation}
+			{#if !conversation.id}
+				<select class="select select-bordered select-sm" bind:value={conversation.assistant}>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}
@@ -42,14 +43,16 @@
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
 				<label class="swap">
-					<input type="checkbox" checked={conversation.like} on:change={updateLike} />
+					<input type="checkbox" bind:checked={conversation.like} on:change={updateLike} />
 					<div class="swap-on"><Star color="yellow" fill="yellow" /></div>
 					<div class="swap-off"><Star color="yellow" /></div>
 				</label>
 			{/if}
-		</div>
-		<div class="navbar-center">
-			<div class="truncate text-center text-xl font-bold">
+		{/if}
+	</div>
+	<div class="navbar-center">
+		<div class="truncate text-center text-xl font-bold">
+			{#if conversation && !chatLoading}
 				{#if editingSummary}
 					<input
 						type="text"
@@ -63,13 +66,15 @@
 						{conversation.summary ?? 'New chat'}
 					</div>
 				{/if}
-			</div>
-		</div>
-		<div class="navbar-end gap-2">
-			<Info />
-			<a href="/settings/">
-				<Settings />
-			</a>
+			{:else}
+				<div class="loading"></div>
+			{/if}
 		</div>
 	</div>
-{/if}
+	<div class="navbar-end gap-2">
+		<Info />
+		<a href="/settings/">
+			<Settings />
+		</a>
+	</div>
+</div>
