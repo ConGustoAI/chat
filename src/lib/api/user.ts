@@ -1,7 +1,7 @@
 export async function fetchUser() {
 	const res = await fetch('/api/user');
 	if (!res.ok) throw new Error('Failed to fetch User');
-	return await res.json() as UserInterface;
+	return (await res.json()) as UserInterface;
 }
 
 export async function updateUser(user: UserInterface) {
@@ -12,7 +12,7 @@ export async function updateUser(user: UserInterface) {
 	});
 
 	if (!res.ok) throw new Error('Failed to update User: ' + (await res.json()).message);
-	return await res.json() as UserInterface;
+	return (await res.json()) as UserInterface;
 }
 
 export async function deleteUser() {

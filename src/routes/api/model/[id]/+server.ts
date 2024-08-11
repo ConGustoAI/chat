@@ -2,7 +2,7 @@ import { DBdeleteModel, DBgetModel, DBupsertModel } from '$lib/db/utils/models';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import dbg from 'debug';
 
-const debug = dbg('/api/model/[id]');
+const debug = dbg('app:api:model/id');
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	if (!user) {

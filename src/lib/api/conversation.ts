@@ -21,7 +21,7 @@ export async function fetchConversation(id: string, withMessages = false, withDe
 }
 
 export async function upsertConversation(conversation: ConversationInterface) {
-	const res = await fetch(`/api/conversation` + conversation.id ? '/' + conversation.id : '', {
+	const res = await fetch(`/api/conversation` + (conversation.id ? '/' + conversation.id : ''), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(conversation)

@@ -22,6 +22,8 @@ declare global {
 		id: string;
 		name?: string;
 		email?: string;
+		admin?: boolean;
+		hacker?: boolean;
 		assistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;

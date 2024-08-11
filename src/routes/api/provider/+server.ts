@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { DBgetProviders, DBupsertProvider } from '$lib/db/utils/providers';
 import dbg from 'debug';
 
-const debug = dbg('/api/provider');
+const debug = dbg('app:api:provider');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	debug('POST');

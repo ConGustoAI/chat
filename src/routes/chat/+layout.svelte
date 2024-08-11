@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { goto, pushState, onNavigate } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { fetchAssistants, fetchConversation, fetchConversations, fetchUser } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, DrawerButton } from '$lib/components';
 	import { errorToMessage, newConversation } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp, Copy, Edit, Repeat } from 'lucide-svelte';
+	import { ChevronUp } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
 	let assistants: AssistantInterface[] = [];
@@ -39,28 +39,26 @@
 		chatLoading = false;
 	});
 
-	// Either uuid of a conversation, or undefined for a new conversation
-	// let convId: string | undefined;
-
 	function updateConversation(convId: string) {
 		console.log('updateConversation', convId);
 		if (convId) {
 			// If the message is already loaded, use it, btut still fetch the updated version just in case.
 			if (conversations[convId]) conversation = conversations[convId];
-
-			chatLoading = true;
-			fetchConversation(convId, true)
-				.then((data) => {
-					conversations[data.id!] = { ...conversations[data.id!], ...data };
-					conversation = conversations[data.id!];
-				})
-				.catch((e) => {
-					console.error('Failed to fetch conversation', e);
-					chatError = 'Failed to fetch conversation:' + errorToMessage(e);
-				})
-				.finally(() => {
-					chatLoading = false;
-				});
+			if (!conversation?.messages) {
+				chatLoading = true;
+				fetchConversation(convId, true)
+					.then((data) => {
+						conversations[data.id!] = { ...conversations[data.id!], ...data };
+						conversation = conversations[data.id!];
+					})
+					.catch((e) => {
+						console.error('Failed to fetch conversation', e);
+						chatError = 'Failed to fetch conversation:' + errorToMessage(e);
+					})
+					.finally(() => {
+						chatLoading = false;
+					});
+			}
 		} else {
 			if (conversation && !conversation.id && !conversation.assistant) {
 				conversation.assistant = user?.assistant ?? assistants[0]?.id ?? undefined;
@@ -101,6 +99,7 @@
 
 		for await (const { type, value } of readDataStream(reader)) {
 			console.log('readDataStream', type, value);
+			if (!conversation.messages) throw new Error('The conversation messages are missing??');
 			if (type === 'text') {
 				conversation.messages[conversation.messages.length - 1].text += value;
 			}
@@ -111,7 +110,6 @@
 
 				for (const dataPart of value) {
 					if (typeof dataPart === 'object' && dataPart !== null) {
-						if (!conversation.messages) throw new Error('The conversation messages are missing??');
 						if ('conversationId' in dataPart) {
 							if (typeof dataPart.conversationId !== 'string') throw new Error('The conversation ID is not a string.');
 							if (conversation.id && conversation.id != dataPart.conversationId)
@@ -153,7 +151,6 @@
 		dropdownElement.open = false;
 		conversation = newConversation(assistantId);
 		goto('/chat');
-		// pushState('/chat', { replaceState: false });
 	}
 </script>
 
@@ -178,12 +175,12 @@
 
 	<div class="mx-0 grow">
 		<div class="flex h-full max-h-screen flex-col">
-			<ChatTitle {chatLoading} bind:conversation {assistants} bind:updatingLike />
+			<ChatTitle {chatLoading} bind:conversation {assistants} bind:user bind:updatingLike />
 
-			<div class="grow overflow-y-scroll">
+			<div class="grow overflow-auto">
 				{#if conversation?.messages}
 					{#each conversation.messages as m}
-						<ChatMessage bind:conversation bind:message={m} {submitConversation} />
+						<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={user?.hacker} />
 					{/each}
 				{/if}
 			</div>

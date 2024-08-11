@@ -2,7 +2,7 @@ import { DBdeleteAssistant, DBgetAssistant, DBupsertsAssistant } from '$lib/db/u
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import dbg from 'debug';
 
-const debug = dbg('/api/assistant/[id]');
+const debug = dbg('/app:api:assistant:id');
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	if (!user) {

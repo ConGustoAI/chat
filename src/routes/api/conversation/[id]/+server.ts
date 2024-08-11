@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { DBdeleteConversation, DBgetConversation, DBupsertConversation } from '$lib/db/utils';
 import dbg from 'debug';
 
-const debug = dbg('/api/conversation/[id]');
+const debug = dbg('app:api:conversation:id');
 
 export const GET: RequestHandler = async ({ locals: { user }, params: { id }, url }) => {
 	if (!user) {

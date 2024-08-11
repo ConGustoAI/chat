@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgSchema, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgSchema, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { providersTable } from './providers';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
@@ -18,6 +18,8 @@ export const usersTable = pgTable('users', {
 		.primaryKey(),
 	name: text('name'),
 	email: text('email'),
+	admin: boolean('admin').default(false),
+	hacker: boolean('hacker').default(false),
 	assistant: text('assistant'),
 	aboutUser: text('about_user'),
 	assistantInstructions: text('assistant_instructions'),

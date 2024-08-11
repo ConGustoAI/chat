@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
 import dbg from 'debug';
 
-const debug = dbg('/api/history');
+const debug = dbg('app:api:history');
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { user } = locals;

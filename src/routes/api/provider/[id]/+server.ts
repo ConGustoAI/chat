@@ -2,7 +2,7 @@ import { DBdeleteProvider, DBgetProvider, DBupsertProvider } from '$lib/db/utils
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import dbg from 'debug';
 
-const debug = dbg('/api/provider/[id]');
+const debug = dbg('app:api:provider:id');
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	debug(`POST ${id}`);

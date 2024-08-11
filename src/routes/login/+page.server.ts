@@ -14,7 +14,7 @@ export const actions: Actions = {
 			console.error(err);
 			redirect(303, '/auth/error');
 		} else {
-			redirect(303, '/settings');
+			redirect(303, '/login');
 		}
 	},
 
@@ -35,7 +35,7 @@ export const actions: Actions = {
 				error(500, 'Got no user back from Supabase, despite no error');
 			}
 			await db.insert(usersTable).values({ id: user.id, email: user.email }).onConflictDoNothing();
-			redirect(303, '/settings');
+			redirect(303, '/chat');
 		}
 	},
 
@@ -44,6 +44,6 @@ export const actions: Actions = {
 		if (error) {
 			console.error(error);
 		}
-		redirect(303, '/auth');
+		redirect(303, '/login');
 	}
 };

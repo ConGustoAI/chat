@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { goto, pushState } from '$app/navigation';
-	import { newConversation } from '$lib/utils';
-	import { readDataStream } from 'ai';
+	import { goto } from '$app/navigation';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
 	import GrowInput from './GrowInput.svelte';
 
@@ -13,9 +11,6 @@
 	let chatError: string | undefined;
 
 	async function onSubmit() {
-		// Add a 2 second delay
-		// await new Promise((resolve) => setTimeout(resolve, 2000));
-
 		if (!input) return;
 		if (!conversation) return;
 		if (!conversation.summary) conversation.summary = input;
@@ -44,13 +39,7 @@
 		} finally {
 			chatLoading = false;
 		}
-
-		// goto(`/chat/${conversation.id}`);
 	}
-	// chatLoading = true;
-	// chatErrors = [];
-	// submitConversation();
-	// }
 </script>
 
 <div class="flex w-full flex-col">

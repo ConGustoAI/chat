@@ -2,7 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { DBgetMessage, DBupsertMessage, DBdeleteMessage } from '$lib/db/utils';
 import dbg from 'debug';
-const debug = dbg('/api/message/[id]');
+const debug = dbg('app:api:message:id');
 
 export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) => {
 	if (!user) {

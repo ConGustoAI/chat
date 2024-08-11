@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Star } from 'lucide-svelte';
+	import DeleteButton from './DeleteButton.svelte';
 
 	export let conversations: Record<string, ConversationInterface>;
 	export let conversation: ConversationInterface | undefined;
@@ -8,14 +9,22 @@
 
 <ul class="menu max-w-full p-0">
 	{#each conversationOrder as c}
-		<li class="max-w-fuill shrink p-0" class:bg-primary-content={conversation?.id == c}>
-			<a href={'/chat/' + c} class="max-w-full">
-				<span>
-					{#if conversations[c].like}
-						<Star color="yellow" fill="yellow" />
-					{/if}
-				</span>
-				<span class="max-w-full shrink truncate">{conversations[c].summary ?? 'New Chat'}</span></a>
+		<li class="relative p-0" class:bg-primary-content={conversation?.id == c}>
+			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
+			<a href={'/chat/' + c} class="relative pr-6">
+				{#if conversations[c].like}
+					<span class="">
+						<Star size={15} color="yellow" fill="yellow" />
+					</span>
+				{/if}
+				<span class="truncate">{conversations[c].summary ?? 'New Chat'}</span>
+			</a>
+
+			<DeleteButton
+				class="absolute right-0 top-0.5 m-0 p-0"
+				btnClass="btn btn-ghost btn-sm m-0 rounded-md p-0 px-1"
+				deleteAction={() => {}}
+				size={19} />
 		</li>
 	{/each}
 </ul>

@@ -1,17 +1,17 @@
 <script lang="ts">
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
-	import { Computer, Copy, Edit, Repeat, Smile, Trash2 } from 'lucide-svelte';
+	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 
 	export let conversation: ConversationInterface | undefined;
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
+	export let hacker = false;
 	let chatError: string | undefined;
 	let markdown: boolean = true;
 
-	import MarkdownMessage from './MarkdownMessage.svelte';
-	import GrowInput from './GrowInput.svelte';
 	import { upsertMessage } from '$lib/api';
+	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
 
 	let originalMessage: string;
 	let editingMessage = false;
@@ -132,29 +132,38 @@
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
 				{/if}
 
-				<button
-					class="btn btn-ghost btn-xs rounded-md p-0 px-1"
-					on:click={() => {
-						editingMessage = !editingMessage;
-						if (editingMessage) {
-							originalMessage = message.text;
-						}
-					}}><Edit size={15} /></button>
+				{#if message.role !== 'assistant' || hacker}
+					<button
+						class="btn btn-ghost btn-xs rounded-md p-0 px-1"
+						on:click={() => {
+							editingMessage = !editingMessage;
+							if (editingMessage) {
+								originalMessage = message.text;
+							}
+						}}><Edit size={15} /></button>
+				{/if}
 				<button
 					class="btn btn-ghost btn-xs rounded-md p-0"
 					on:click={() => {
 						navigator.clipboard.writeText(message.text);
 					}}><Copy size={15} /></button>
-				<button
+				<DeleteButton
+					class="dropdown-end"
+					btnClass="btn-ghost btn-xs rounded-md p-0 px-1"
+					deleteAction={deleteMessage}
+					size={15} />
+				<!-- <button
 					class="btn btn-ghost btn-xs rounded-md p-0 px-1"
 					on:click={() => {
 						deleteMessage();
-					}}><Trash2 size={15} /></button>
-				<button
-					class="btn btn-outline btn-xs rounded-md p-0 px-1"
-					on:click={() => {
-						markdown = !markdown;
-					}}>{markdown ? 'md' : 'raw'}</button>
+					}}><Trash2 size={15} /></button> -->
+				{#if hacker}
+					<button
+						class="btn btn-outline btn-xs rounded-md p-0 px-1"
+						on:click={() => {
+							markdown = !markdown;
+						}}>{markdown ? 'md' : 'raw'}</button>
+				{/if}
 			</div>
 		{/if}
 		<!-- <pre>{JSON.stringify(message, null, 2)}</pre> -->

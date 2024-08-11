@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { DBgetModels, DBupsertModel } from '$lib/db/utils/models';
 import dbg from 'debug';
 
-const debug = dbg('/api/model');
+const debug = dbg('app:api:model');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {

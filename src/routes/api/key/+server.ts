@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { DBgetKeys, DBupsertKey } from '$lib/db/utils/keys';
 import dbg from 'debug';
 
-const debug = dbg('/api/key');
+const debug = dbg('app:api:key');
 
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!user) {

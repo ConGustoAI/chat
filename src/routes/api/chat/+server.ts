@@ -12,7 +12,7 @@ import { StreamData, streamText, type CoreAssistantMessage, type CoreUserMessage
 import { inArray } from 'drizzle-orm';
 import dbg from 'debug';
 
-const debug = dbg('/api/chat');
+const debug = dbg('app:api:chat');
 
 // Create a new conversation
 export const POST: RequestHandler = async ({ request, locals: { user } }) => {
@@ -125,9 +125,8 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 						createdAt: 'createdAt' in m ? m.createdAt?.toISOString() : undefined
 					}));
 
-					d.append({ userMessage: cUM });
-					d.append({ assistantMessage: cAM });
-					d.append({ deletedMessages: cDMs });
+					// @ts-expect-error - Ts complaining about possible null for values that can't be null;
+					d.append({ userMessage: cUM, assistantMessage: cAM, deletedMessages: cDMs });
 				} catch (e: unknown) {
 					debug('Error in onFinish:', e);
 					d.append({ error: JSON.stringify(e) });

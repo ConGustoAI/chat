@@ -19,14 +19,13 @@
 			const totalPadding = paddingTop + paddingBottom;
 
 			el.style.height = '0';
-			const newHeight = Math.min(el.scrollHeight, lineHeight * maxLines + totalPadding);
+			const newHeight = Math.min(el.scrollHeight + 1, lineHeight * maxLines + totalPadding);
 			el.style.height = `${Math.max(newHeight, lineHeight + totalPadding)}px`;
 		}
 		return {};
 	}
 
 	$: {
-
 		el;
 		adjustHeight();
 	}

@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import dbg from 'debug';
 
-const debug = dbg('/api/conversation');
+const debug = dbg('app:api:conversation');
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const { user } = locals;

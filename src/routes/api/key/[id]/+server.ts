@@ -2,7 +2,7 @@ import { DBdeleteKey, DBgetKey, DBupsertKey } from '$lib/db/utils/keys';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import dbg from 'debug';
 
-const debug = dbg('/api/key/[id]');
+const debug = dbg('app:api:key/:id');
 
 export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
 	if (!user) {
