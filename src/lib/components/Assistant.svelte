@@ -7,7 +7,7 @@
 	export let assistant: AssistantInterface;
 	export let models: ModelInterface[];
 	export let providers: ProviderInterface[];
-	export let user: UserInterface | undefined;
+	export let dbUser: UserInterface | undefined;
 	export let onDeleteAssistant;
 	export let i: number;
 
@@ -165,7 +165,7 @@
 			</div>
 
 			{#if assistant.aboutUserFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={user?.aboutUser} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={dbUser?.aboutUser} />
 			{:else}
 				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.aboutUser} on:change={statusChanged} />
 			{/if}
@@ -184,7 +184,7 @@
 			</div>
 
 			{#if assistant.assistantInstructionsFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={user?.assistantInstructions} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={dbUser?.assistantInstructions} />
 			{:else}
 				<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={assistant.assistantInstructions} on:change={statusChanged} />
 			{/if}

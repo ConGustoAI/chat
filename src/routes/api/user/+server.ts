@@ -28,8 +28,10 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
+
 	debug('user: ', user);
 	let userData = await DBgetUser(user.id);
+	debug('GET from DB: %o', userData);
 	// If there is no user in the database, but the user is logged in, create a new user!
 	if (!userData) {
 		userData = await DBupdateUser({
@@ -39,6 +41,8 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 			avatar: user.user_metadata.avatar_url
 		});
 	}
+
+	if (user.user_metadata.avatar_url) userData.avatar = user.user_metadata.avatar_url;
 
 	debug('GET -> %o', userData);
 	return json(userData);

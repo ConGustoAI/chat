@@ -4,6 +4,7 @@ import { providersTable } from './providers';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { mediaTable } from './media';
+import { hiddenAssistants } from './hide';
 
 const authSchema = pgSchema('auth');
 export const AuthUsersTable = authSchema.table('users', {
@@ -32,6 +33,7 @@ export const usersTable = pgTable('users', {
 export const userTableRelations = relations(usersTable, ({ many }) => ({
 	providers: many(providersTable),
 	assistants: many(assistantsTable),
+	hiddenAssistants: many(hiddenAssistants),
 	conversations: many(conversationsTable),
 	media: many(mediaTable)
 }));

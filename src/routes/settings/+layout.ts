@@ -1,19 +1,14 @@
-import { fetchUser } from '$lib/api/user.js';
 import { redirect } from '@sveltejs/kit';
+import { fetchUser } from '$lib/api';
 
 export const ssr = false;
-
-export const load = async ({ data }) => {
-	console.log('data', data);
-
+export const load = async () => {
 	try {
 		const dbUser = await fetchUser();
 		return {
 			dbUser
 		};
 	} catch {
-		console.log('no user');
 		return redirect(303, '/login');
 	}
-
 };

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import { fetchUser, updateUser, fetchAssistants } from '$lib/api';
+	import { fetchAssistants, updateUser } from '$lib/api';
 	import { Check } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	export let data;
-	let user: UserInterface | undefined;
+	let { dbUser } = data;
 	let assistants: AssistantInterface[] = [];
 
 	let status: string | null = null;
@@ -23,7 +23,7 @@
 	});
 
 	onMount(async () => {
-		[user, assistants] = await Promise.all([fetchUser(), fetchAssistants()]);
+		assistants = await fetchAssistants();
 	});
 
 	$: {
@@ -36,7 +36,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				updateUser(user!)
+				updateUser(dbUser!)
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -56,12 +56,12 @@
 	}
 </script>
 
-{#if user}
+{#if dbUser}
 	<section class="flex max-w-screen-md flex-col gap-2">
 		<div class="flex items-end gap-4">
 			<div class="flex flex-row items-end gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
-				<p>{user.email}</p>
+				<p>{dbUser.email}</p>
 			</div>
 			<div class="relative self-start">
 				<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
@@ -80,14 +80,14 @@
 				<input
 					type="text"
 					class="input input-bordered w-full"
-					bind:value={user.name}
+					bind:value={dbUser.name}
 					on:input={statusChanged}
 					spellcheck="false" />
 			</label>
 
 			<label class="flex flex-col">
 				<span class="label label-text">Default Assistant</span>
-				<select class="select select-bordered w-full" bind:value={user.assistant} on:change={statusChanged}>
+				<select class="select select-bordered w-full" bind:value={dbUser.assistant} on:change={statusChanged}>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}
@@ -100,7 +100,7 @@
 			<span class="label label-text">About you</span>
 			<textarea
 				class="textarea textarea-bordered h-24 w-full"
-				bind:value={user.aboutUser}
+				bind:value={dbUser.aboutUser}
 				on:input={statusChanged}
 				spellcheck="false"></textarea>
 		</label>
@@ -109,7 +109,7 @@
 			<span class="label label-text">Instructions</span>
 			<textarea
 				class="textarea textarea-bordered h-24 w-full"
-				bind:value={user.assistantInstructions}
+				bind:value={dbUser.assistantInstructions}
 				on:input={statusChanged}
 				spellcheck="false"></textarea>
 		</label>

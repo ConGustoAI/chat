@@ -6,3 +6,4 @@ export * from './providers';
 export * from './media';
 export * from './models';
 export * from './users';
+export * from './hide';

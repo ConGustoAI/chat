@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { fetchAssistants, fetchConversation, fetchConversations, fetchUser } from '$lib/api';
+	import { fetchAssistants, fetchConversation, fetchConversations } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, DrawerButton } from '$lib/components';
 	import { errorToMessage, newConversation } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
+	export let data;
+	export let { dbUser } = data;
+
 	let assistants: AssistantInterface[] = [];
 	let conversations: Record<string, ConversationInterface> = {};
 	let conversationOrder: string[] = [];
-	let user: UserInterface | undefined;
+
 	let conversation: ConversationInterface | undefined;
 	let updatingLike = false;
 	let drawer_open = true;
@@ -22,13 +25,9 @@
 	onMount(async () => {
 		chatLoading = true;
 		let fetchedConversations: ConversationInterface[];
-		[user, assistants, fetchedConversations] = await Promise.all([
-			fetchUser(),
-			fetchAssistants(),
-			fetchConversations()
-		]);
+		[assistants, fetchedConversations] = await Promise.all([fetchAssistants(), fetchConversations()]);
 		if (conversation && !conversation.id) {
-			conversation.assistant = user.assistant ?? assistants[0]?.id ?? undefined;
+			conversation.assistant = dbUser?.assistant ?? assistants[0]?.id ?? undefined;
 		}
 		for (const conversation of fetchedConversations) {
 			if (!conversation.id) throw new Error('The conversation ID is missing.');
@@ -61,7 +60,7 @@
 			}
 		} else {
 			if (conversation && !conversation.id && !conversation.assistant) {
-				conversation.assistant = user?.assistant ?? assistants[0]?.id ?? undefined;
+				conversation.assistant = dbUser?.assistant ?? assistants[0]?.id ?? undefined;
 			}
 		}
 	}
@@ -157,7 +156,7 @@
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="m-2 flex w-56 shrink-0 flex-col gap-4" class:hidden={!drawer_open}>
 		<div class="flex w-full">
-			<button class="btn btn-primary grow" on:click={() => NewChat(user?.assistant)}>New chat</button>
+			<button class="btn btn-primary grow" on:click={() => NewChat(dbUser?.assistant)}>New chat</button>
 			<details class="dropdown dropdown-end my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-primary mx-1 border border-l-2 p-1"><ChevronUp class="rotate-180" /></summary>
 				<ul class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
@@ -175,12 +174,12 @@
 	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden">
-		<ChatTitle {chatLoading} bind:conversation {assistants} bind:user bind:updatingLike />
+		<ChatTitle {chatLoading} bind:conversation {assistants} bind:user={dbUser} bind:updatingLike />
 
 		<div class="mb-auto w-full grow overflow-auto">
 			{#if conversation?.messages}
 				{#each conversation.messages as m}
-					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={user?.hacker} />
+					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={dbUser?.hacker} />
 				{/each}
 			{/if}
 		</div>

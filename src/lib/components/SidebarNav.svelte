@@ -7,6 +7,7 @@
 	// import { Button } from '$lib/components/ui/button';
 
 	export let items: { href: string; title: string }[];
+	export let adminItems: { href: string; title: string }[];
 
 	const [send, receive] = crossfade({
 		duration: 250,
@@ -22,6 +23,11 @@
 
 	<ul class="menu drawer-side h-auto p-4 pr-20 text-xl">
 		{#each items as item}
+			{@const selected = $page.route.id == item.href}
+			<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>
+		{/each}
+		<div class="divider mx-0 px-0">Admin</div>
+		{#each adminItems as item}
 			{@const selected = $page.route.id == item.href}
 			<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>
 		{/each}

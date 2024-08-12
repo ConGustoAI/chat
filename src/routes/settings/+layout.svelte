@@ -2,6 +2,9 @@
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 	import { ArrowLeftCircle } from 'lucide-svelte';
 
+	export let data;
+	export let { dbUser } = data;
+
 	const sidebarNavItems = [
 		{
 			title: 'Profile',
@@ -25,32 +28,25 @@
 	const adminSidebarItems = [
 		{
 			title: 'Default Providers',
-			href: '/admin/providers'
+			href: '/settings/admin/providers'
 		},
 		{
 			title: 'Default Assistants',
-			href: '/admin/assistants'
+			href: '/settings/admin/assistants'
 		},
 		{
 			title: 'Manage users',
-			href: '/settings/users'
+			href: '/settings/admin/users'
 		}
 	];
-
-	
 </script>
 
 <div class="flex max-h-screen flex-col p-5 pb-16">
-	<!-- <div class="ml-8">
-		<h2 class="text-2xl font-bold tracking-tight">Settings</h2>
-		<p class="text-muted-foreground">Manage your settings</p>
-	</div> -->
-
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat
 	</a>
 
-	<SidebarNav items={sidebarNavItems}>
+	<SidebarNav items={sidebarNavItems} adminItems={dbUser.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
 			<slot />
 		</div>

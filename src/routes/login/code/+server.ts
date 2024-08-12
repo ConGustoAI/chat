@@ -4,12 +4,12 @@ import dbg from 'debug';
 
 const debug = dbg('app:login:code');
 
-export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
 	const code = url.searchParams.get('code');
 	debug('GET <- code: %s', code);
 
 	if (code) {
-		const { error: err } = await supabase.auth.exchangeCodeForSession(code);
+		const { error: err } = await locals.supabase.auth.exchangeCodeForSession(code);
 		if (err) {
 			debug('Error exchanging code for session: %o', err);
 			throw error(400, 'Error exchanging code for session');
@@ -17,6 +17,6 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 		debug('Successfully exchanged code for session');
 	}
 
-	debug('Redirecting to /');
-	throw redirect(303, '/');
+	debug('Redirecting to /chat');
+	throw redirect(303, '/chat');
 };

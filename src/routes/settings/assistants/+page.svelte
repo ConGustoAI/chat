@@ -1,26 +1,22 @@
 <script lang="ts">
 	import { Plus } from 'lucide-svelte';
 
-	import { deleteAssistant, fetchAssistants, fetchProviders, fetchUser } from '$lib/api';
+	import { deleteAssistant, fetchAssistants, fetchProviders } from '$lib/api';
 	import { Assistant } from '$lib/components';
 	import { onMount } from 'svelte';
 
+	export let data;
+	let { dbUser } = data;
 	let assistants: AssistantInterface[] = [];
 	let providers: ProviderInterface[] = [];
-	let user: UserInterface | undefined;
 	let models: ModelInterface[] = [];
 
 	onMount(async () => {
-		const [fetchedAssistants, fetchedProviders, fetchedUser] = await Promise.all([
-			fetchAssistants(),
-			fetchProviders(true, true),
-			fetchUser()
-		]);
+		const [fetchedAssistants, fetchedProviders] = await Promise.all([fetchAssistants(), fetchProviders(true, true)]);
 		assistants = fetchedAssistants;
 		providers = fetchedProviders;
-		user = fetchedUser;
 		models = providers.flatMap((p) => p.models ?? []);
-		console.log('assistants 2', { assistants, providers, user, models });
+		console.log('assistants 2', { assistants, providers, models });
 	});
 
 	function addAssistant() {
@@ -28,7 +24,7 @@
 		assistants = [
 			...assistants,
 			{
-				userID: user!.id,
+				userID: dbUser!.id,
 				name: 'New assistant',
 				aboutUserFromUser: true,
 				assistantInstructionsFromUser: true,
@@ -63,7 +59,7 @@
 		<div />
 
 		{#each assistants as assistant, i}
-			<Assistant bind:assistant {models} {providers} {user} {i} onDeleteAssistant={() => doDeleteAssistant(i)} />
+			<Assistant bind:assistant {models} {providers} {dbUser} {i} onDeleteAssistant={() => doDeleteAssistant(i)} />
 		{/each}
 		<button class="btn btn-outline w-fit" on:click={addAssistant}>
 			<Plus />Assistant
