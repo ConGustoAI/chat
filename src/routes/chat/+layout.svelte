@@ -17,7 +17,7 @@
 	let drawer_open = true;
 	let chatLoading = false;
 	let chatError: string | undefined;
-
+	// export let data;
 	// This will fetch the data eventually, but we are ok with the initial empty data.
 	onMount(async () => {
 		chatLoading = true;
@@ -154,7 +154,7 @@
 	}
 </script>
 
-<main class="relative flex h-screen w-screen overflow-hidden">
+<main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="m-2 flex w-56 shrink-0 flex-col gap-4" class:hidden={!drawer_open}>
 		<div class="flex w-full">
 			<button class="btn btn-primary grow" on:click={() => NewChat(user?.assistant)}>New chat</button>
@@ -171,39 +171,38 @@
 		<input type="text" placeholder="Search chats..." class="input input-bordered w-full" />
 		<ChatHistory {conversation} {conversations} {conversationOrder} />
 	</div>
-	<div class="divider divider-horizontal w-1 shrink-0" class:hidden={!drawer_open} />
 
-	<div class="mx-0 grow">
-		<div class="flex h-full max-h-screen flex-col">
-			<ChatTitle {chatLoading} bind:conversation {assistants} bind:user bind:updatingLike />
+	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
 
-			<div class="grow overflow-auto">
-				{#if conversation?.messages}
-					{#each conversation.messages as m}
-						<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={user?.hacker} />
-					{/each}
+	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden">
+		<ChatTitle {chatLoading} bind:conversation {assistants} bind:user bind:updatingLike />
+
+		<div class="mb-auto w-full grow overflow-auto">
+			{#if conversation?.messages}
+				{#each conversation.messages as m}
+					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={user?.hacker} />
+				{/each}
+			{/if}
+		</div>
+		<div class="divider w-full" />
+
+		<div class="navbar m-2 grow-0 py-0">
+			<div class="navbar-start max-w-fit">
+				<div class="absolute bottom-5 left-3">
+					<DrawerButton bind:drawer_open />
+				</div>
+				{#if !drawer_open}
+					<div class="btn btn-circle" style="visibility: hidden;"></div>
 				{/if}
 			</div>
-			<!-- <div class="divider w-full" /> -->
-
-			<div class="navbar min-h-24 shrink-0 p-4">
-				<div class="navbar-start max-w-fit">
-					<!-- Relative to the main element of the page -->
-					<div class="absolute bottom-6 left-3">
-						<DrawerButton bind:drawer_open />
-					</div>
-					{#if !drawer_open}
-						<div class="btn btn-circle" style="visibility: hidden;"></div>
-					{/if}
-				</div>
-				<div class="navbar-center mx-auto max-w-[95%] grow p-0">
-					<ChatInput bind:conversation {submitConversation} />
-				</div>
-				<div class="navbar-end max-w-fit"></div>
+			<div class="navbar-center mx-auto max-w-[95%] grow p-0">
+				<ChatInput bind:conversation {submitConversation} />
 			</div>
+			<div class="navbar-end max-w-fit"></div>
 		</div>
 	</div>
 </main>
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
+<!-- <pre>{JSON.stringify({ data }, null, 2)}</pre> -->
 <slot />

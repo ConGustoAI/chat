@@ -1,9 +1,8 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
 import { apiKeysTable } from './keys';
 import { modelsTable } from './models';
-
 
 export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'google']);
 
@@ -15,13 +14,14 @@ export const providersTable = pgTable('providers', {
 	name: text('name').notNull(),
 	type: providerTypes('type').notNull(),
 	baseURL: text('base_url').notNull(),
+	hidden: boolean('hidden').default(false),
+	default: boolean('default').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
 		.defaultNow()
 		.$onUpdate(() => new Date())
 });
-
 
 export const providerTableRelations = relations(providersTable, ({ one, many }) => ({
 	users: one(usersTable, {
@@ -31,4 +31,3 @@ export const providerTableRelations = relations(providersTable, ({ one, many }) 
 	apiKeys: many(apiKeysTable),
 	models: many(modelsTable)
 }));
-

@@ -26,6 +26,6 @@ export const GET: RequestHandler = async ({ locals }) => {
 		orderBy: (table, { desc }) => desc(table.createdAt)
 	});
 
-	debug('GET -> ', conversations);
+	debug('GET -> %o', conversations);
 	return json(conversations);
 };

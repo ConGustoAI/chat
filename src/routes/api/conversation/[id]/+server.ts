@@ -13,11 +13,11 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id }, ur
 	const withMessages = url.searchParams.get('messages') === 'true';
 	const withDeleted = url.searchParams.get('deleted') === 'true';
 
-	debug(`GET <- ${id}`, { withMessages, withDeleted });
+	debug('GET <- %o', { id, withMessages, withDeleted });
 
 	try {
 		const conversation = await DBgetConversation(id, user.id, withMessages, withDeleted);
-		debug(`GET ${id} -> `, conversation);
+		debug('GET %o -> %o', id, conversation);
 		return json(conversation);
 	} catch (err) {
 		if (err instanceof Error) {
@@ -33,7 +33,7 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 	}
 
 	const conversation = (await request.json()) as ConversationInterface;
-	debug(`POST ${id} <- `, conversation);
+	debug('POST %o <- %o', id, conversation);
 
 	if (!id) {
 		error(405, 'Conversation ID is required');
@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 
 	try {
 		const updated = await DBupsertConversation(conversation, user.id);
-		debug(`POST ${id} -> `, updated);
+		debug('POST %o -> %o', id, updated);
 		return json(updated);
 	} catch (err) {
 		if (err instanceof Error) {
@@ -60,7 +60,7 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 		error(401, 'Unauthorized');
 	}
 
-	debug(`DELETE ${id}`);
+	debug('DELETE %o', id);
 	try {
 		await DBdeleteConversation(id, user.id);
 		return json({ message: 'Conversation deleted' });

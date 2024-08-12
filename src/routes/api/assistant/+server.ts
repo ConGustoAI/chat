@@ -11,14 +11,14 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	}
 
 	const assistant = await request.json();
-	debug('POST <- ', assistant);
+	debug('POST <- %o', assistant);
 
 	if (assistant.id) {
 		return error(400, 'Assistant ID should not be provided');
 	}
 
 	const updatedAssistant = await DBupsertsAssistant(assistant, user.id);
-	debug('POST -> ', updatedAssistant);
+	debug('POST -> %o', updatedAssistant);
 	return json(updatedAssistant);
 };
 
@@ -29,6 +29,6 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	}
 
 	const assistants = await DBgetAssistants(user.id);
-	debug('GET -> ', assistants);
+	debug('GET -> %o', assistants);
 	return json(assistants);
 };

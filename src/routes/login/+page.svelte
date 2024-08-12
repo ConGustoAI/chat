@@ -4,6 +4,7 @@
 
 	let isLogin = true;
 	export let data;
+
 	function toggleMode() {
 		isLogin = !isLogin;
 	}
@@ -52,14 +53,16 @@
 				{/if}
 				<div class="divider">OR</div>
 				<div class="flex flex-col gap-2">
-					<button class="btn btn-outline">
-						<Google />
-						{isLogin ? 'Login' : 'Sign Up'} with Google
-					</button>
-					<button class="btn btn-outline">
-						<GitHub />
-						{isLogin ? 'Login' : 'Sign Up'} with GitHub
-					</button>
+					<form method="POST">
+						<button formaction="?/login&provider=google" class="btn btn-outline">
+							<Google />
+							{isLogin ? 'Login' : 'Sign Up'} with Google
+						</button>
+						<button formaction="?/login&provider=github" class="btn btn-outline">
+							<GitHub />
+							{isLogin ? 'Login' : 'Sign Up'} with GitHub
+						</button>
+					</form>
 				</div>
 				<div class="mt-4 text-center">
 					<span>{isLogin ? "Don't have an account?" : 'Already have an account?'}</span>
@@ -71,3 +74,5 @@
 		</div>
 	</div>
 {/if}
+
+<pre>{JSON.stringify(data, null, 2)}</pre>

@@ -10,14 +10,14 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 	}
 
 	const model = await request.json();
-	debug(`POST ${id} <- `, model);
+	debug('POST %o <- %o', id, model);
 
 	if (model.id && model.id !== id) {
 		error(400, 'Model ID in URL does not match the ID in body');
 	}
 
 	const updatedModel = await DBupsertModel(model, user.id);
-	debug(`POST ${id} -> `, updatedModel);
+	debug('POST %o -> %o', id, updatedModel);
 	return json(updatedModel);
 };
 
@@ -30,14 +30,14 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) 
 		error(400, 'Model ID is required');
 	}
 
-	debug(`GET <- ${id}`);
+	debug('GET <- %o', id);
 	const model = await DBgetModel(id, user.id);
-	debug(`GET ${id} -> `, model);
+	debug('GET %o -> %o', id, model);
 	return json(model);
 };
 
 export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } }) => {
-	debug(`DELETE ${id}`);
+	debug('DELETE %o', id);
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
@@ -47,6 +47,6 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 	}
 
 	const res = await DBdeleteModel(id, user.id);
-	debug(`DELETE ${id} -> `, res);
+	debug('DELETE %o -> %o', id, res);
 	return json(res);
 };

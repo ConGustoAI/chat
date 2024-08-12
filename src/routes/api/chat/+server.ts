@@ -26,7 +26,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	const toDelete = data.toDelete as string[];
 	const assistant = conversation.assistant;
 
-	debug('POST /chat:', { conversation, toDelete });
+	debug('POST /chat: %o', { conversation, toDelete });
 
 	if (!assistant) error(400, 'Assistant ID required');
 	if (messages?.length < 2) error(400, 'Conversation should have at least 2 messages, got ' + messages.length);
@@ -38,7 +38,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 
 	const oldMessages = messages.slice(0, -2);
 
-	debug('Messages:', { userMessage: UM, assistantMessage: AM, oldMessages });
+	debug('Messages: %o', { userMessage: UM, assistantMessage: AM, oldMessages });
 
 	if (UM.role != 'user') error(400, 'The first new message should be from the user.');
 	if (AM.role != 'assistant') error(400, 'The second new message in a conversation should be from the assistant.');
@@ -52,7 +52,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 		}
 	});
 
-	debug('assistantData', assistantData);
+	debug('assistantData %o', assistantData);
 	if (!assistantData) error(404, 'Assistant not found or does not belong to the user');
 	if (!assistantData.model) error(404, 'Assistant model not found');
 	if (!assistantData.apiKey) error(404, 'Assistant does not have an API key');
@@ -100,15 +100,15 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 					AM.usageOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
 					AM.text += result.text;
 
-					debug('Messages after processing:', { userMessage: UM, assistantMessage: AM });
+					debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
 
 					const iUM = await DBupsertMessage(UM, user.id);
 					if (!iUM) error(500, 'Failed to insert user message');
-					debug('Inserted user message:', iUM);
+					debug('Inserted user message: %o', iUM);
 
 					const iAM = await DBupsertMessage(AM, user.id);
 					if (!iAM) error(500, 'Failed to insert assistant message');
-					debug('Inserted assistant message:', iAM);
+					debug('Inserted assistant message: %o', iAM);
 
 					const DMs = await db
 						.update(messagesTable)
@@ -116,7 +116,7 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 						.where(inArray(messagesTable.id, toDelete ?? []))
 						.returning({ id: messagesTable.id, deleted: messagesTable.deleted });
 
-					debug('Deleted messages:', DMs);
+					debug('Deleted messages: %o', DMs);
 
 					// Insert the messages
 					const [cUM, cAM, cDMs] = [iUM, iAM, DMs].map((m) => ({

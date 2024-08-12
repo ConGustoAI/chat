@@ -11,14 +11,14 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	}
 
 	const model = await request.json();
-	debug('POST <- ', model);
+	debug('POST <- %o', model);
 
 	if (model.id) {
 		error(400, 'ID should not be set for a new model');
 	}
 
 	const updatedModel = await DBupsertModel(model, user.id);
-	debug('POST -> ', updatedModel);
+	debug('POST -> %o', updatedModel);
 	return json(updatedModel);
 };
 
@@ -29,6 +29,6 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	}
 
 	const models = await DBgetModels(user.id);
-	debug('GET -> ', models);
+	debug('GET -> %o', models);
 	return json(models);
 };

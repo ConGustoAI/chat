@@ -25,6 +25,7 @@
 		return {};
 	}
 
+	adjustHeight();
 	$: {
 		el;
 		adjustHeight();

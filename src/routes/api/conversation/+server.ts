@@ -13,9 +13,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}
 	const withDeleted = url.searchParams.get('deleted') === 'true';
 
-	debug(`GET <- withDeleted: ${withDeleted}`);
+	debug('GET <- withDeleted: %o', withDeleted);
 	const conversations = await DBgetConversations(user.id, withDeleted);
-	debug('GET -> ', conversations);
+	debug('GET -> %o', conversations);
 
 	return json(conversations);
 };
@@ -31,9 +31,9 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	}
 
 	conversation.userID = user.id;
-	debug('POST <- ', conversation);
+	debug('POST <- %o', conversation);
 	const updated = await DBupsertConversation(conversation, user.id);
-	debug('POST -> ', updated);
+	debug('POST -> %o', updated);
 
 	return json(updated);
 };

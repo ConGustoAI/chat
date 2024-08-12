@@ -23,6 +23,10 @@
 	}
 }
 
+.prose {
+	max-width: inherit;
+}
+
 .prose pre {
 	border-radius: 0.2rem;
 	margin: 0 0 0.5rem 0;
@@ -30,7 +34,6 @@
 	padding: 0;
 	width: 90%;
 }
-
 
 .divider {
 	height: auto;

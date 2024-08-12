@@ -145,6 +145,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="prose max-w-none grow pt-2">
+<div class="prose grow overflow-x-auto whitespace-normal pt-2">
 	{@html parseMarkdown(message.text)}
 </div>

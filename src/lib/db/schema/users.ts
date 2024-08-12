@@ -13,11 +13,10 @@ export const AuthUsersTable = authSchema.table('users', {
 export const defaultsUUID = '00000000-0000-0000-0000-000000000000';
 
 export const usersTable = pgTable('users', {
-	id: uuid('id')
-		.references(() => AuthUsersTable.id, { onDelete: 'cascade' })
-		.primaryKey(),
+	id: uuid('id').primaryKey(),
 	name: text('name'),
 	email: text('email'),
+	avatar: text('avatar'),
 	admin: boolean('admin').default(false),
 	hacker: boolean('hacker').default(false),
 	assistant: text('assistant'),

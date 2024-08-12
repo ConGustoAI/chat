@@ -12,14 +12,14 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	}
 
 	const provider = await request.json();
-	debug('POST <- ', provider);
+	debug('POST <- %o', provider);
 
 	if (provider.id) {
 		error(400, 'Provider ID should not be set for a new provider');
 	}
 
 	const updatedProvider = await DBupsertProvider(provider, user.id);
-	debug('POST -> ', updatedProvider);
+	debug('POST -> %o', updatedProvider);
 	return json(updatedProvider);
 };
 
@@ -34,6 +34,6 @@ export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 	const withModels = url.searchParams.has('models');
 
 	const providers = await DBgetProviders(user.id, withKeys, withModels);
-	debug('GET -> ', providers);
+	debug('GET -> %o', providers);
 	return json(providers);
 };

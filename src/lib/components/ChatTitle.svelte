@@ -47,7 +47,7 @@
 	let editingSummary = false;
 </script>
 
-<div class="navbar min-h-12 bg-primary-content">
+<div class="navbar min-h-12 min-w-0 bg-primary-content w-full">
 	<div class="navbar-start">
 		{#if conversation}
 			{#if !conversation.id}
@@ -67,8 +67,9 @@
 			{/if}
 		{/if}
 	</div>
-	<div class="navbar-center">
-		<div class="truncate text-center text-xl font-bold">
+	<!-- navbar-center -->
+	<div class="navbar-center w-[90%]">
+		<div class="w-full text-center text-xl font-bold">
 			{#if conversation && !chatLoading}
 				{#if editingSummary}
 					<input
@@ -79,9 +80,9 @@
 						on:keypress={(e) => e.key === 'Enter' && (editingSummary = false)} />
 				{:else}
 					<!-- svelte-ignore a11y-no-static-element-interactions -->
-					<div class="cursor-pointer" on:dblclick={() => (editingSummary = true)}>
+					<p class="cursor-pointer truncate" on:dblclick={() => (editingSummary = true)}>
 						{conversation.summary ?? 'New chat'}
-					</div>
+					</p>
 				{/if}
 			{:else}
 				<div class="loading"></div>
@@ -93,7 +94,15 @@
 		<Info />
 		<div class="dropdown dropdown-end">
 			<div tabindex="0" role="button">
-				<UserCircle />
+				{#if user?.avatar}
+					<div class="p-auto avatar m-auto align-middle">
+						<div class="bordered w-6 rounded-xl">
+							<img src={user.avatar} alt="User avatar" />
+						</div>
+					</div>
+				{:else}
+					<UserCircle />
+				{/if}
 			</div>
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<ul tabindex="0" class="menu dropdown-content z-[1] rounded-md bg-primary p-2">
@@ -110,9 +119,5 @@
 				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => LogOut()}>Log out</button>
 			</ul>
 		</div>
-
-		<!-- <a href="/settings/">
-			<Settings />
-		</a> -->
 	</div>
 </div>

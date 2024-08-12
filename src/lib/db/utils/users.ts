@@ -9,15 +9,21 @@ export async function DBgetUser(userID: string) {
 		where: (table, { eq }) => eq(table.id, userID)
 	});
 
-	if (!user) {
-		error(404, 'User not found');
-	}
-
 	return user;
 }
 
 export async function DBupdateUser(user: UserInterface) {
 	user = undefineExtras(user);
+
+	if (user.id) {
+		const inserted = await db.insert(usersTable).values(user).returning();
+
+		if (!inserted || !inserted.length) {
+			error(500, 'Failed to insert user');
+		}
+
+		return inserted[0];
+	}
 
 	const update = await db.update(usersTable).set(user).where(eq(usersTable.id, user.id)).returning();
 

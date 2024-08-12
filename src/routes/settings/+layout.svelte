@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 	import { ArrowLeftCircle } from 'lucide-svelte';
+
 	const sidebarNavItems = [
 		{
 			title: 'Profile',
@@ -10,10 +11,6 @@
 			title: 'Providers',
 			href: '/settings/providers'
 		},
-		// {
-		// 	title: 'Models',
-		// 	href: '/settings/models'
-		// },
 		{
 			title: 'Assistants',
 			href: '/settings/assistants'
@@ -24,6 +21,23 @@
 			href: '/settings/ui'
 		}
 	];
+
+	const adminSidebarItems = [
+		{
+			title: 'Default Providers',
+			href: '/admin/providers'
+		},
+		{
+			title: 'Default Assistants',
+			href: '/admin/assistants'
+		},
+		{
+			title: 'Manage users',
+			href: '/settings/users'
+		}
+	];
+
+	
 </script>
 
 <div class="flex max-h-screen flex-col p-5 pb-16">

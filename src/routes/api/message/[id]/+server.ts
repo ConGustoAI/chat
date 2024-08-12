@@ -9,10 +9,10 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) 
 		error(401, 'Unauthorized');
 	}
 
-	debug(`GET <- ${id}`);
+	debug('GET <- %o', id);
 	try {
 		const message = await DBgetMessage(id, user.id);
-		debug(`GET ${id} -> `, message);
+		debug('GET %o -> %o', id, message);
 		return json(message);
 	} catch (err) {
 		if (err instanceof Error) {
@@ -27,7 +27,7 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 		error(401, 'Unauthorized');
 	}
 	const message = await request.json();
-	debug(`POST ${id} <- `, message);
+	debug('POST %o <- %o', id, message);
 
 	if (!id) {
 		error(405, 'Message ID is required');
@@ -39,7 +39,7 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 
 	try {
 		const updated = await DBupsertMessage(message, user.id);
-		debug(`POST ${id} -> `, updated);
+		debug('POST %o -> %o', id, updated);
 		return json(updated);
 	} catch (err) {
 		if (err instanceof Error) {
@@ -54,7 +54,7 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 		error(401, 'Unauthorized');
 	}
 
-	debug(`DELETE ${id}`);
+	debug('DELETE %o', id);
 	try {
 		await DBdeleteMessage(id, user.id);
 		return json({ message: 'Message deleted' });

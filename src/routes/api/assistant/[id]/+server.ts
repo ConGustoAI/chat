@@ -10,14 +10,14 @@ export const POST: RequestHandler = async ({ request, locals: { user }, params: 
 	}
 
 	const assistant = await request.json();
-	debug(`POST ${id} <- `, assistant);
+	debug('POST %o <- %o', id, assistant);
 
 	if (assistant.id && assistant.id !== id) {
 		return error(400, 'Assistant ID in URL does not match assistant ID in body');
 	}
 
 	const updatedAssistant = await DBupsertsAssistant(assistant, user.id);
-	debug(`POST ${id} -> `, updatedAssistant);
+	debug('POST %o -> %o', id, updatedAssistant);
 	return json(updatedAssistant);
 };
 
@@ -30,14 +30,14 @@ export const GET: RequestHandler = async ({ locals: { user }, params: { id } }) 
 		return error(400, 'Assistant ID is required');
 	}
 
-	debug(`GET <- ${id}`);
+	debug('GET <- %o', id);
 	const assistant = await DBgetAssistant(id, user.id);
-	debug(`GET ${id} -> `, assistant);
+	debug('GET %o -> %o', id, assistant);
 	return json(assistant);
 };
 
 export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } }) => {
-	debug(`DELETE ${id}`);
+	debug('DELETE %o', id);
 	if (!user) {
 		return error(401, 'Unauthorized');
 	}
@@ -47,6 +47,6 @@ export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } 
 	}
 
 	const res = await DBdeleteAssistant(id, user.id);
-	debug(`DELETE ${id} -> `, res);
+	debug('DELETE %o -> %o', id, res);
 	return json(res);
 };

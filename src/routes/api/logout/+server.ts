@@ -7,7 +7,7 @@ const debug = dbg('app:api:logout');
 export const POST: RequestHandler = async ({ locals: { supabase } }) => {
 	const { error } = await supabase.auth.signOut();
 	if (error) {
-		debug('Error during logout:', error);
+		debug('Error during logout: %o', error);
 		return new Response(JSON.stringify({ success: false, error: 'Logout failed' }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' }

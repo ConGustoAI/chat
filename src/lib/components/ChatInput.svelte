@@ -51,7 +51,7 @@
 		<GrowInput bind:value={input} submit={onSubmit} class="px-12" />
 		<div class="absolute bottom-3 left-2">
 			<label for="file-upload" class="btn btn-circle btn-sm">
-				<Upload />
+				<Upload style="disabled" />
 			</label>
 		</div>
 		<div class="absolute bottom-3 right-2">

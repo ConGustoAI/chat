@@ -90,7 +90,7 @@
 	}
 </script>
 
-<div class="relative flex w-full items-start" class:bg-secondary-content={message.role == 'user'}>
+<div class="relative flex items-start" class:bg-secondary-content={message.role == 'user'}>
 	<div class="div items-start px-3 py-3">
 		{#if message.role == 'user'}
 			<Smile size="24" />
@@ -103,10 +103,10 @@
 			<span class="text-error">This message has been deleted</span>
 		</div>
 	{/if}
-	<div class="prose max-w-full grow pt-2">
+	<div class="grow pt-2 flex flex-col mr-16">
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-		<div class="w-full max-w-full">
+		<!-- <div class=""> -->
 			{#if editingMessage}
 				<div class="w-full">
 					<GrowInput
@@ -123,7 +123,7 @@
 			{:else}
 				<pre class="whitespace-pre-wrap">{message.text}</pre>
 			{/if}
-		</div>
+		<!-- </div> -->
 
 		{#if !editingMessage}
 			<div class="absolute right-0 top-0 mr-2 flex gap-1">

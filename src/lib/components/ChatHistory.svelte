@@ -9,7 +9,7 @@
 
 <ul class="menu max-w-full p-0">
 	{#each conversationOrder as c}
-		<li class="relative p-0" class:bg-primary-content={conversation?.id == c}>
+		<li class="tooltip relative p-0" title={conversation?.summary} class:bg-primary-content={conversation?.id == c}>
 			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
 			<a href={'/chat/' + c} class="relative pr-6">
 				{#if conversations[c].like}

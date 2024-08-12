@@ -11,14 +11,14 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	}
 
 	const key = await request.json();
-	debug('POST <- ', key);
+	debug('POST <- %o', key);
 
 	if (key.id) {
 		error(400, 'ID should not be set for a new key');
 	}
 
 	const updated = await DBupsertKey(key, user.id);
-	debug('POST -> ', updated);
+	debug('POST -> %o', updated);
 	return json(updated);
 };
 
@@ -29,6 +29,6 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	}
 
 	const keys = await DBgetKeys(user.id);
-	debug('GET -> ', keys);
+	debug('GET -> %o', keys);
 	return json(keys);
 };

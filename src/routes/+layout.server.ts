@@ -1,25 +1,8 @@
-// import type { LayoutServerLoad } from './$types';
-// import { usersTable } from '$lib/db/schema';
-// import { eq } from 'drizzle-orm';
-// import { db } from '$lib/db';
-// export const load: LayoutServerLoad = async ({ locals: { session, user }, cookies }) => {
-// 	console.log('layout.server.ts load', { session, cookies: cookies.getAll() });
-// let db_user;
-// if (user) {
-// 	db_user = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
-// }
-// console.log('layout.server.ts load', { db_user });
+// // export const ssr = false;
 
-// return {
-// 	db_user
+// export const load = async ({ data, locals: { user }, parent }) => {
+// 	// console.log("parent", await parent());
+// 	// console.log('server data', data);
+// 	// return { b: 2 };
+// 	return { user };
 // };
-// };
-
-// import { error } from '@sveltejs/kit';
-
-export const load = async ({ locals: { user } }) => {
-	// if (!user) {
-	// 	error(401, 'Unauthorized');
-	// }
-	return { user };
-};
