@@ -2,10 +2,13 @@ import { boolean, integer, pgTable, real, text, timestamp, uuid } from 'drizzle-
 import { providersTable } from './providers';
 import { relations } from 'drizzle-orm';
 import { assistantsTable } from './assistants';
-
+import { usersTable } from './users';
 
 export const modelsTable = pgTable('models', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	userID: uuid('user_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	displayName: text('display_name').notNull(),
 	name: text('name').notNull(),
 	audio: boolean('audio').notNull().default(false),
@@ -29,14 +32,14 @@ export const modelsTable = pgTable('models', {
 		.$onUpdate(() => new Date())
 });
 
-
-
 export const modelsTableRelations = relations(modelsTable, ({ one, many }) => ({
 	provider: one(providersTable, {
 		fields: [modelsTable.providerID],
 		references: [providersTable.id]
 	}),
-	assistants: many(assistantsTable)
+	assistants: many(assistantsTable),
+	user: one(usersTable, {
+		fields: [modelsTable.userID],
+		references: [usersTable.id]
+	})
 }));
-
-

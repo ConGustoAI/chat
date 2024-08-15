@@ -2,9 +2,13 @@ import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { providersTable } from './providers';
 import { relations } from 'drizzle-orm';
 import { assistantsTable } from './assistants';
+import { usersTable } from './users';
 
 export const apiKeysTable = pgTable('api_keys', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	userID: uuid('user_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	providerID: uuid('provider')
 		.references(() => providersTable.id, { onDelete: 'cascade' })
 		.notNull(),
@@ -16,8 +20,6 @@ export const apiKeysTable = pgTable('api_keys', {
 		.defaultNow()
 		.$onUpdate(() => new Date())
 });
-
-
 
 export const apiKeyTableRelations = relations(apiKeysTable, ({ one, many }) => ({
 	providers: one(providersTable, {

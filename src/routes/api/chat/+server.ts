@@ -1,22 +1,23 @@
 import { db } from '$lib/db';
 
-import { error, type RequestHandler } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
-import { messagesTable } from '$lib/db/schema';
-import { DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
+import { defaultsUUID, messagesTable } from '$lib/db/schema';
+import { DBupsertConversation, DBupsertMessages } from '$lib/db/utils';
 import { undefineExtras } from '$lib/utils';
-import { createAnthropic } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic, type AnthropicProvider } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI, type GoogleGenerativeAIProvider } from '@ai-sdk/google';
+import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai';
 import { StreamData, streamText, type CoreAssistantMessage, type CoreUserMessage } from 'ai';
-import { inArray } from 'drizzle-orm';
 import dbg from 'debug';
+import { inArray } from 'drizzle-orm';
 
 const debug = dbg('app:api:chat');
 
 // Create a new conversation
-export const POST: RequestHandler = async ({ request, locals: { user } }) => {
-	if (!user) {
+export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
+	if (!dbUser) {
 		error(401, 'Unauthorized');
 	}
 
@@ -40,12 +41,13 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 
 	debug('Messages: %o', { userMessage: UM, assistantMessage: AM, oldMessages });
 
-	if (UM.role != 'user') error(400, 'The first new message should be from the user.');
-	if (AM.role != 'assistant') error(400, 'The second new message in a conversation should be from the assistant.');
+	if (UM.role != 'user') error(400, `Expected user message, got '${UM.role}'`);
+	if (AM.role != 'assistant') error(400, 'Expected assistant message, got ' + AM.role);
 
-	// Check that the assistant belongs to the user
+	// Check that the assistant belongs to the user or is a default assistant
 	const assistantData = await db.query.assistantsTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.id, assistant), eq(table.userID, user.id)),
+		where: (table, { eq, and, or }) =>
+			and(eq(table.id, assistant), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))),
 		with: {
 			model: { with: { provider: true } },
 			apiKey: true
@@ -57,11 +59,16 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 	if (!assistantData.model) error(404, 'Assistant model not found');
 	if (!assistantData.apiKey) error(404, 'Assistant does not have an API key');
 
-	if (UM.text && !assistantData.model.prefill) error(403, 'Assistant does not support prefill');
+	if (assistantData.model.userID !== defaultsUUID && assistantData.model.userID !== dbUser.id)
+		error(403, 'Assistant does not belong to the user');
+	if (assistantData.apiKey.userID !== defaultsUUID && assistantData.apiKey.userID !== dbUser.id)
+		error(403, 'API key does not belong to the user');
 
-	let client = null;
+	if (AM.text && !assistantData.model.prefill) error(403, 'Assistant does not support prefill');
+
 	const clientSettings = { apiKey: assistantData.apiKey.key, baseURL: assistantData.model.provider.baseURL };
 
+	let client: OpenAIProvider | GoogleGenerativeAIProvider | AnthropicProvider;
 	if (assistantData.model.provider.type === 'openai') {
 		client = createOpenAI(clientSettings);
 	} else if (assistantData.model.provider.type === 'anthropic') {
@@ -81,59 +88,72 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 
 	const d = new StreamData();
 
-	if (!conversation.id) conversation = (await DBupsertConversation(conversation, user.id)) as ConversationInterface;
+	if (!conversation.id) conversation = (await DBupsertConversation({ dbUser, conversation })) as ConversationInterface;
 	if (!conversation.id) error(500, 'Failed to create conversation');
 	UM.conversationId = AM.conversationId = conversation.id;
+	UM.userID = AM.userID = dbUser.id;
+
 	d.append({ conversationId: conversation.id });
+
+	async function onFinish(
+		// I don't always love TypeScript
+		result: NonNullable<Parameters<NonNullable<Parameters<typeof streamText>[0]['onFinish']>>>[0]
+	): Promise<void> {
+		debug('streamText result:', result);
+
+		try {
+			AM.finishReason = result.finishReason;
+			AM.usageIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
+			AM.usageOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
+			AM.text += result.text;
+
+			debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
+
+			const [[iUM, iAM], DMs] = await Promise.all([
+				DBupsertMessages({
+					dbUser,
+					messages: [UM, AM]
+				}),
+
+				db
+					.update(messagesTable)
+					.set({ deleted: true })
+					.where(inArray(messagesTable.id, toDelete ?? []))
+					.returning({
+						id: messagesTable.id,
+						deleted: messagesTable.deleted,
+						updatedAt: messagesTable.updatedAt,
+						createdAt: messagesTable.createdAt
+					})
+			]);
+
+			debug('After updating the DB: %o', { userMessage: iUM, assistantMessage: iAM, deletedMessages: DMs });
+			if (!iUM.id || !iAM.id) error(500, 'Failed to update messages');
+			if (DMs.length != (toDelete?.length ?? 0)) error(500, 'Failed to delete messages');
+
+			// d.append() can't handle the native Date object, so we need to convert it to a string
+			const [cUM, cAM, cDMs] = [iUM, iAM, ...DMs].map((m) => ({
+				...m,
+				updatedAt: m.updatedAt?.toISOString(),
+				createdAt: m.createdAt?.toISOString()
+			}));
+
+			d.append({ userMessage: cUM, assistantMessage: cAM, deletedMessages: cDMs });
+			if (result.warnings) d.append({ warnings: result.warnings });
+		} catch (e: unknown) {
+			debug('Error in onFinish:', e);
+			await d.close();
+			throw e;
+		}
+		await d.close();
+	}
 
 	try {
 		const result = await streamText({
 			model: client(assistantData.model.name),
 			messages: inputMessages,
 			system: assistantData.systemPrompt,
-			onFinish: async (result) => {
-				debug('streamText result:', result);
-
-				try {
-					AM.finishReason = result.finishReason;
-					AM.usageIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
-					AM.usageOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
-					AM.text += result.text;
-
-					debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
-
-					const iUM = await DBupsertMessage(UM, user.id);
-					if (!iUM) error(500, 'Failed to insert user message');
-					debug('Inserted user message: %o', iUM);
-
-					const iAM = await DBupsertMessage(AM, user.id);
-					if (!iAM) error(500, 'Failed to insert assistant message');
-					debug('Inserted assistant message: %o', iAM);
-
-					const DMs = await db
-						.update(messagesTable)
-						.set({ deleted: true })
-						.where(inArray(messagesTable.id, toDelete ?? []))
-						.returning({ id: messagesTable.id, deleted: messagesTable.deleted });
-
-					debug('Deleted messages: %o', DMs);
-
-					// Insert the messages
-					const [cUM, cAM, cDMs] = [iUM, iAM, DMs].map((m) => ({
-						...m,
-						updatedAt: 'updatedAt' in m ? m.updatedAt?.toISOString() : undefined,
-						createdAt: 'createdAt' in m ? m.createdAt?.toISOString() : undefined
-					}));
-
-					// @ts-expect-error - Ts complaining about possible null for values that can't be null;
-					d.append({ userMessage: cUM, assistantMessage: cAM, deletedMessages: cDMs });
-				} catch (e: unknown) {
-					debug('Error in onFinish:', e);
-					d.append({ error: JSON.stringify(e) });
-				} finally {
-					await d.close();
-				}
-			}
+			onFinish: onFinish
 		});
 
 		return result.toDataStreamResponse({ data: d });
@@ -141,6 +161,11 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 		debug('Error in streamText:', e);
 		d.append({ error: JSON.stringify(e) });
 		await d.close();
+
+		// Looks like an exception thrown by error(). Just propagate it.
+		if (e && typeof e === 'object' && 'status' in e && 'body' in e) {
+			throw e;
+		}
 		if (e instanceof Error) {
 			error(500, 'Failed to process the conversation: ' + e.message);
 		} else {

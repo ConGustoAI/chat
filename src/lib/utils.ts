@@ -43,6 +43,26 @@ export function errorToMessage(error: unknown): string {
 	return 'Unknown error';
 }
 
-export const newConversation = (assistant?: string) => ({
+export const newConversation = (userID: string, assistant?: string): ConversationInterface => ({
+	userID,
 	assistant
 });
+
+type MappableInterface =
+	| ProviderInterface
+	| ModelInterface
+	| ApiKeyInterface
+	| AssistantInterface
+	| MessageInterface
+	| ConversationInterface
+	| UserInterface
+	| ConversationInterface;
+
+export function toIdMap<T extends MappableInterface>(array: Array<T>) {
+	// [ {id:a, ...}, {id:b, ...} ] => {a: {id:a, ...}, b: {id:b, ...}}
+	return array.reduce<{ [key: string]: T }>((acc, cur) => {
+		if (!cur.id) throw new Error('Missing ID: ' + cur);
+		acc[cur.id] = cur;
+		return acc;
+	}, {});
+}

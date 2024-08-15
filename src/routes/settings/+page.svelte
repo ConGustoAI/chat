@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { fetchAssistants, updateUser } from '$lib/api';
+	import { APIfetchAssistants, APIupdateUser } from '$lib/api';
 	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
@@ -23,7 +23,7 @@
 	});
 
 	onMount(async () => {
-		assistants = await fetchAssistants();
+		assistants = await APIfetchAssistants();
 	});
 
 	$: {
@@ -36,7 +36,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				updateUser(dbUser!)
+				APIupdateUser(dbUser!)
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -115,4 +115,4 @@
 		</label>
 	</section>
 {/if}
-<pre>{JSON.stringify(data, null, 2)}</pre>
+<!-- <pre>{JSON.stringify(data, null, 2)}</pre> -->

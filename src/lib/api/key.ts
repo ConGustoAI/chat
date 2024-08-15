@@ -1,41 +1,51 @@
-export async function fetchKeys() {
+import dbg from 'debug';
+
+const debug = dbg('app:lib:api:key');
+
+export async function APIfetchKeys() {
+	debug('fetchKeys');
 	const res = await fetch('/api/key');
-	if (!res.ok) throw new Error('Failed to fetch keys');
-	return await res.json();
+
+	if (!res.ok) throw new Error(`Failed to fetch keys: ${await res.text()}`);
+	const data = (await res.json()) as ApiKeyInterface[];
+	debug('fetchKeys -> %o', data);
+	return data;
 }
 
-export async function fetchKey(id: string) {
+export async function APIfetchKey(id: string) {
+	debug('fetchKey %o', id);
 	const res = await fetch(`/api/key/${id}`);
-	if (!res.ok) throw new Error('Failed to fetch key');
-	return await res.json();
+
+	if (!res.ok) throw new Error(`Failed to fetch key: ${await res.text()}`);
+	const data = (await res.json()) as ApiKeyInterface;
+	debug('fetchKey -> %o', data);
+	return data;
 }
 
-export async function upsertKey(key: KeyInterface) {
-	let res;
-	if (key.id) {
-		res = await fetch('/api/key/' + key.id, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(key)
-		});
-	} else {
-		res = await fetch('/api/key', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(key)
-		});
-	}
-
-	if (!res.ok) throw new Error('Failed to update key: ' + (await res.json()).message);
-	return await res.json();
-}
-
-export async function deleteKey(id: string) {
-	const res = await fetch(`/api/key/${id}`, {
-		method: 'DELETE',
-		headers: { 'Content-Type': 'application/json' }
+export async function APIupsertKey(key: ApiKeyInterface) {
+	debug('upsertKey %o', key);
+	const res = await fetch('/api/key', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(key)
 	});
 
-	if (!res.ok) throw new Error('Failed to delete key' + (await res.json()).message);
-	return await res.json();
+	if (!res.ok) throw new Error(`Failed to update key: ${await res.text()}`);
+	const data = (await res.json()) as ApiKeyInterface;
+	debug('upsertKey -> %o', data);
+	return data;
+}
+
+export async function APIdeleteKey(key: ApiKeyInterface) {
+	debug('deleteKey %o', key);
+	const res = await fetch(`/api/key`, {
+		method: 'DELETE',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(key)
+	});
+
+	if (!res.ok) throw new Error(`Failed to delete key: ${await res.text()}`);
+	const data = (await res.json()) as ApiKeyInterface;
+	debug('deleteKey -> %o', data);
+	return data;
 }

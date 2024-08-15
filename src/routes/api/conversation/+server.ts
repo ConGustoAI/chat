@@ -1,39 +1,46 @@
-import { DBgetConversations, DBupsertConversation } from '$lib/db/utils';
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import {
+	DBdeleteConversation,
+	DBgetConversations,
+	DBgetDefaultConversations,
+	DBupsertConversation
+} from '$lib/db/utils';
+import { json } from '@sveltejs/kit';
 import dbg from 'debug';
+import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:conversation');
 
-export const GET: RequestHandler = async ({ locals, url }) => {
-	const { user } = locals;
+export const GET: RequestHandler = async ({ locals: { dbUser }, url }) => {
+	const defaults = url.searchParams.get('default') === 'true';
 
-	if (!user) {
-		error(401, 'Unauthorized');
+	let conversations;
+	debug('GET <- withDeleted: %o', defaults);
+	if (defaults) {
+		conversations = await DBgetDefaultConversations();
+	} else {
+		conversations = await DBgetConversations({ dbUser });
 	}
-	const withDeleted = url.searchParams.get('deleted') === 'true';
-
-	debug('GET <- withDeleted: %o', withDeleted);
-	const conversations = await DBgetConversations(user.id, withDeleted);
 	debug('GET -> %o', conversations);
 
 	return json(conversations);
 };
 
-export const POST: RequestHandler = async ({ request, locals: { user } }) => {
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
+export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
+	const conversation = (await request.json()) as ConversationInterface;
 
-	const conversation = await request.json();
-	if (conversation.id) {
-		error(405, 'New conversation should not have an ID');
-	}
-
-	conversation.userID = user.id;
 	debug('POST <- %o', conversation);
-	const updated = await DBupsertConversation(conversation, user.id);
+	const updated = await DBupsertConversation({ dbUser, conversation });
 	debug('POST -> %o', updated);
 
 	return json(updated);
+};
+
+export const DELETE: RequestHandler = async ({ request, locals: { dbUser } }) => {
+	const conversation = (await request.json()) as ConversationInterface;
+
+	debug('DELETE <- %o', conversation);
+	const del = await DBdeleteConversation({ dbUser, conversation });
+	debug('DELETE -> %o', del);
+
+	return json(del);
 };

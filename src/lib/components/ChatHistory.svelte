@@ -5,6 +5,7 @@
 	export let conversations: Record<string, ConversationInterface>;
 	export let conversation: ConversationInterface | undefined;
 	export let conversationOrder: string[];
+	export let deleteConversation;
 </script>
 
 <ul class="menu max-w-full p-0">
@@ -23,7 +24,9 @@
 			<DeleteButton
 				class="absolute right-0 top-0.5 m-0 p-0"
 				btnClass="btn btn-ghost btn-sm m-0 rounded-md p-0 px-1"
-				deleteAction={() => {}}
+				deleteAction={async () => {
+					await deleteConversation(conversations[c]);
+				}}
 				size={19} />
 		</li>
 	{/each}

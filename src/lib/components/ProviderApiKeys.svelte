@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { upsertKey } from '$lib/api';
+	import { APIupsertKey } from '$lib/api';
+	import { defaultsUUID } from '$lib/db/schema';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
 
-	export let apiKey: KeyInterface;
+	export let apiKey: ApiKeyInterface;
+	export let edit: boolean;
 	export let onDeleteKey;
 	// Don't let the user navigate off if changes are unsaved
 	let hasUnsavedChanges = false;
@@ -25,7 +27,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				upsertKey(apiKey)
+				APIupsertKey(apiKey)
 					.then((res) => {
 						status = 'saved';
 						console.log('res', res);
@@ -53,10 +55,23 @@
 	}
 </script>
 
-<input type="text" class="input input-bordered" bind:value={apiKey.label} on:input={statusChanged} spellcheck="false" />
-<input type="text" class="input input-bordered" bind:value={apiKey.key} on:input={statusChanged} spellcheck="false" />
+<input
+	type="text"
+	class="input input-bordered"
+	bind:value={apiKey.label}
+	on:input={statusChanged}
+	spellcheck="false"
+	disabled={!edit} />
+<input
+	type="text"
+	class="input input-bordered"
+	bind:value={apiKey.key}
+	on:input={statusChanged}
+	spellcheck="false"
+	disabled={!edit} />
 <button
 	class="btn btn-outline"
+	disabled={!edit}
 	on:click={() => {
 		status = 'saving';
 		onDeleteKey();

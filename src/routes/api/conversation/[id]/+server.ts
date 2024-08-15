@@ -1,73 +1,21 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { DBdeleteConversation, DBgetConversation, DBupsertConversation } from '$lib/db/utils';
+import { DBgetConversation, DBgetDefaultConversation } from '$lib/db/utils';
+import { json } from '@sveltejs/kit';
 import dbg from 'debug';
+import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:conversation:id');
 
-export const GET: RequestHandler = async ({ locals: { user }, params: { id }, url }) => {
-	if (!user) {
-		error(401, 'Unauthorized');
+export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id }, url }) => {
+	const defaults = url.searchParams.get('default') === 'true';
+
+	debug('GET <- %o', { id, defaults });
+
+	let conversation;
+	if (defaults) {
+		conversation = await DBgetDefaultConversation({ id });
+	} else {
+		conversation = await DBgetConversation({ dbUser, id });
 	}
-
-	const withMessages = url.searchParams.get('messages') === 'true';
-	const withDeleted = url.searchParams.get('deleted') === 'true';
-
-	debug('GET <- %o', { id, withMessages, withDeleted });
-
-	try {
-		const conversation = await DBgetConversation(id, user.id, withMessages, withDeleted);
-		debug('GET %o -> %o', id, conversation);
-		return json(conversation);
-	} catch (err) {
-		if (err instanceof Error) {
-			error(500, 'Failed to fetch conversation: ' + err.message);
-		}
-		error(500, 'Failed to fetch conversation');
-	}
-};
-
-export const POST: RequestHandler = async ({ request, locals: { user }, params: { id } }) => {
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
-
-	const conversation = (await request.json()) as ConversationInterface;
-	debug('POST %o <- %o', id, conversation);
-
-	if (!id) {
-		error(405, 'Conversation ID is required');
-	}
-
-	if (conversation.id && conversation.id !== id) {
-		error(400, 'Conversation ID in URL does not match conversation ID in body');
-	}
-
-	try {
-		const updated = await DBupsertConversation(conversation, user.id);
-		debug('POST %o -> %o', id, updated);
-		return json(updated);
-	} catch (err) {
-		if (err instanceof Error) {
-			error(500, 'Failed to update conversation: ' + err.message);
-		}
-		error(500, 'Failed to update conversation');
-	}
-};
-
-export const DELETE: RequestHandler = async ({ locals: { user }, params: { id } }) => {
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
-
-	debug('DELETE %o', id);
-	try {
-		await DBdeleteConversation(id, user.id);
-		return json({ message: 'Conversation deleted' });
-	} catch (err) {
-		if (err instanceof Error) {
-			error(500, 'Failed to delete conversation: ' + err.message);
-		}
-		error(500, 'Failed to delete conversation');
-	}
+	debug('GET %o -> %o', id, conversation);
+	return json(conversation);
 };

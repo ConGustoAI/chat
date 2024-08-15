@@ -15,7 +15,7 @@ export const actions: Actions = {
 		if (err) {
 			return fail(400, { error: err.message });
 		} else {
-			redirect(303, '/login');
+			redirect(303, '/settings/providers');
 		}
 	},
 
@@ -26,7 +26,7 @@ export const actions: Actions = {
 		if (provider) {
 			const { data, error: err } = await locals.supabase.auth.signInWithOAuth({
 				provider,
-				options: { redirectTo: url.origin + '/login/code' }
+				options: { redirectTo: url.origin + '/api/login/code' }
 			});
 			if (err) {
 				debug(err);
@@ -47,8 +47,6 @@ export const actions: Actions = {
 			debug(authReponse.error);
 			return fail(400, { email, incorrect: true });
 		} else {
-			locals.session = authReponse.data.session;
-			locals.user = authReponse.data.user;
 			redirect(303, '/chat');
 		}
 	},
@@ -69,16 +67,20 @@ export const actions: Actions = {
 	},
 
 	signout: async ({ locals }) => {
+		debug('signout');
 		const { error } = await locals.supabase.auth.signOut({ scope: 'local' });
 		if (error) debug(error);
 
 		locals.supabase.auth.signOut();
-		redirect(303, '/login');
+		debug('signout done');
+		redirect(303, '/chat');
 	},
 
 	signoutAll: async ({ locals }) => {
+		debug('signoutAll');
 		const { error } = await locals.supabase.auth.signOut({ scope: 'global' });
 		if (error) debug(error);
-		redirect(303, '/login');
+		debug('signoutAll done');
+		redirect(303, '/chat');
 	}
 };

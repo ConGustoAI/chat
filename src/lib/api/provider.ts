@@ -1,42 +1,42 @@
-export async function fetchProviders(keys?: boolean, models?: boolean) {
-	const queryParams = new URLSearchParams();
-	if (keys) queryParams.append('keys', 'true');
-	if (models) queryParams.append('models', 'true');
-	const res = await fetch(`/api/provider?${queryParams}`, {
-		method: 'GET',
-		headers: { 'Content-Type': 'application/json' }
+import dbg from 'debug';
+
+const debug = dbg('app:lib:api:provider');
+
+export async function APIfetchProviders() {
+	debug('fetchProviders');
+
+	const res = await fetch('/api/provider');
+
+	if (!res.ok) throw new Error(`Failed to fetch providers: ${await res.text()}`);
+	const data = (await res.json()) as ProviderInterface[];
+	debug('fetchProviders -> %o', data);
+	return data;
+}
+
+export async function APIupsertProvider(provider: ProviderInterface) {
+	debug('upsertProvider %o', provider);
+	const res = await fetch('/api/provider', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(provider)
 	});
 
-	if (!res.ok) throw new Error('Failed to fetch providers');
-	return (await res.json()) as ProviderInterface[];
+	if (!res.ok) throw new Error(`Failed to update provider: ${await res.text()}`);
+	const data = (await res.json()) as ProviderInterface;
+	debug('upsertProvider -> %o', data);
+	return data;
 }
 
-export async function upsertProvider(provider: ProviderInterface) {
-	let res;
-	if (provider.id) {
-		res = await fetch('/api/provider/' + provider.id, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ ...provider, apiKeys: undefined })
-		});
-	} else {
-		res = await fetch('/api/provider', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(provider)
-		});
-	}
-
-	if (!res.ok) throw new Error('Failed to update provider: ' + (await res.json()).message);
-	return await res.json();
-}
-
-export async function deleteProvider(id: string) {
-	const res = await fetch(`/api/provider/${id}`, {
+export async function APIdeleteProvider(provider: ProviderInterface) {
+	debug('deleteProvider %o', provider);
+	const res = await fetch(`/api/provider`, {
 		method: 'DELETE',
-		headers: { 'Content-Type': 'application/json' }
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(provider)
 	});
 
-	if (!res.ok) throw new Error('Failed to delete provider' + (await res.json()).message);
-	return await res.json();
+	if (!res.ok) throw new Error(`Failed to delete provider: ${await res.text()}`);
+	const data = (await res.json()) as ProviderInterface;
+	debug('deleteProvider -> %o', data);
+	return data;
 }

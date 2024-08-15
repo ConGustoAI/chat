@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { updateUser, upsertConversation } from '$lib/api';
+	import { APIupdateUser, APIupsertConversation } from '$lib/api';
 	import { Star, Info, Settings, UserCircle } from 'lucide-svelte';
+	import { loginModal } from '$lib/stores/loginModal';
 	// import { conversations, assistants, conversation, updatingLike, convId } from '$lib/stores';
 	// import { updateLike } from '$lib/utils';
 
@@ -18,7 +19,7 @@
 		updatingLike = true;
 
 		const target = e.target as HTMLInputElement;
-		upsertConversation({ ...conversation, like: target.checked })
+		APIupsertConversation({ ...conversation, like: target.checked })
 			.then((res) => {
 				conversation.like = res.like;
 			})
@@ -32,22 +33,33 @@
 	async function setHacker() {
 		if (!user) return;
 		try {
-			user = await updateUser({ id: user.id, hacker: user.hacker });
+			user = await APIupdateUser({ id: user.id, hacker: user.hacker });
 		} catch (e) {
 			console.error('Failed to update user', e);
 			user.hacker = !user.hacker;
 		}
 	}
 
-	async function LogOut() {
-		await fetch('/api/logout', { method: 'POST' });
-		goto('/login');
+	async function TriggerLoginModal() {
+		if ($loginModal) {
+			($loginModal as HTMLDialogElement).showModal();
+		} else {
+			goto('/login');
+		}
+	}
+
+	async function gotoSettings() {
+		if (!user) {
+			TriggerLoginModal();
+		} else {
+			goto('/settings');
+		}
 	}
 
 	let editingSummary = false;
 </script>
 
-<div class="navbar min-h-12 min-w-0 bg-primary-content w-full">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 bg-primary-content">
 	<div class="navbar-start">
 		{#if conversation}
 			{#if !conversation.id}
@@ -68,7 +80,7 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="navbar-center w-[90%]">
+	<div class="navbar-center max-w-[90%]">
 		<div class="w-full text-center text-xl font-bold">
 			{#if conversation && !chatLoading}
 				{#if editingSummary}
@@ -106,8 +118,7 @@
 			</div>
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<ul tabindex="0" class="menu dropdown-content z-[1] rounded-md bg-primary p-2">
-				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => goto('/settings')}
-					>Settings</button>
+				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={gotoSettings}>Settings</button>
 
 				{#if user}
 					<div class="btn btn-primary btn-sm flex flex-nowrap items-center gap-2">
@@ -116,7 +127,9 @@
 					</div>
 				{/if}
 
-				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => LogOut()}>Log out</button>
+				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => TriggerLoginModal()}>
+					{#if user}Log out{:else}Log in{/if}
+				</button>
 			</ul>
 		</div>
 	</div>

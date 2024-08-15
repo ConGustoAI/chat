@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { Trash2, Check } from 'lucide-svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import { upsertModel } from '$lib/api/model';
+	import { APIupsertModel } from '$lib/api/model';
 	import { assert } from '$lib/utils';
+	import { Check, Trash2 } from 'lucide-svelte';
 
 	export let model: ModelInterface;
+	export let edit: boolean;
 	export let onDeleteModel;
 
 	// Don't let the user navigate off if changes are unsaved
@@ -26,7 +27,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				upsertModel(model)
+				APIupsertModel(model)
 					.then((res) => {
 						assert(!model.id || res.id == model.id, 'model ID mismatch');
 						model.id = res.id;
@@ -58,26 +59,59 @@
 	class="input input-bordered w-full"
 	bind:value={model.displayName}
 	on:input={statusChanged}
-	spellcheck="false" />
+	spellcheck="false"
+	disabled={!edit || status === 'deleting'} />
+
 <input
 	type="text"
 	class="input input-bordered w-full"
 	bind:value={model.name}
 	spellcheck="false"
+	disabled={!edit || status === 'deleting'}
 	on:input={statusChanged} />
-<input type="number" class="input input-bordered w-28" bind:value={model.inputContext} on:input={statusChanged} />
-<input type="checkbox" class="checkbox" bind:checked={model.images} on:input={statusChanged} />
-<input type="checkbox" class="checkbox" bind:checked={model.audio} on:input={statusChanged} />
-<input type="checkbox" class="checkbox" bind:checked={model.video} on:input={statusChanged} />
-<input type="checkbox" class="checkbox" bind:checked={model.prefill} on:input={statusChanged} />
+<input
+	type="number"
+	class="input input-bordered w-28"
+	bind:value={model.inputContext}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.images}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.audio}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.video}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.prefill}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
 
 <button
 	class="btn btn-outline w-full justify-self-end"
-	on:click={() => {
-		status = 'saving';
-		onDeleteModel();
+	disabled={!edit || status === 'deleting'}
+	on:click={async () => {
+		status = 'deleting';
+		await onDeleteModel();
 	}}>
-	<Trash2 />
+	{#if status === 'deleting'}
+		<div class="loading" />
+	{:else}
+		<Trash2 />
+	{/if}
 </button>
 <div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />

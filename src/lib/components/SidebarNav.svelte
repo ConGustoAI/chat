@@ -26,7 +26,9 @@
 			{@const selected = $page.route.id == item.href}
 			<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>
 		{/each}
-		<div class="divider mx-0 px-0">Admin</div>
+		{#if adminItems}
+			<div class="divider mx-0 px-0">Admin</div>
+		{/if}
 		{#each adminItems as item}
 			{@const selected = $page.route.id == item.href}
 			<li><a class:font-bold={selected} href={item.href}>{item.title}</a></li>

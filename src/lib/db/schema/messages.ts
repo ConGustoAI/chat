@@ -3,10 +3,14 @@ import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { relations } from 'drizzle-orm';
 import { messageMediaTable } from './media';
+import { usersTable } from './users';
 
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 export const messagesTable = pgTable('messages', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	userID: uuid('user_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	order: serial('order'),
 	conversationId: uuid('conversation_id')
 		.references(() => conversationsTable.id, { onDelete: 'cascade' })
@@ -31,5 +35,9 @@ export const messageTableRelations = relations(messagesTable, ({ one, many }) =>
 		fields: [messagesTable.conversationId],
 		references: [conversationsTable.id]
 	}),
-	media: many(messageMediaTable)
+	media: many(messageMediaTable),
+	user: one(usersTable, {
+		fields: [messagesTable.userID],
+		references: [usersTable.id]
+	}),
 }));

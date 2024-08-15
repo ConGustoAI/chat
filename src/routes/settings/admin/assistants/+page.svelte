@@ -14,15 +14,18 @@
 	import { toIdMap } from '$lib/utils';
 
 	import dbg from 'debug';
-	const debug = dbg('app:ui:settings:assistants');
+	const debug = dbg('app:ui:settings:admin:assistants');
 
 	export let data;
 	let { dbUser } = data;
-	let assistants: { [key: string]: AssistantInterface } = {};
+	// let assistants: { [key: string]: AssistantInterface } = {};
 	let defaultAssistants: { [key: string]: AssistantInterface } = {};
 	let providers: { [key: string]: ProviderInterface } = {};
+	let defaultProviders: { [key: string]: ProviderInterface } = {};
 	let models: { [key: string]: ModelInterface } = {};
+	let defaultModels: { [key: string]: ModelInterface } = {};
 	let apiKeys: { [key: string]: ApiKeyInterface } = {};
+	let defaultApiKeys: { [key: string]: ApiKeyInterface } = {};
 
 	let loading = false;
 	onMount(async () => {
@@ -39,10 +42,12 @@
 		models = toIdMap(fetchedModels);
 		apiKeys = toIdMap(fetchedApiKeys);
 
-		assistants = toIdMap(fetchedAssistants.filter((a) => a.userID !== defaultsUUID));
 		defaultAssistants = toIdMap(fetchedAssistants.filter((a) => a.userID === defaultsUUID));
+		defaultProviders = toIdMap(fetchedProviders.filter((a) => a.userID === defaultsUUID));
+		defaultModels = toIdMap(fetchedModels.filter((a) => a.userID === defaultsUUID));
+		defaultApiKeys = toIdMap(fetchedApiKeys.filter((a) => a.userID === defaultsUUID));
 		loading = false;
-		debug('onMount', { assistants, providers, models });
+		debug('onMount', { defaultAssistants, providers, models });
 	});
 
 	let addingAssistant = false;
@@ -50,28 +55,28 @@
 		debug('add assistant');
 		addingAssistant = true;
 		const newAssistant = await APIupsertAssistant({
-			userID: dbUser.id,
+			userID: defaultsUUID,
 			name: 'New assistant',
 			aboutUserFromUser: true,
 			assistantInstructionsFromUser: true
 		});
-		assistants[newAssistant.id!] = newAssistant;
+		defaultAssistants[newAssistant.id!] = newAssistant;
 		addingAssistant = false;
 		debug('new assistant', newAssistant);
 	}
 
-	async function deleteAssistant(assistant: AssistantInterface) {
+	async function doDeleteAssistant(assistant: AssistantInterface) {
 		debug('delete assistant', assistant);
 		const del = await APIdeleteAssistant(assistant);
-		delete assistants[del.id!];
-		assistants = assistants;
+		delete defaultAssistants[del.id!];
+		defaultAssistants = defaultAssistants;
 		debug('delete assistant done', del);
 	}
 </script>
 
 <div class="flex flex-col gap-1">
 	<div class="div flex gap-2">
-		<h2 class="card-title">Assistants</h2>
+		<h2 class="card-title">Default Assistants</h2>
 		{#if loading}
 			<div class="loading" />
 		{/if}
@@ -86,14 +91,14 @@
 		<div />
 		<div />
 
-		{#each Object.entries(assistants) as [idx, assistant]}
+		{#each Object.entries(defaultAssistants) as [idx, assistant]}
 			<Assistant
 				{dbUser}
 				bind:assistant
 				{models}
 				{providers}
 				{apiKeys}
-				deleteAssistant={async () => deleteAssistant(assistant)}
+				deleteAssistant={() => doDeleteAssistant(assistant)}
 				edit={true} />
 		{/each}
 		<button
@@ -109,21 +114,6 @@
 			{/if}
 			Assistant
 		</button>
-	</div>
-
-	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,12rem,12rem,auto,6rem,6rem,0] gap-4 gap-y-2">
-		<div class="divider col-span-full w-full">Default assistants</div>
-		<div class="font-bold">Name</div>
-		<div class="font-bold">Model</div>
-		<div class="font-bold">API key</div>
-		<div class="font-bold">Descripton</div>
-		<div />
-		<div />
-		<div />
-
-		{#each Object.entries(defaultAssistants) as [i, assistant]}
-			<Assistant {dbUser} bind:assistant {models} {providers} {apiKeys} deleteAssistant={() => {}} edit={false} />
-		{/each}
 	</div>
 </div>
 

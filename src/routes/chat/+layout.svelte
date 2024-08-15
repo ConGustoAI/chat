@@ -1,17 +1,28 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { fetchAssistants, fetchConversation, fetchConversations } from '$lib/api';
+	import {
+		APIfetchAssistants,
+		APIfetchConversation,
+		APIfetchConversations,
+		APIfetchDefaultConversation,
+		APIfetchDefaultConversations,
+		APIdeleteConversation
+	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, DrawerButton } from '$lib/components';
 	import { errorToMessage, newConversation } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { toIdMap } from '$lib/utils';
+	import { loginModal } from '$lib/stores/loginModal';
+
+	import dbg from 'debug';
+	const debug = dbg('app:ui:chat');
 
 	export let data;
-	export let { dbUser } = data;
+	let { dbUser, assistants } = data;
 
-	let assistants: AssistantInterface[] = [];
 	let conversations: Record<string, ConversationInterface> = {};
 	let conversationOrder: string[] = [];
 
@@ -19,48 +30,74 @@
 	let updatingLike = false;
 	let drawer_open = true;
 	let chatLoading = false;
+
 	let chatError: string | undefined;
 	// export let data;
 	// This will fetch the data eventually, but we are ok with the initial empty data.
+
+	$: convId = $page.params.chat;
+
 	onMount(async () => {
+		debug('onMount');
 		chatLoading = true;
-		let fetchedConversations: ConversationInterface[];
-		[assistants, fetchedConversations] = await Promise.all([fetchAssistants(), fetchConversations()]);
-		if (conversation && !conversation.id) {
-			conversation.assistant = dbUser?.assistant ?? assistants[0]?.id ?? undefined;
+		let convosPromise;
+		let convoPromise;
+		if (dbUser) {
+			convosPromise = APIfetchConversations();
+			convoPromise = APIfetchConversation(convId);
+		} else {
+			convosPromise = APIfetchDefaultConversations();
+			convoPromise = APIfetchDefaultConversation(convId);
 		}
-		for (const conversation of fetchedConversations) {
-			if (!conversation.id) throw new Error('The conversation ID is missing.');
-			conversations[conversation.id] = { ...conversations[conversation.id], ...conversation };
+
+		const [gotConvos, cgotConvo] = await Promise.all([
+			convosPromise.catch((e) => {
+				debug('Failed to fetch conversations:', e);
+				return [];
+			}),
+			convoPromise.catch((e) => {
+				debug('Failed to fetch conversation:', e);
+				return { userID: dbUser?.id ?? 'none' } as ConversationInterface;
+			})
+		]);
+
+		conversations = toIdMap(gotConvos);
+		if (cgotConvo.id) {
+			conversations[cgotConvo.id] = cgotConvo;
+			conversation = conversations[cgotConvo.id];
+		} else {
+			conversation = newConversation(dbUser?.id ?? 'anon', dbUser?.assistant);
 		}
+
 		conversationOrder = Object.keys(conversations);
-		conversation = conversations[$page.params.chat] ?? newConversation();
 		chatLoading = false;
+		debug('onMount', { conversation, conversations, conversationOrder });
 	});
 
 	function updateConversation(convId: string) {
-		console.log('updateConversation', convId);
+		debug('updateConversation', convId);
 		if (convId) {
-			// If the message is already loaded, use it, btut still fetch the updated version just in case.
+			// If the message is already loaded, use it.
 			if (conversations[convId]) conversation = conversations[convId];
+			// If the conversation has no messages loaded, fetch them.
 			if (!conversation?.messages) {
 				chatLoading = true;
-				fetchConversation(convId, true)
+				let promise;
+				if (dbUser) promise = APIfetchConversation(convId);
+				else promise = APIfetchDefaultConversation(convId);
+
+				promise
 					.then((data) => {
 						conversations[data.id!] = { ...conversations[data.id!], ...data };
 						conversation = conversations[data.id!];
 					})
 					.catch((e) => {
-						console.error('Failed to fetch conversation', e);
+						debug('Failed to fetch conversation:', e);
 						chatError = 'Failed to fetch conversation:' + errorToMessage(e);
 					})
 					.finally(() => {
 						chatLoading = false;
 					});
-			}
-		} else {
-			if (conversation && !conversation.id && !conversation.assistant) {
-				conversation.assistant = dbUser?.assistant ?? assistants[0]?.id ?? undefined;
 			}
 		}
 	}
@@ -69,7 +106,18 @@
 	}
 
 	async function submitConversation(toDelete?: string[]) {
-		console.log('submitConversation', conversation);
+		debug('submitConversation', conversation, toDelete);
+
+		if (!dbUser) {
+			debug('submitConversation', 'not logged in, redirecting to login');
+			if ($loginModal) {
+				($loginModal as HTMLDialogElement).showModal();
+			} else {
+				await goto('/login');
+			}
+			return;
+		}
+
 		if (!conversation) throw new Error('The conversation is missing.');
 		if (!conversation.assistant) throw new Error('No assistant assigned.');
 		if (!conversation.messages) throw new Error('The conversation messages are missing.');
@@ -89,7 +137,7 @@
 			},
 			body: JSON.stringify({ conversation, toDelete })
 		});
-		console.log('submitConversation POST:', res);
+		debug('submitConversation POST: ', res);
 
 		if (!res.ok) throw new Error((await res.json()).message ?? 'Failed to submit the conversation.');
 		if (!res.body) throw new Error('The response body is empty.');
@@ -97,7 +145,7 @@
 		const reader = res.body.getReader();
 
 		for await (const { type, value } of readDataStream(reader)) {
-			console.log('readDataStream', type, value);
+			debug('readDataStream', type, value);
 			if (!conversation.messages) throw new Error('The conversation messages are missing??');
 			if (type === 'text') {
 				conversation.messages[conversation.messages.length - 1].text += value;
@@ -105,7 +153,7 @@
 			if (type === 'finish_message') {
 			}
 			if (type === 'data') {
-				console.log('data', value);
+				debug('readDataStream', { type, value });
 
 				for (const dataPart of value) {
 					if (typeof dataPart === 'object' && dataPart !== null) {
@@ -114,8 +162,9 @@
 							if (conversation.id && conversation.id != dataPart.conversationId)
 								throw new Error('The conversation ID does not match.');
 
-							conversation.id = dataPart.conversationId as string;
+							conversation.id = dataPart.conversationId;
 							if (!conversations[conversation.id]) {
+								// New conversation is not yet in the conversations dictionary.
 								conversations[conversation.id] = conversation;
 								conversationOrder = [conversation.id, ...conversationOrder];
 							}
@@ -139,6 +188,7 @@
 				conversation = conversation;
 			}
 			if (type === 'error') {
+				debug('readDataStream error', value);
 				throw new Error(value);
 			}
 		}
@@ -148,8 +198,17 @@
 
 	function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
-		conversation = newConversation(assistantId);
+		conversation = newConversation(dbUser?.id ?? 'anon', assistantId);
 		goto('/chat');
+	}
+
+	async function deleteConversation(conversation: ConversationInterface) {
+		if (dbUser) {
+			const del = await APIdeleteConversation(conversation);
+			if (!del.id) throw new Error('Failed to delete the conversation.');
+		}
+		delete conversations[conversation.id!];
+		conversationOrder = conversationOrder.filter((c) => c !== conversation.id);
 	}
 </script>
 
@@ -168,7 +227,7 @@
 		</div>
 
 		<input type="text" placeholder="Search chats..." class="input input-bordered w-full" />
-		<ChatHistory {conversation} {conversations} {conversationOrder} />
+		<ChatHistory {conversation} {conversations} {conversationOrder} {deleteConversation} />
 	</div>
 
 	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
@@ -179,7 +238,7 @@
 		<div class="mb-auto w-full grow overflow-auto">
 			{#if conversation?.messages}
 				{#each conversation.messages as m}
-					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={dbUser?.hacker} />
+					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={!dbUser || dbUser?.hacker} />
 				{/each}
 			{/if}
 		</div>
@@ -203,5 +262,5 @@
 </main>
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
-<!-- <pre>{JSON.stringify({ data }, null, 2)}</pre> -->
+<!-- <pre>{JSON.stringify({ conversations, data }, null, 2)}</pre> -->
 <slot />

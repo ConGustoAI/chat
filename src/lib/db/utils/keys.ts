@@ -1,90 +1,63 @@
 import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '..';
-import { apiKeysTable } from '../schema';
+import { apiKeysTable, defaultsUUID } from '../schema';
 
-export async function DBgetKeys(userID: string) {
-	const keys = await db.query.providersTable.findMany({
-		where: (table, { eq, and }) => and(eq(table.userID, userID)),
-		columns: {},
-		with: {
-			apiKeys: true
-		}
+export async function DBgetKeys({ dbUser }: { dbUser?: UserInterface }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	const keys = await db.query.apiKeysTable.findMany({
+		where: (table, { eq, or }) => or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))
 	});
 
 	return keys;
 }
 
-export async function DBgetKey(id: string, userID: string) {
-	const key = await db.query.providersTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.userID, userID)),
-		with: {
-			apiKeys: {
-				where: (table, { eq }) => eq(table.id, id)
-			}
-		}
+export async function DBgetKey({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	const key = await db.query.apiKeysTable.findFirst({
+		where: (table, { eq, or, and }) =>
+			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
 	});
 
-	if (!key) {
-		error(404, 'Key not found or does not belong to the user');
-	}
-
+	if (!key) error(404, 'Key not found or does not belong to the user');
 	return key;
 }
 
-export async function DBupsertKey(key: KeyInterface, userID: string) {
+export async function DBupsertKey({ dbUser, key }: { dbUser?: UserInterface; key: ApiKeyInterface }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (key.userID != dbUser.id && (!dbUser.admin || key.userID !== defaultsUUID))
+		error(401, 'Tried to update a key that does not belong to the user');
+
 	key = undefineExtras(key);
 	if (key.id) {
-		// Check the key belongs to the user
-		const userProviders = await db.query.providersTable.findFirst({
-			where: (table, { eq, and }) => and(eq(table.id, key.providerID), eq(table.userID, userID)),
-			columns: { id: true }
-		});
+		const update = await db
+			.update(apiKeysTable)
+			.set(key)
+			.where(and(eq(apiKeysTable.id, key.id), eq(apiKeysTable.userID, key.userID)))
+			.returning();
 
-		if (!userProviders) {
-			error(403, 'Tried to update a key for a provider that does not belong to the user');
-		}
-
-		const update = await db.update(apiKeysTable).set(key).where(eq(apiKeysTable.id, key.id)).returning();
-
-		if (!update?.length) {
-			error(403, 'Failed to update key');
-		}
+		if (!update.length) error(403, 'Failed to update key');
 
 		return update[0];
 	}
 
 	const insert = await db.insert(apiKeysTable).values(key).onConflictDoNothing().returning();
-
-	if (!insert || !insert.length) {
-		error(500, 'Failed to insert key');
-	}
+	if (!insert || !insert.length) error(500, 'Failed to insert key');
 
 	return insert[0];
 }
 
-export async function DBdeleteKey(id: string, userID: string) {
-	const userProviders = await db.query.providersTable.findMany({
-		where: (table, { eq }) => eq(table.userID, userID),
-		columns: {},
-		with: {
-			apiKeys: {
-				columns: { id: true }
-			}
-		}
-	});
+export async function DBdeleteKey({ dbUser, key }: { dbUser?: UserInterface; key: ApiKeyInterface }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!key.id) error(400, 'Key ID is required');
+	if (key.userID != dbUser.id && (!dbUser.admin || key.userID !== defaultsUUID))
+		error(401, 'Tried to delete a key that does not belong to the user');
 
-	if (!userProviders) {
-		error(403, 'Tried to delete a key, but the user has no providers');
-	}
-
-	// Check the key belongs to the user and delete it.
-
-	if (userProviders.some((provider) => provider.apiKeys?.some((key) => key.id === id))) {
-		const res = await db.delete(apiKeysTable).where(eq(apiKeysTable.id, id)).returning({ id: apiKeysTable.id });
-		if (!res) {
-			error(500, 'Failed to delete key');
-		}
-	}
+	const del = await db
+		.delete(apiKeysTable)
+		.where(and(eq(apiKeysTable.id, key.id), eq(apiKeysTable.userID, key.userID)))
+		.returning({ id: apiKeysTable.id });
+	if (!del.length) error(500, 'Failed to delete key');
+	return del[0];
 }

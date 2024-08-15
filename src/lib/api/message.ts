@@ -1,33 +1,45 @@
+import dbg from 'debug';
 
-export async function fetchMessage(id: string, withDeleted = false) {
+const debug = dbg('app:lib:api:message');
+
+export async function APIfetchMessage(id: string, withDeleted = false) {
+	debug('fetchMessage %o', { id, withDeleted });
 	const queryParams = new URLSearchParams();
 	if (withDeleted) queryParams.append('deleted', 'true');
 
 	const res = await fetch(`/api/message/${id}?${queryParams}`);
-	if (!res.ok) throw new Error('Failed to fetch message: ' + (await res.json()).message);
 
+	if (!res.ok) throw new Error(`Failed to fetch message: ${await res.text()}`);
 	const data = await res.json();
-	if (!data.id) throw new Error('The message ID is missing.');
-	return data as ConversationInterface;
+	if (!data.id) throw new Error('The message ID is missing in returned data.');
+	debug('fetchMessage -> %o', data);
+	return data as MessageInterface;
 }
 
-export async function upsertMessage(message: MessageInterface) {
-	const res = await fetch(`/api/message${message.id ? '/' + message.id : ''}`, {
+export async function APIupsertMessage(message: MessageInterface) {
+	debug('upsertMessage %o', message);
+	const res = await fetch('/api/message', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(message)
 	});
 
-	if (!res.ok) throw new Error('Failed to update message: ' + (await res.json()).message);
-	return (await res.json()) as MessageInterface;
+	if (!res.ok) throw new Error(`Failed to update message: ${await res.text()}`);
+	const data = (await res.json()) as MessageInterface;
+	debug('upsertMessage -> %o', data);
+	return data;
 }
 
-export async function deleteMessage(id: string) {
-	const res = await fetch(`/api/message/${id}`, {
+export async function APIdeleteMessage(message: MessageInterface) {
+	debug('deleteMessage %o', message);
+	const res = await fetch('/api/message', {
 		method: 'DELETE',
-		headers: { 'Content-Type': 'application/json' }
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(message)
 	});
 
-	if (!res.ok) throw new Error('Failed to delete message: ' + (await res.json()).message);
-	return (await res.json()) as MessageInterface;
+	if (!res.ok) throw new Error(`Failed to delete message: ${await res.text()}`);
+	const data = (await res.json()) as MessageInterface;
+	debug('deleteMessage -> %o', data);
+	return data;
 }

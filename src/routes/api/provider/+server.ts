@@ -1,39 +1,34 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { DBgetProviders, DBupsertProvider } from '$lib/db/utils/providers';
+import { DBdeleteProvider, DBgetProviders, DBupsertProvider } from '$lib/db/utils/providers';
+import { json } from '@sveltejs/kit';
 import dbg from 'debug';
+import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:provider');
 
-export const POST: RequestHandler = async ({ request, locals: { user } }) => {
-	debug('POST');
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
-
+export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	const provider = await request.json();
+
 	debug('POST <- %o', provider);
-
-	if (provider.id) {
-		error(400, 'Provider ID should not be set for a new provider');
-	}
-
-	const updatedProvider = await DBupsertProvider(provider, user.id);
+	const updatedProvider = await DBupsertProvider({ dbUser, provider });
 	debug('POST -> %o', updatedProvider);
+
 	return json(updatedProvider);
 };
 
-export const GET: RequestHandler = async ({ url, locals: { user } }) => {
+export const GET: RequestHandler = async ({ locals: { user } }) => {
 	debug('GET');
-
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
-
-	const withKeys = url.searchParams.has('keys');
-	const withModels = url.searchParams.has('models');
-
-	const providers = await DBgetProviders(user.id, withKeys, withModels);
+	const providers = await DBgetProviders({ dbUser: user });
 	debug('GET -> %o', providers);
+
 	return json(providers);
+};
+
+export const DELETE: RequestHandler = async ({ request, locals: { dbUser } }) => {
+	const provider = await request.json();
+
+	debug('DELETE <- %o', provider);
+	const del = await DBdeleteProvider({ dbUser, provider });
+	debug('DELETE -> %o', del);
+
+	return json(del);
 };

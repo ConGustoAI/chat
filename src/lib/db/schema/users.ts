@@ -14,6 +14,7 @@ export const AuthUsersTable = authSchema.table('users', {
 export const defaultsUUID = '00000000-0000-0000-0000-000000000000';
 
 export const usersTable = pgTable('users', {
+	// This should should match the id in the AuthUsersTable, except for the defaultUUID, which does not exist in auth.users
 	id: uuid('id').primaryKey(),
 	name: text('name'),
 	email: text('email'),

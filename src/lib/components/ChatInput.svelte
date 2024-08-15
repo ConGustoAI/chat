@@ -17,8 +17,8 @@
 
 		conversation.messages = [
 			...(conversation.messages ?? []),
-			{ role: 'user', text: input },
-			{ role: 'assistant', text: '' } // TODO: Allow prefill
+			{ userID: conversation.userID, role: 'user', text: input },
+			{ userID: conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
 		chatLoading = true;
 

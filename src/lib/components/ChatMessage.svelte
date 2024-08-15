@@ -7,10 +7,11 @@
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
 	export let hacker = false;
+
 	let chatError: string | undefined;
 	let markdown: boolean = true;
 
-	import { upsertMessage } from '$lib/api';
+	import { APIupsertMessage } from '$lib/api';
 	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
 
 	let originalMessage: string;
@@ -32,7 +33,8 @@
 			.map((m) => m.id) as string[];
 
 		conversation.messages = conversation.messages.slice(0, currentIndex + 1);
-		if (message.role === 'user') conversation.messages.push({ role: 'assistant', text: '' });
+		if (message.role === 'user')
+			conversation.messages.push({ userID: conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
@@ -53,7 +55,7 @@
 		const currentIndex = conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
-		upsertMessage({ ...message, deleted: true });
+		APIupsertMessage({ ...message, deleted: true });
 		conversation.messages = [
 			...conversation.messages.slice(0, currentIndex),
 			...conversation.messages.slice(currentIndex + 1)
@@ -75,7 +77,7 @@
 			.map((m) => m.id) as string[];
 
 		conversation.messages = conversation.messages.slice(0, currentIndex);
-		conversation.messages.push({ role: 'assistant', text: '' });
+		conversation.messages.push({ userID: conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
@@ -103,26 +105,26 @@
 			<span class="text-error">This message has been deleted</span>
 		</div>
 	{/if}
-	<div class="grow pt-2 flex flex-col mr-16">
+	<div class="mr-16 flex grow flex-col pt-2">
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 		<!-- <div class=""> -->
-			{#if editingMessage}
-				<div class="w-full">
-					<GrowInput
-						maxLines={999}
-						bind:value={message.text}
-						submit={sendEditedMessage}
-						cancel={() => {
-							message.text = originalMessage;
-							editingMessage = false;
-						}} />
-				</div>
-			{:else if markdown}
-				<MarkdownMessage {message} />
-			{:else}
-				<pre class="whitespace-pre-wrap">{message.text}</pre>
-			{/if}
+		{#if editingMessage}
+			<div class="w-full">
+				<GrowInput
+					maxLines={999}
+					bind:value={message.text}
+					submit={sendEditedMessage}
+					cancel={() => {
+						message.text = originalMessage;
+						editingMessage = false;
+					}} />
+			</div>
+		{:else if markdown}
+			<MarkdownMessage {message} />
+		{:else}
+			<pre class="whitespace-pre-wrap">{message.text}</pre>
+		{/if}
 		<!-- </div> -->
 
 		{#if !editingMessage}

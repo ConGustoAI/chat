@@ -1,7 +1,4 @@
 export async function chatRequest(conversatoin: ConversationInterface) {
-
-
- 
     let res;
     res = await fetch('/api/chat', {
         method: 'POST',

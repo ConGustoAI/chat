@@ -2,98 +2,66 @@ import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
-import { messagesTable } from '../schema';
+import { defaultsUUID, messagesTable } from '../schema';
 
-// export async function DBgetMessages(conversationID: string, userID: string) {
-// 	const messages = await db.query.messagesTable.findMany({
-// 		where: (table, { eq, and }) => and(eq(table.conversationID, conversationID), eq(table.userID, userID)),
-// 		orderBy: (table, { asc }) => [asc(table.createdAt)]
-// 	});
-
-// 	return messages;
-// }
-
-export async function DBgetMessage(id: string, userID: string) {
+export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+	if (!dbUser) error(401, 'Unauthorized');
 	const message = await db.query.messagesTable.findFirst({
-		where: (table, { eq }) => and(eq(table.id, id)),
-		with: {
-			conversation: {
-				columns: { id: true, userID: true }
-			}
-		}
+		where: (table, { eq, and, or }) =>
+			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
 	});
 
-	if (!message) {
-		error(404, 'Message not found');
-	}
-
-	if (message.conversation.userID !== userID) {
-		error(403, 'Message does not belong to the user');
-	}
-
-	return { ...message, conversation: undefined };
+	if (!message) error(404, 'Message not found');
+	return message;
 }
 
-export async function DBupsertMessage(message: MessageInterface, userID: string) {
+export async function DBupsertMessages({ dbUser, messages }: { dbUser?: UserInterface; messages: MessageInterface[] }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!messages.length) error(400, 'Messages array is required');
+
+	// I don't think we can db.update() multiple messages at the same time, so we'll use Promise.all
+	const result = await Promise.all(messages.map((message) => DBupsertMessage({ dbUser, message: message })));
+
+	if (result.length != messages.length) error(500, 'Failed to upsert all messages');
+	return result;
+}
+
+export async function DBupsertMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (message.userID !== dbUser.id && (!dbUser.admin || message.userID !== defaultsUUID))
+		error(401, 'Tried to update a message that does not belong to the user');
+
 	message = undefineExtras(message);
-
 	if (message.id) {
-		// Check the message belongs to the user
-		const userMessage = await db.query.messagesTable.findFirst({
-			where: (table, { eq }) => eq(table.id, message.id!),
-			with: {
-				conversation: {
-					columns: { id: true, userID: true }
-				}
-			}
-		});
-
-		if (!userMessage) error(404, 'Message not found');
-		if (userMessage.conversationId !== message.conversationId)
-			error(403, 'Tried to update a message that does not belong to the conversation');
-		if (userMessage.conversation.userID !== userID) error(403, 'Tried to update a message that does not belong to the user');
-
-		const update = await db.update(messagesTable).set(message).where(eq(messagesTable.id, message.id)).returning();
+		// Check that the message belongs to the user
+		const update = await db
+			.update(messagesTable)
+			.set(message)
+			.where(and(eq(messagesTable.id, message.id), eq(messagesTable.userID, message.userID)))
+			.returning();
 		if (!update?.length) error(403, 'Failed to update message');
 
 		return update[0];
 	}
 
-	if (!message.conversationId) error(400, 'Missing conversationId');
-	// @ts-expect-error - conversationId is checked above
-	const insertionResult = await db.insert(messagesTable).values(message).onConflictDoNothing().returning();
+	// @ts-expect-error - message.id is checked above
+	const insert = await db.insert(messagesTable).values(message).onConflictDoNothing().returning();
 
-	if (!insertionResult || !insertionResult.length) {
-		error(500, 'Failed to insert message');
-	}
-
-	return insertionResult[0];
+	if (!insert || !insert.length) error(500, 'Failed to insert message');
+	return insert[0];
 }
 
-export async function DBdeleteMessage(id: string, userID: string) {
-	// First, check if the message belongs to the user's conversation
-	const message = await db.query.messagesTable.findFirst({
-		where: (table, { eq }) => eq(table.id, id),
-		with: {
-			conversation: {
-				columns: { userID: true }
-			}
-		}
-	});
+export async function DBdeleteMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!message.id) error(400, 'Message ID is required');
+	if (message.userID !== dbUser.id && (!dbUser.admin || message.userID !== defaultsUUID))
+		error(401, 'Tried to delete a message that does not belong to the user');
 
-	if (!message) {
-		error(404, 'Message not found');
-	}
+	const del = await db
+		.delete(messagesTable)
+		.where(and(eq(messagesTable.id, message.id), eq(messagesTable.userID, message.userID)))
+		.returning({ id: messagesTable.id });
 
-	if (message.conversation.userID !== userID) {
-		error(403, 'Tried to delete a message that does not belong to the user');
-	}
-
-	const res = await db.delete(messagesTable).where(eq(messagesTable.id, id)).returning({ id: messagesTable.id });
-
-	if (!res || !res.length) {
-		error(500, 'Failed to delete message');
-	}
-
-	return res[0];
+	if (!del.length) error(500, 'Failed to delete message');
+	return del[0];
 }

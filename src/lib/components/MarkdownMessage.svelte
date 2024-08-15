@@ -11,11 +11,10 @@
 	import remarkRehype from 'remark-rehype';
 	import { unified } from 'unified';
 
-	import { common } from 'lowlight';
 
 	export let message: MessageInterface;
 
-	import type { Element, Node, Root } from 'hast';
+	import type { Element, Root } from 'hast';
 	import { visit } from 'unist-util-visit';
 
 	import { h, s } from 'hastscript';

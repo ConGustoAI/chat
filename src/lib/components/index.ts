@@ -11,3 +11,4 @@ export { default as Assistant } from './Assistant.svelte';
 export { default as MarkdownMessage } from './MarkdownMessage.svelte';
 export { default as GrowInput } from './GrowInput.svelte';
 export { default as DeleteButton } from './DeleteButton.svelte';
+export { default as Login } from './Login.svelte';

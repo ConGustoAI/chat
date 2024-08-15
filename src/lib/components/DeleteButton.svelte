@@ -7,16 +7,28 @@
 	export let btnClass = '';
 	let className = '';
 	export { className as class };
+
+	let deleting = false;
 </script>
 
 <div class={cn('dropdown', className)}>
 	<div tabindex="0" role="button" class={cn('btn', btnClass)}>
-		<Trash2 {size} />
+		{#if deleting}
+			<div class="loading loading-sm" />
+		{:else}
+			<Trash2 {size} />
+		{/if}
 	</div>
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 	<ul tabindex="0" class="menu dropdown-content z-[1] w-fit p-2">
 		<li>
-			<button class="btn btn-primary btn-sm text-nowrap rounded-md" on:click={deleteAction}>Yes, delete!</button>
+			<button
+				class="btn btn-primary btn-sm text-nowrap rounded-md"
+				on:click={async () => {
+					deleting = true;
+					await deleteAction();
+					deleting = false;
+				}}>Yes, delete!</button>
 		</li>
 	</ul>
 </div>

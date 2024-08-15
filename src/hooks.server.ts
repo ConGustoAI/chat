@@ -1,32 +1,35 @@
+// import { createServerClient } from '@supabase/ssr';
 import { createServerClient } from '@supabase/ssr';
 import { type Handle } from '@sveltejs/kit';
+import dbg from 'debug';
 
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+const debug = dbg('app:hooks:supabase');
+
+export const sse = false;
+
+import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser } from '$lib/db/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	/**
-	 * Creates a Supabase client specific to this server request.
-	 *
-	 * The Supabase client gets the Auth token from the request cookies.
-	 */
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+		auth: { debug: true },
 		cookies: {
-			// getAll: () => event.cookies.getAll(),
-			get: (key) => event.cookies.get(key),
+			get: (key) => {
+				const value = event.cookies.get(key);
+				// debug('cookies get', { key, value });
+				return value;
+			},
 			set: (key, value, options) => {
+				// debug('cookies set', { key, value, options });
 				event.cookies.set(key, value, { ...options, path: options.path ?? '/' });
 			},
 			remove: (key, options) => {
+				// debug('cookies remove', { key, options });
 				event.cookies.delete(key, { ...options, path: options.path ?? '/' });
 			}
 		}
 	});
 
-	/**
-	 * Unlike `supabase.auth.getSession()`, which returns the session _without_
-	 * validating the JWT, this function also calls `getUser()` to validate the
-	 * JWT before returning the session.
-	 */
 	event.locals.safeGetSession = async () => {
 		const {
 			data: { session }
@@ -40,6 +43,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			error
 		} = await event.locals.supabase.auth.getUser();
 		if (error) {
+			debug('Error getting user: ', error);
 			// JWT validation has failed
 			return { session: null, user: null };
 		}
@@ -48,8 +52,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 	};
 
 	const { session, user } = await event.locals.safeGetSession();
-	event.locals.session = session;
-	event.locals.user = user;
+	event.locals.session = session ?? undefined;
+	event.locals.user = user ?? undefined;
+
+	if (user) {
+		[event.locals.dbUser, event.locals.assistants] = (await Promise.all([
+			DBgetUser({ id: user.id }),
+			DBgetAssistants({ dbUser: { id: user.id } })
+		])) as [UserInterface, AssistantInterface[]];
+	} else {
+		event.locals.dbUser = undefined;
+		event.locals.assistants = (await DBgetDefaultAssistants()) as AssistantInterface[];
+	}
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
