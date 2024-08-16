@@ -7,6 +7,13 @@
 	export let loginData;
 	export let loginForm;
 
+	let loginSpinning = false;
+	let signupSpinning = false;
+	let loginGoogleSpinning = false;
+	let loginGithubSpinning = false;
+	let logoutSpinning = false;
+	let logoutAllSpinning = false;
+
 	function toggleMode() {
 		isLogin = !isLogin;
 	}
@@ -20,10 +27,28 @@
 				<p><strong>User ID:</strong> {loginData.dbUser.id}</p>
 				<div class="flex gap-4">
 					<form method="POST" action="/api/login?/signout">
-						<button class="btn btn-primary">Log out</button>
+						<button
+							class="btn btn-primary"
+							on:click={() => {
+								logoutSpinning = true;
+							}}>
+							{#if logoutSpinning}
+								<div class="loading"></div>
+							{/if}
+							Log out
+						</button>
 					</form>
 					<form method="POST" action="/api/login?/signoutAll">
-						<button class="btn btn-primary">Log out on all devices</button>
+						<button
+							class="btn btn-primary"
+							on:click={() => {
+								logoutAllSpinning = true;
+							}}>
+							{#if logoutAllSpinning}
+								<div class="loading"></div>
+							{/if}
+							Log out on all devices
+						</button>
 					</form>
 				</div>
 			</div>
@@ -51,14 +76,30 @@
 						{#if loginForm?.pwmissing}<p class="text-error">The password field is required</p>{/if}
 					</div>
 					<div class="form-control mt-6">
-						<button class="btn btn-primary">{isLogin ? 'Login' : 'Sign Up'}</button>
+						<button
+							class="btn btn-primary"
+							on:click={() => {
+								isLogin ? (loginSpinning = true) : (signupSpinning = true);
+							}}>
+							{#if isLogin ? loginSpinning : signupSpinning}
+								<div class="loading"></div>
+							{/if}
+							{isLogin ? 'Login' : 'Sign Up'}
+						</button>
 					</div>
 					{#if loginForm?.error}
 						<div class="text-error">{loginForm.error}</div>
 					{/if}
 					{#if isLogin}
 						<div class="mt-2 text-center">
-							<button formaction="/api/login?/recover" class="link-hover link">Forgot password?</button>
+							<button
+								formaction="/api/login?/recover"
+								class="link-hover link"
+								on:click={() => {
+									// Add spinner logic if needed
+								}}>
+								Forgot password?
+							</button>
 						</div>
 					{/if}
 					<div class="mt-4 text-center">
@@ -72,12 +113,30 @@
 				<div class="divider">OR</div>
 				<form method="POST">
 					<div class="flex flex-col gap-2">
-						<button formaction="/api/login?/login&provider=google" class="btn btn-outline">
-							<Google />
+						<button
+							formaction="/api/login?/login&provider=google"
+							class="btn btn-outline"
+							on:click={() => {
+								loginGoogleSpinning = true;
+							}}>
+							{#if loginGoogleSpinning}
+								<div class="loading"></div>
+							{:else}
+								<Google />
+							{/if}
 							{isLogin ? 'Log in' : 'Sign Up'} with Google
 						</button>
-						<button formaction="/api/login/?/login&provider=github" class="btn btn-outline">
-							<GitHub />
+						<button
+							formaction="/api/login/?/login&provider=github"
+							class="btn btn-outline"
+							on:click={() => {
+								loginGithubSpinning = true;
+							}}>
+							{#if loginGithubSpinning}
+								<div class="loading"></div>
+							{:else}
+								<GitHub />
+							{/if}
 							{isLogin ? 'Log in' : 'Sign Up'} with GitHub
 						</button>
 					</div>

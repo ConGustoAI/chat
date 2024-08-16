@@ -8,7 +8,7 @@ const debug = dbg('app:hooks:supabase');
 export const sse = false;
 
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
+import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser, DBinsertUser } from '$lib/db/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
