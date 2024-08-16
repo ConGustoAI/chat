@@ -30,8 +30,8 @@ declare global {
 		assistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;
-		createdAt?: Date | string;
-		updatedAt?: Date | string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface ProviderInterface {
@@ -42,8 +42,8 @@ declare global {
 		baseURL: string;
 		apiKeys?: ApiKeyInterface[];
 		models?: ModelInterface[];
-		createdAt?: Date | string;
-		updatedAt?: Date | string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface ApiKeyInterface {
@@ -52,8 +52,8 @@ declare global {
 		providerID: string;
 		key: string;
 		label: string;
-		createdAt?: Date | string;
-		updatedAt?: Date | string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface ModelInterface {
@@ -67,8 +67,8 @@ declare global {
 		prefill?: boolean;
 		inputContext: number;
 		providerID: string;
-		createdAt?: Date | string;
-		updatedAt?: Date | string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface AssistantInterface {
@@ -87,8 +87,8 @@ declare global {
 		audio?: boolean;
 		video?: boolean;
 		prefill?: boolean;
-		createdAt?: Date | string;
-		updatedAt?: Date | string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface MessageInterface {
