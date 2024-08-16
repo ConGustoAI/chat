@@ -12,7 +12,7 @@ import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser, DBinsertUser } from
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-		auth: { debug: true },
+		auth: { debug: false },
 		cookies: {
 			get: (key) => {
 				const value = event.cookies.get(key);

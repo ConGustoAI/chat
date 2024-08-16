@@ -49,11 +49,7 @@
 	}
 
 	async function gotoSettings() {
-		if (!user) {
-			TriggerLoginModal();
-		} else {
-			goto('/settings');
-		}
+		goto('/settings');
 	}
 
 	let editingSummary = false;

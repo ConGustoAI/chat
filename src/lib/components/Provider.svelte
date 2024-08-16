@@ -2,13 +2,13 @@
 	import { defaultsUUID, providerTypes } from '$lib/db/schema';
 	import { assert, capitalize } from '$lib/utils';
 	import { Check, Plus, Trash2 } from 'lucide-svelte';
-
 	import { APIdeleteKey, APIupsertKey, APIupsertProvider } from '$lib/api';
-
 	import { beforeNavigate } from '$app/navigation';
 	import ProviderApiKeys from './ProviderApiKeys.svelte';
 	import ProviderModels from './ProviderModels.svelte';
 	import { APIdeleteModel, APIupsertModel } from '$lib/api/model';
+	import { toLogin } from '$lib/stores/loginModal';
+
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:Provider');
 
@@ -39,7 +39,10 @@
 	let addingKey = false;
 	async function addKey(p: ProviderInterface) {
 		debug('add key');
-		if (!dbUser) return;
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
 		addingKey = true;
 		const apiKey = await APIupsertKey({
 			userID: editDefaults ? defaultsUUID : dbUser.id,
@@ -55,6 +58,11 @@
 
 	async function delteteAPIKey(apiKey: ApiKeyInterface) {
 		debug('delete key', apiKey);
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
+
 		const del = await APIdeleteKey(apiKey);
 		if (editDefaults) {
 			delete defaultApiKeys[del.id!];
@@ -70,7 +78,10 @@
 	let addingModel = false;
 	async function addModel() {
 		debug('add model');
-		if (!dbUser) return;
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
 		addingModel = true;
 		const newModel = await APIupsertModel({
 			userID: editDefaults ? defaultsUUID : dbUser.id,
@@ -89,6 +100,10 @@
 
 	async function deleteModel(model: ModelInterface) {
 		debug('delete model', model);
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
 		const del = await APIdeleteModel(model);
 		if (editDefaults) {
 			delete defaultModels[del.id!];
@@ -114,6 +129,10 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
+				if (!dbUser) {
+					toLogin();
+					return;
+				}
 				status = 'saving';
 				APIupsertProvider(provider)
 					.then((res) => {
@@ -211,7 +230,7 @@
 
 				{#each Object.entries(models) as [id, model]}
 					{#if model.providerID === provider.id}
-						<ProviderModels bind:model onDeleteModel={async () => await deleteModel(model)} edit={true} />
+						<ProviderModels {dbUser} bind:model onDeleteModel={async () => await deleteModel(model)} edit={true} />
 					{/if}
 				{/each}
 
@@ -253,7 +272,7 @@
 
 				{#each Object.entries(defaultModels) as [id, model]}
 					{#if model.providerID === provider.id}
-						<ProviderModels bind:model onDeleteModel={() => {}} edit={editDefaults} />
+						<ProviderModels {dbUser} bind:model onDeleteModel={() => {}} edit={editDefaults} />
 					{/if}
 				{/each}
 				{#if editDefaults}
@@ -288,7 +307,7 @@
 
 				{#each Object.entries(apiKeys) as [id, key]}
 					{#if key.providerID === provider.id}
-						<ProviderApiKeys bind:apiKey={key} onDeleteKey={() => delteteAPIKey(key)} edit={true} />
+						<ProviderApiKeys {dbUser} bind:apiKey={key} onDeleteKey={() => delteteAPIKey(key)} edit={true} />
 					{/if}
 				{/each}
 				<button
@@ -323,6 +342,7 @@
 				{#each Object.entries(defaultApiKeys) as [id, key]}
 					{#if key.providerID === provider.id}
 						<ProviderApiKeys
+							{dbUser}
 							bind:apiKey={key}
 							onDeleteKey={async () => {
 								await delteteAPIKey(key);

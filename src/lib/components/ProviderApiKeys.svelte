@@ -4,7 +4,8 @@
 	import { defaultsUUID } from '$lib/db/schema';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
-
+	import { toLogin } from '$lib/stores/loginModal';
+	export let dbUser: UserInterface|undefined;
 	export let apiKey: ApiKeyInterface;
 	export let edit: boolean;
 	export let onDeleteKey;
@@ -27,6 +28,10 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
+				if (!dbUser) {
+					toLogin();
+					return;
+				}
 				APIupsertKey(apiKey)
 					.then((res) => {
 						status = 'saved';

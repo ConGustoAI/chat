@@ -29,21 +29,21 @@ export async function DBgetDefaultAssistant({ id }: { id: string }) {
 }
 
 export async function DBgetAssistants({ dbUser }: { dbUser?: UserInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default assistants.
 	const assistants = await db.query.assistantsTable.findMany({
-		where: (table, { eq, or }) => or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID))
 	});
 
 	return assistants;
 }
 
 export async function DBgetAssistant({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default assistants.
 	if (!id) error(400, 'Assistant ID is required');
 
 	const assistant = await db.query.assistantsTable.findFirst({
 		where: (table, { eq, and, or }) =>
-			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!assistant) {

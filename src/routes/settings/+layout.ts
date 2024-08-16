@@ -1,13 +1,13 @@
-import { APIfetchUser } from '$lib/api';
+// import { APIfetchUser } from '$lib/api';
 
-export const ssr = false;
-export const load = async () => {
-	try {
-		const dbUser = await APIfetchUser();
-		return {
-			dbUser
-		};
-	} catch {
-		return {};
-	}
-};
+// export const ssr = false;
+// export const load = async () => {
+// 	try {
+// 		const dbUser = await APIfetchUser();
+// 		return {
+// 			dbUser
+// 		};
+// 	} catch {
+// 		return {};
+// 	}
+// };

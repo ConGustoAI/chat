@@ -6,6 +6,7 @@
 	import dbg from 'debug';
 	import { Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { toLogin } from '$lib/stores/loginModal';
 
 	const debug = dbg('app:ui:settings:admin:providers');
 
@@ -35,7 +36,11 @@
 	async function addProvider() {
 		debug('add provider');
 		addingProvider = true;
-		if (!dbUser) return;
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
+
 		const newProvider = await APIupsertProvider({
 			userID: defaultsUUID,
 			name: 'New provider',
@@ -50,6 +55,11 @@
 
 	async function deleteProvider(provider: ProviderInterface) {
 		debug('delete provider', provider);
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
+
 		const del = await APIdeleteProvider(provider);
 		debug('delete provider', del);
 		delete defaultProviders[del.id!];

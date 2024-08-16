@@ -12,8 +12,10 @@
 	import { onMount } from 'svelte';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { toIdMap } from '$lib/utils';
+	import { toLogin } from '$lib/stores/loginModal'
 
 	import dbg from 'debug';
+	import type { loginModal } from '$lib/stores/loginModal.js';
 	const debug = dbg('app:ui:settings:assistants');
 
 	export let data;
@@ -48,6 +50,10 @@
 	let addingAssistant = false;
 	async function addAssistant() {
 		debug('add assistant');
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
 		addingAssistant = true;
 		const newAssistant = await APIupsertAssistant({
 			userID: dbUser.id,
@@ -62,6 +68,10 @@
 
 	async function deleteAssistant(assistant: AssistantInterface) {
 		debug('delete assistant', assistant);
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
 		const del = await APIdeleteAssistant(assistant);
 		delete assistants[del.id!];
 		assistants = assistants;

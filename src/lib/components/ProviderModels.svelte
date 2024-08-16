@@ -3,7 +3,9 @@
 	import { APIupsertModel } from '$lib/api/model';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
+	import { toLogin } from '$lib/stores/loginModal';
 
+	export let dbUser: UserInterface | undefined;
 	export let model: ModelInterface;
 	export let edit: boolean;
 	export let onDeleteModel;
@@ -26,6 +28,11 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
+				if (!dbUser) {
+					toLogin();
+					return;
+				}
+
 				status = 'saving';
 				APIupsertModel(model)
 					.then((res) => {

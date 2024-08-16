@@ -5,19 +5,19 @@ import { defaultsUUID, providersTable } from '../schema';
 import { error } from '@sveltejs/kit';
 
 export async function DBgetProviders({ dbUser }: { dbUser?: UserInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default providers.
 	const providers = await db.query.providersTable.findMany({
-		where: (table, { eq, or }) => or(eq(table.userID, dbUser!.id), eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser!.id) : undefined, eq(table.userID, defaultsUUID))
 	});
 
 	return providers;
 }
 
 export async function DBgetProvider({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default providers.
 	const provider = await db.query.providersTable.findFirst({
 		where: (table, { eq, and }) =>
-			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!provider) error(404, 'Provider not found or does not belong to the user');

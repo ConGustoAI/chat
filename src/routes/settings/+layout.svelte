@@ -45,8 +45,8 @@
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat
 	</a>
-
-	<SidebarNav items={sidebarNavItems} adminItems={dbUser.admin ? adminSidebarItems : []}>
+	<!-- We allow anonymous users a sneak peek under into the Admin panel. All security is handled on the server side-->
+	<SidebarNav items={sidebarNavItems} adminItems={!dbUser || dbUser?.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
 			<slot />
 		</div>

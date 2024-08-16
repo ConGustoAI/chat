@@ -5,19 +5,23 @@ import { db } from '..';
 import { apiKeysTable, defaultsUUID } from '../schema';
 
 export async function DBgetKeys({ dbUser }: { dbUser?: UserInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default keys.
+	// The default keys values are censorsd, and an anonymous user can not use
+	// the chat, so it's just to demo the settings page.
 	const keys = await db.query.apiKeysTable.findMany({
-		where: (table, { eq, or }) => or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID))
 	});
 
 	return keys;
 }
 
 export async function DBgetKey({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	// Note: If the user is not authorized, we only return the default keys.
+	// The default keys values are censorsd, and an anonymous user can not use
+	// the chat, so it's just to demo the settings page.
 	const key = await db.query.apiKeysTable.findFirst({
 		where: (table, { eq, or, and }) =>
-			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!key) error(404, 'Key not found or does not belong to the user');

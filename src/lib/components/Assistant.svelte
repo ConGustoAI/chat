@@ -2,6 +2,7 @@
 	import { beforeNavigate } from '$app/navigation';
 	import { APIupsertAssistant } from '$lib/api';
 	import { defaultsUUID } from '$lib/db/schema';
+	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
 
@@ -37,6 +38,10 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
+				if (!dbUser) {
+					toLogin();
+					return;
+				}
 				status = 'saving';
 				APIupsertAssistant(assistant)
 					.then((res) => {

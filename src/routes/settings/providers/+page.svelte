@@ -5,6 +5,8 @@
 	import { onMount } from 'svelte';
 	import { defaultsUUID } from '$lib/db/schema/users.js';
 	import { toIdMap } from '$lib/utils';
+	import { toLogin } from '$lib/stores/loginModal';
+
 	import dbg from 'debug';
 
 	const debug = dbg('app:ui:settings:providers');
@@ -29,14 +31,17 @@
 			APIfetchKeys()
 		]);
 
-		providers = toIdMap(fetchedProviders.filter((p) => p.userID == dbUser.id));
 		defaultProviders = toIdMap(fetchedProviders.filter((p) => p.userID == defaultsUUID));
 
-		models = toIdMap(ferchedModels.filter((m) => m.userID == dbUser.id));
 		defaultModels = toIdMap(ferchedModels.filter((m) => m.userID == defaultsUUID));
 
-		apiKeys = toIdMap(fetchedApiKeys.filter((k) => k.userID == dbUser.id));
 		defaultApiKeys = toIdMap(fetchedApiKeys.filter((k) => k.userID == defaultsUUID));
+
+		if (dbUser) {
+			providers = toIdMap(fetchedProviders.filter((p) => p.userID == dbUser.id));
+			models = toIdMap(ferchedModels.filter((m) => m.userID == dbUser.id));
+			apiKeys = toIdMap(fetchedApiKeys.filter((k) => k.userID == dbUser.id));
+		}
 
 		loading = false;
 	});
@@ -44,7 +49,13 @@
 	let addingProvider = false;
 	async function addProvider() {
 		debug('add provider');
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
+
 		addingProvider = true;
+
 		const newProvider = await APIupsertProvider({
 			userID: dbUser.id,
 			name: 'New provider',
@@ -59,6 +70,11 @@
 
 	async function deleteProvider(provider: ProviderInterface) {
 		debug('delete provider', provider);
+		if (!dbUser) {
+			toLogin();
+			return;
+		}
+
 		const del = await APIdeleteProvider(provider);
 		debug('delete provider', del);
 		delete providers[del.id!];
@@ -134,5 +150,3 @@
 		{/each}
 	</div>
 </div>
-
-<pre>{JSON.stringify(providers, null, 2)}</pre>
