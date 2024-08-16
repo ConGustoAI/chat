@@ -45,28 +45,34 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	if (AM.role != 'assistant') error(400, 'Expected assistant message, got ' + AM.role);
 
 	// Check that the assistant belongs to the user or is a default assistant
-	const assistantData = await db.query.assistantsTable.findFirst({
-		where: (table, { eq, and, or }) =>
-			and(eq(table.id, assistant), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))),
-		with: {
-			model: { with: { provider: true } },
-			apiKey: true
-		}
-	});
+	const [assistantData, keys] = await Promise.all([
+		db.query.assistantsTable.findFirst({
+			where: (table, { eq, and, or }) =>
+				and(eq(table.id, assistant), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))),
+			with: { model: { with: { provider: true } } }
+		}),
+		db.query.apiKeysTable.findMany({
+			where: (table, { eq, or }) => or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))
+		})
+	]);
 
-	debug('assistantData %o', assistantData);
+	debug('assistantData, keys %o', { assistantData, keys });
 	if (!assistantData) error(404, 'Assistant not found or does not belong to the user');
 	if (!assistantData.model) error(404, 'Assistant model not found');
-	if (!assistantData.apiKey) error(404, 'Assistant does not have an API key');
 
 	if (assistantData.model.userID !== defaultsUUID && assistantData.model.userID !== dbUser.id)
-		error(403, 'Assistant does not belong to the user');
-	if (assistantData.apiKey.userID !== defaultsUUID && assistantData.apiKey.userID !== dbUser.id)
-		error(403, 'API key does not belong to the user');
+		error(403, "Assistant's model does not belong to the user?");
+
+	const key = keys.find((k) => k.providerID && k.providerID === assistantData.model?.provider.id);
+	if (!key)
+		error(
+			403,
+			`No api key found for provider ${assistantData.model.provider.name} (${assistantData.model.provider.id})`
+		);
 
 	if (AM.text && !assistantData.model.prefill) error(403, 'Assistant does not support prefill');
 
-	const clientSettings = { apiKey: assistantData.apiKey.key, baseURL: assistantData.model.provider.baseURL };
+	const clientSettings = { apiKey: key.key, baseURL: assistantData.model.provider.baseURL };
 
 	let client: OpenAIProvider | GoogleGenerativeAIProvider | AnthropicProvider;
 	if (assistantData.model.provider.type === 'openai') {

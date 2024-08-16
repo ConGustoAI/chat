@@ -61,9 +61,6 @@
 		status = 'changed';
 	}
 
-	// $: provider = providers.find((p) => p?.models?.some((m) => m.id === assistant.model));
-	// $: model = models.find((m) => m.id === assistant.model);
-
 	let detailsToggled = false;
 </script>
 
@@ -90,19 +87,14 @@
 	{#if assistant.model}
 		{@const model = models[assistant.model]}
 		{@const provider = providers[model.providerID]}
-		{@const hasKey = Object.values(apiKeys).some((k) => k.providerID === model.providerID)}
 
-		{#if !hasKey}
-			<option disabled>No API keys</option>
-		{:else}
-			<option disabled>Select API key</option>
+		<option value={defaultsUUID}>First available</option>
 
-			{#each Object.entries(apiKeys) as [kid, key]}
-				{#if key.providerID === model.providerID}
-					<option value={key.id}>{provider.name}/{key.label}</option>
-				{/if}
-			{/each}
-		{/if}
+		{#each Object.entries(apiKeys) as [kid, key]}
+			{#if key.providerID === model.providerID}
+				<option value={key.id}>{provider.name}/{key.label}</option>
+			{/if}
+		{/each}
 	{:else}
 		<option disabled>No model</option>
 	{/if}

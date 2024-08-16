@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
+	import { APIdeleteProvider, APIfetchKeys, APIfetchModels, APIfetchProviders, APIupsertProvider } from '$lib/api';
 	import { Provider } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema/users.js';
 	import { toIdMap } from '$lib/utils';
 	import dbg from 'debug';
+	import { Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
 	const debug = dbg('app:ui:settings:admin:providers');
@@ -31,39 +32,44 @@
 	});
 
 	let addingProvider = false;
-	// async function addProvider() {
-	// 	debug('add provider');
-	// 	addingProvider = true;
-	// 	const newProvider = await APIupsertProvider({
-	// 		userID: dbUser.id,
-	// 		name: 'New provider',
-	// 		type: 'openai',
-	// 		baseURL: 'https://api.openai.com/v1'
-	// 	});
-	// 	debug('new provider', newProvider);
+	async function addProvider() {
+		debug('add provider');
+		addingProvider = true;
+		if (!dbUser) return;
+		const newProvider = await APIupsertProvider({
+			userID: defaultsUUID,
+			name: 'New provider',
+			type: 'openai',
+			baseURL: 'https://api.openai.com/v1'
+		});
+		debug('new provider', newProvider);
 
-	// 	defaultProviders[newProvider.id!] = newProvider;
-	// 	addingProvider = false;
-	// }
+		defaultProviders[newProvider.id!] = newProvider;
+		addingProvider = false;
+	}
 
-	// async function deleteProvider(provider: ProviderInterface) {
-	// 	debug('delete provider', provider);
-	// 	const del = await APIdeleteProvider(provider);
-	// 	debug('delete provider', del);
-	// 	delete defaultProviders[del.id!];
-	// 	defaultProviders = defaultProviders;
-	// }
+	async function deleteProvider(provider: ProviderInterface) {
+		debug('delete provider', provider);
+		const del = await APIdeleteProvider(provider);
+		debug('delete provider', del);
+		delete defaultProviders[del.id!];
+		defaultProviders = defaultProviders;
+	}
 </script>
 
 <div class="flex flex-col gap-1">
-	<div class="div flex gap-2">
-		<h2 class="card-title">Default API providers</h2>
+	<div class="div flex grow gap-2"></div>
+
+	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,8rem,auto,6rem,6rem,4rem,0] gap-4 gap-y-2">
+		<h2 class="card-title text-nowrap">
+			<div class="alert alert-warning w-fit">
+				<span>Default API providers. Changes made here will be visible to and will affect all users</span>
+			</div>
+		</h2>
 		{#if loading}
 			<div class="loading" />
 		{/if}
-	</div>
 
-	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,8rem,auto,6rem,6rem,4rem,0] gap-4 gap-y-2">
 		<div class="divider col-span-full w-full">Default providers</div>
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>
@@ -77,14 +83,29 @@
 			<Provider
 				{dbUser}
 				bind:provider
-				bind:models={defaultModels}
-				bind:apiKeys={defaultApiKeys}
+				models={{}}
+				apiKeys={{}}
 				{defaultModels}
 				{defaultApiKeys}
-				onDeleteProvider={() => {}}
+				onDeleteProvider={async () => {
+					await deleteProvider(provider);
+				}}
 				edit={true}
 				editDefaults={true} />
 		{/each}
+		<button
+			class="btn btn-outline w-fit"
+			disabled={addingProvider || loading}
+			on:click={async () => {
+				await addProvider();
+			}}>
+			{#if addingProvider}
+				<div class="loading" />
+			{:else}
+				<Plus />
+			{/if}
+			Provider
+		</button>
 	</div>
 </div>
 

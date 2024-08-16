@@ -12,7 +12,7 @@
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:Provider');
 
-	export let dbUser: UserInterface;
+	export let dbUser: UserInterface | undefined;
 	export let provider: ProviderInterface;
 	export let models: { [key: string]: ModelInterface };
 	export let defaultModels: { [key: string]: ModelInterface } = {};
@@ -39,14 +39,16 @@
 	let addingKey = false;
 	async function addKey(p: ProviderInterface) {
 		debug('add key');
+		if (!dbUser) return;
 		addingKey = true;
 		const apiKey = await APIupsertKey({
-			userID: dbUser.id,
+			userID: editDefaults ? defaultsUUID : dbUser.id,
 			providerID: p.id!,
 			label: 'New Key',
 			key: ''
 		});
-		apiKeys[apiKey.id!] = apiKey;
+		if (editDefaults) defaultApiKeys[apiKey.id!] = apiKey;
+		else apiKeys[apiKey.id!] = apiKey;
 		addingKey = false;
 		debug('new key', apiKey);
 	}
@@ -54,16 +56,24 @@
 	async function delteteAPIKey(apiKey: ApiKeyInterface) {
 		debug('delete key', apiKey);
 		const del = await APIdeleteKey(apiKey);
-		delete apiKeys[del.id!];
+		if (editDefaults) {
+			delete defaultApiKeys[del.id!];
+			defaultApiKeys = defaultApiKeys;
+		} else {
+			delete apiKeys[del.id!];
+			apiKeys = apiKeys;
+		}
+
 		debug('delete key done', del);
 	}
 
 	let addingModel = false;
 	async function addModel() {
 		debug('add model');
+		if (!dbUser) return;
 		addingModel = true;
 		const newModel = await APIupsertModel({
-			userID: dbUser.id,
+			userID: editDefaults ? defaultsUUID : dbUser.id,
 			providerID: provider.id!,
 			displayName: 'New Model',
 			name: '',
@@ -71,7 +81,8 @@
 			images: false,
 			prefill: false
 		});
-		models[newModel.id!] = newModel;
+		if (editDefaults) defaultModels[newModel.id!] = newModel;
+		else models[newModel.id!] = newModel;
 		addingModel = false;
 		debug('new model', newModel);
 	}
@@ -79,7 +90,13 @@
 	async function deleteModel(model: ModelInterface) {
 		debug('delete model', model);
 		const del = await APIdeleteModel(model);
-		delete models[del.id!];
+		if (editDefaults) {
+			delete defaultModels[del.id!];
+			defaultModels = defaultModels;
+		} else {
+			delete models[del.id!];
+			models = models;
+		}
 		debug('delete model done', del);
 	}
 
@@ -155,6 +172,7 @@
 	on:click={() => {
 		status = 'deleting';
 		onDeleteProvider();
+		status = 'deleted';
 	}}
 	disabled={!edit || status === 'deleting'}>
 	{#if status === 'deleting'}
@@ -180,7 +198,7 @@
 		{#if !editDefaults}
 			<div
 				class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">Your {provider.name} models</div>
+				<div class="divider col-span-full w-full">{provider.name}: Your models</div>
 				<span class="label-text">Display name</span>
 				<span class="label-text">Model name</span>
 				<span class="label-text w-full">Input context</span>
@@ -211,10 +229,18 @@
 				</button>
 			</div>
 		{/if}
-		{#if Object.keys(defaultModels).length}
+		{#if Object.keys(defaultModels).length || editDefaults}
 			<div
 				class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">Default {provider.name} models</div>
+				<div class="divider col-span-full w-full">
+					{provider.name}: Default models
+				</div>
+				{#if editDefaults}
+					<div
+						class="center alert alert-warning col-span-full flex w-full items-center justify-center py-0 text-center">
+						<p>Changes made here will be visible to and will affect all users</p>
+					</div>
+				{/if}
 				<span class="label-text">Display name</span>
 				<span class="label-text">Model name</span>
 				<span class="label-text w-full">Input context</span>
@@ -254,8 +280,7 @@
 	<div class="col-span-6 mb-6 w-full">
 		{#if !editDefaults}
 			<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">Your {provider.name} API keys</div>
-
+				<div class="divider col-span-full w-full">{provider.name}: Your API keys</div>
 				<span class="label-text">Key label</span>
 				<span class="label-text">Key</span>
 				<span />
@@ -280,10 +305,16 @@
 			</div>
 		{/if}
 
-		{#if Object.keys(defaultApiKeys).length}
+		{#if Object.keys(defaultApiKeys).length || editDefaults}
 			<div />
 			<div class="col-span-6 grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">Default {provider.name} API keys</div>
+				<div class="divider col-span-full w-full">{provider.name}: Default API keys</div>
+				{#if editDefaults}
+					<div class="center alert alert-error col-span-full flex w-full items-center justify-center py-0 text-center">
+						<p>Default keys are available to all users. The key itself is never revealed to the user</p>
+					</div>
+				{/if}
+
 				<span class="label-text">Key label</span>
 				<span class="label-text">Key</span>
 				<span />
@@ -291,7 +322,12 @@
 
 				{#each Object.entries(defaultApiKeys) as [id, key]}
 					{#if key.providerID === provider.id}
-						<ProviderApiKeys bind:apiKey={key} onDeleteKey={() => {}} edit={editDefaults} />
+						<ProviderApiKeys
+							bind:apiKey={key}
+							onDeleteKey={async () => {
+								await delteteAPIKey(key);
+							}}
+							edit={editDefaults} />
 					{/if}
 				{/each}
 				{#if editDefaults}

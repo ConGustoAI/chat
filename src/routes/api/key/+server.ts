@@ -1,8 +1,8 @@
 import { DBdeleteKey, DBgetKeys, DBupsertKey } from '$lib/db/utils/keys';
+import { censorKey } from '$lib/utils';
 import { json } from '@sveltejs/kit';
 import dbg from 'debug';
 import type { RequestHandler } from './$types';
-import { defaultsUUID } from '$lib/db/schema';
 
 const debug = dbg('app:api:key');
 
@@ -17,12 +17,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
 	debug('GET');
-	let keys = await DBgetKeys({ dbUser });
-	keys = keys.map((k) => {
-		return {
-			...k,
-			key: k.userID === defaultsUUID ? `${k.key.slice(0, 5)}...${k.key.slice(-5)}` : k.key
-		};
+	const keys = (await DBgetKeys({ dbUser })).map((k) => {
+		return censorKey(dbUser, k);
 	});
 	debug('GET -> %o', keys);
 	return json(keys);

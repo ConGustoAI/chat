@@ -30,6 +30,8 @@ declare global {
 		assistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;
+		createdAt?: Date | string;
+		updatedAt?: Date | string;
 	}
 
 	interface ProviderInterface {
@@ -40,6 +42,8 @@ declare global {
 		baseURL: string;
 		apiKeys?: ApiKeyInterface[];
 		models?: ModelInterface[];
+		createdAt?: Date | string;
+		updatedAt?: Date | string;
 	}
 
 	interface ApiKeyInterface {
@@ -48,6 +52,8 @@ declare global {
 		providerID: string;
 		key: string;
 		label: string;
+		createdAt?: Date | string;
+		updatedAt?: Date | string;
 	}
 
 	interface ModelInterface {
@@ -61,34 +67,9 @@ declare global {
 		prefill?: boolean;
 		inputContext: number;
 		providerID: string;
+		createdAt?: Date | string;
+		updatedAt?: Date | string;
 	}
-
-	// interface ProviderApiKeysInterface {
-	// 	id?: string;
-	// 	name: string;
-	// 	type: ProviderType;
-	// 	baseURL: string;
-	// 	apiKeys: {
-	// 		id?: string;
-	// 		providerID?: string;
-	// 		key: string;
-	// 		label: string;
-	// 	}[];
-	// }
-
-	// interface ProviderModelsInterface {
-	// 	id: string;
-	// 	name: string;
-	// 	models: {
-	// 		id?: string;
-	// 		name: string;
-	// 		display_name?: string;
-	// 		images: boolean;
-	// 		prefill: boolean;
-	// 		inputContext: number;
-	// 		providerID: string;
-	// 	}[];
-	// }
 
 	interface AssistantInterface {
 		id?: string;
@@ -106,26 +87,9 @@ declare global {
 		audio?: boolean;
 		video?: boolean;
 		prefill?: boolean;
+		createdAt?: Date | string;
+		updatedAt?: Date | string;
 	}
-
-	// interface ProviderAssistantInterface {
-	// 	id: string;
-	// 	name: string;
-	// 	type: string;
-	// 	models: {
-	// 		id: string;
-	// 		name: string;
-	// 		display_name: string;
-	// 		images: boolean;
-	// 		prefill: boolean;
-	// 		inputContext: number;
-	// 		providerID: string;
-	// 	}[];
-	// 	apiKeys: {
-	// 		id: string;
-	// 		label: string;
-	// 	}[];
-	// }
 
 	interface MessageInterface {
 		id?: string;
@@ -150,9 +114,9 @@ declare global {
 		summary?: string;
 		like?: boolean;
 		deleted?: boolean;
+		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;
-		messages?: MessageInterface[];
 	}
 }
 

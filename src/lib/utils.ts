@@ -66,3 +66,8 @@ export function toIdMap<T extends MappableInterface>(array: Array<T>) {
 		return acc;
 	}, {});
 }
+
+export function censorKey(dbUser: UserInterface | undefined, key: ApiKeyInterface) {
+	if (dbUser?.admin || key.userID === dbUser?.id) return key;
+	return { ...key, key: `${key.key.slice(0, 5)}...${key.key.slice(-2)}` };
+}

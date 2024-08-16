@@ -232,23 +232,27 @@
 
 	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
 
-	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden">
+	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle {chatLoading} bind:conversation {assistants} bind:user={dbUser} bind:updatingLike />
 
-		<div class="mb-auto w-full grow overflow-auto">
+		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
 			{#if conversation?.messages}
 				{#each conversation.messages as m}
 					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={!dbUser || dbUser?.hacker} />
 				{/each}
+			{:else}
+				<div
+					class="pointer-events-none m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale"
+					style="opacity:0.05">
+					<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
+					<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
+				</div>
 			{/if}
 		</div>
 		<div class="divider w-full" />
 
 		<div class="navbar m-2 grow-0 py-0">
 			<div class="navbar-start max-w-fit">
-				<div class="absolute bottom-5 left-3">
-					<DrawerButton bind:drawer_open />
-				</div>
 				{#if !drawer_open}
 					<div class="btn btn-circle" style="visibility: hidden;"></div>
 				{/if}
@@ -258,6 +262,9 @@
 			</div>
 			<div class="navbar-end max-w-fit"></div>
 		</div>
+	</div>
+	<div class="absolute bottom-5 left-3">
+		<DrawerButton bind:drawer_open />
 	</div>
 </main>
 

@@ -31,17 +31,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 
 	event.locals.safeGetSession = async () => {
-		const {
-			data: { session }
-		} = await event.locals.supabase.auth.getSession();
-		if (!session) {
-			return { session: null, user: null };
+		let session = null;
+		let user = null;
+		let error = null;
+
+		// Retry logic for getSession
+		for (let attempt = 0; attempt < 3; attempt++) {
+			const sessionResponse = await event.locals.supabase.auth.getSession();
+			session = sessionResponse.data.session;
+			if (session) break;
+			await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1 second before retrying
 		}
 
-		const {
-			data: { user },
-			error
-		} = await event.locals.supabase.auth.getUser();
+		if (!session) return { session: null, user: null };
+
+		// Retry logic for getUser
+		for (let attempt = 0; attempt < 3; attempt++) {
+			const userResponse = await event.locals.supabase.auth.getUser();
+			user = userResponse.data.user;
+			error = userResponse.error;
+			if (!error) break;
+			await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1 second before retrying
+		}
+
 		if (error) {
 			debug('Error getting user: ', error);
 			// JWT validation has failed

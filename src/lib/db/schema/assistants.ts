@@ -14,7 +14,7 @@ export const assistantsTable = pgTable('assistants', {
 	about: text('about'),
 	default: boolean('default').default(false),
 	model: uuid('model').references(() => modelsTable.id, { onDelete: 'set null' }),
-	apiKey: uuid('api_key').references(() => apiKeysTable.id, { onDelete: 'set null' }),
+	apiKey: uuid('api_key'),
 	aboutUser: text('about_user'),
 	aboutUserFromUser: boolean('about_user_from_user').notNull().default(true),
 	assistantInstructions: text('assistant_instructions'),

@@ -76,7 +76,11 @@
 
 <div class="flex flex-col gap-1">
 	<div class="div flex gap-2">
-		<h2 class="card-title">Default Assistants</h2>
+		<h2 class="card-title text-nowrap">
+			<div class="alert alert-warning w-fit">
+				<span>Default Assistants. Changes made here will be visible to and will affect all users</span>
+			</div>
+		</h2>
 		{#if loading}
 			<div class="loading" />
 		{/if}
