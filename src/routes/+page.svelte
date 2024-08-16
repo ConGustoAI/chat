@@ -3,13 +3,8 @@
 
 	export let data;
 
-	// if (data.dbUser) {
-	// 	goto('/chat');
-	// } else {
-	// 	goto('/login');
-	// }
-
 	console.log('page data', data);
+	goto('/chat');
 </script>
 
 <!-- <form method="POST" action="auth/?/logout">
