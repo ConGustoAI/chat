@@ -11,8 +11,11 @@ import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/publi
 import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser, DBinsertUser } from '$lib/db/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// debug('start event handler', event);
+
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		auth: { debug: false },
+
 		cookies: {
 			get: (key) => {
 				const value = event.cookies.get(key);
@@ -29,43 +32,28 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 		}
 	});
+	// debug('supabase', event.locals.supabase);
 
 	event.locals.safeGetSession = async () => {
-		let session = null;
-		let user = null;
-		let error = null;
-
 		// Retry logic for getSession
 		for (let attempt = 0; attempt < 3; attempt++) {
+			// debug('getSession attempt', attempt);
 			const sessionResponse = await event.locals.supabase.auth.getSession();
-			session = sessionResponse.data.session;
-			if (session) break;
-			await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1 second before retrying
+			if (sessionResponse.data.session) {
+				const userResponse = await event.locals.supabase.auth.getUser();
+				if (!userResponse.error) return { session: sessionResponse.data.session, user: userResponse.data.user };
+				else debug('Error getting user: ', userResponse.error);
+			}
 		}
 
-		if (!session) return { session: null, user: null };
-
-		// Retry logic for getUser
-		for (let attempt = 0; attempt < 3; attempt++) {
-			const userResponse = await event.locals.supabase.auth.getUser();
-			user = userResponse.data.user;
-			error = userResponse.error;
-			if (!error) break;
-			await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1 second before retrying
-		}
-
-		if (error) {
-			debug('Error getting user: ', error);
-			// JWT validation has failed
-			return { session: null, user: null };
-		}
-
-		return { session, user };
+		return { session: null, user: null };
 	};
 
 	const { session, user } = await event.locals.safeGetSession();
 	event.locals.session = session ?? undefined;
 	event.locals.user = user ?? undefined;
+	debug('session', event.locals.session);
+	debug('user', event.locals.user);
 
 	if (user) {
 		[event.locals.dbUser, event.locals.assistants] = (await Promise.all([
@@ -89,6 +77,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.dbUser = undefined;
 		event.locals.assistants = (await DBgetDefaultAssistants()) as AssistantInterface[];
 	}
+	debug('dbUser', event.locals.dbUser);
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {

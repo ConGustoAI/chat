@@ -202,7 +202,6 @@
 </button>
 
 <div class="relative self-center">
-	<!-- <div class="absolute">{status}</div> -->
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
 	<div class="absolute" class:hidden={status !== 'saved'}>
 		<Check />

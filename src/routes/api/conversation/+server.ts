@@ -12,9 +12,7 @@ const debug = dbg('app:api:conversation');
 
 export const GET: RequestHandler = async ({ locals: { dbUser }, url }) => {
 	const defaults = url.searchParams.get('default') === 'true';
-
 	let conversations;
-	debug('GET <- withDeleted: %o', defaults);
 	if (defaults) {
 		conversations = await DBgetDefaultConversations();
 	} else {

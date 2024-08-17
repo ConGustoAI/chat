@@ -21,15 +21,12 @@
 
 <slot />
 
-<dialog bind:this={$loginModal} id="loginModal" class="h-fit w-fit">
-	<!-- <div class="modal-box"> -->
+<dialog bind:this={$loginModal} id="loginModal" class="modal modal-middle">
+	<div class="modal-box h-fit w-fit">
 		<Login loginData={data} loginForm={form} />
+	</div>
 
-		<!-- <p class="py-4">Press ESC key or click the button below to close</p> -->
-		<!-- <div class="modal-action">
-			<form method="dialog">
-				<button class="btn">Close</button>
-			</form>
-		</div> -->
-	<!-- </div> -->
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
 </dialog>
