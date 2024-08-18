@@ -240,6 +240,7 @@
 				{#each conversation.messages as m}
 					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={!dbUser || dbUser?.hacker} />
 				{/each}
+				<div class=" mb-20 w-full" />
 			{:else}
 				<div
 					class="pointer-events-none m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale"

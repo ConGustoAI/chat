@@ -63,6 +63,19 @@
 	}
 
 	function statusChanged() {
+		if (assistant.images && assistant.model && !models[assistant.model].images) {
+			assistant.images = false;
+		}
+		if (assistant.audio && assistant.model && !models[assistant.model].audio) {
+			assistant.audio = false;
+		}
+		if (assistant.video && assistant.model && !models[assistant.model].video) {
+			assistant.video = false;
+		}
+		if (assistant.prefill && assistant.model && !models[assistant.model].prefill) {
+			assistant.prefill = false;
+		}
+
 		status = 'changed';
 	}
 
