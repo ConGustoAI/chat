@@ -9,8 +9,8 @@
 	import remarkMath from 'remark-math';
 	import remarkParse from 'remark-parse';
 	import remarkRehype from 'remark-rehype';
+	import remarkBreaks from 'remark-breaks';
 	import { unified } from 'unified';
-
 
 	export let message: MessageInterface;
 
@@ -131,6 +131,7 @@ if (preElement) {
 	function parseMarkdown(text: string) {
 		const res = unified()
 			.use(remarkParse)
+			.use(remarkBreaks)
 			.use(remarkGfm)
 			.use(remarkMath)
 			.use(remarkRehype, { allowDangerousHtml: true })
