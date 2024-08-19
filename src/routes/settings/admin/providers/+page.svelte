@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { APIdeleteProvider, APIfetchKeys, APIfetchModels, APIfetchProviders, APIupsertProvider } from '$lib/api';
-	import { Provider } from '$lib/components';
+	import { ProvidersGrid } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema/users.js';
+	import { toLogin } from '$lib/stores/loginModal';
 	import { toIdMap } from '$lib/utils';
 	import dbg from 'debug';
-	import { Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { toLogin } from '$lib/stores/loginModal';
 
 	const debug = dbg('app:ui:settings:admin:providers');
 
@@ -67,56 +66,29 @@
 	}
 </script>
 
-<div class="flex flex-col gap-1">
-	<div class="div flex grow gap-2"></div>
-
-	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,8rem,auto,6rem,6rem,4rem,0] gap-4 gap-y-2">
-		<h2 class="card-title text-nowrap">
-			<div class="alert alert-warning w-fit">
-				<span>Default API providers. Changes made here will be visible to and will affect all users</span>
-			</div>
-		</h2>
+<div class="flex max-w-screen-xl flex-col gap-4">
+	<div class="div flex gap-4">
+		<div class="flex w-fit items-center gap-4 text-nowrap font-bold">
+			<span class="text-xl">Default API providers.</span>
+			<span class="alert alert-warning py-0">Changes made here will be visible to and will affect all users</span>
+		</div>
 		{#if loading}
 			<div class="loading" />
 		{/if}
+	</div>
 
-		<div class="divider col-span-full w-full">Default providers</div>
-		<div class="font-bold">Label</div>
-		<div class="font-bold">Type</div>
-		<div class="font-bold">Base URL</div>
-		<div />
-		<div />
-		<div />
-		<div />
+	<div class="divider mt-10 w-full"></div>
 
-		{#each Object.entries(defaultProviders) as [id, provider]}
-			<Provider
-				{dbUser}
-				bind:provider
-				models={{}}
-				apiKeys={{}}
-				{defaultModels}
-				{defaultApiKeys}
-				onDeleteProvider={async () => {
-					await deleteProvider(provider);
-				}}
-				edit={true}
-				editDefaults={true} />
-		{/each}
-		<button
-			class="btn btn-outline w-fit"
-			disabled={addingProvider || loading}
-			on:click={async () => {
-				await addProvider();
-			}}>
-			{#if addingProvider}
-				<div class="loading" />
-			{:else}
-				<Plus />
-			{/if}
-			Provider
-		</button>
+	<div class="div flex grow">
+		<ProvidersGrid
+			{dbUser}
+			providers={{}}
+			models={{}}
+			bind:defaultProviders
+			bind:defaultModels
+			bind:defaultApiKeys
+			edit={true}
+			showDefault={true}
+			editingDefault={true} />
 	</div>
 </div>
-
-<!-- <pre>{JSON.stringify(providers, null, 2)}</pre> -->

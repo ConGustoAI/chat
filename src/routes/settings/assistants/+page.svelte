@@ -1,21 +1,16 @@
 <script lang="ts">
-	import { Plus } from 'lucide-svelte';
 	import {
-		APIdeleteAssistant,
 		APIfetchAssistants,
 		APIfetchKeys,
 		APIfetchModels,
-		APIfetchProviders,
-		APIupsertAssistant
+		APIfetchProviders
 	} from '$lib/api';
-	import { Assistant } from '$lib/components';
-	import { onMount } from 'svelte';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { toIdMap } from '$lib/utils';
-	import { toLogin } from '$lib/stores/loginModal'
+	import { onMount } from 'svelte';
 
+	import AssistantGrid from '$lib/components/AssistantGrid.svelte';
 	import dbg from 'debug';
-	import type { loginModal } from '$lib/stores/loginModal.js';
 	const debug = dbg('app:ui:settings:assistants');
 
 	export let data;
@@ -47,36 +42,6 @@
 		debug('onMount', { assistants, providers, models });
 	});
 
-	let addingAssistant = false;
-	async function addAssistant() {
-		debug('add assistant');
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-		addingAssistant = true;
-		const newAssistant = await APIupsertAssistant({
-			userID: dbUser.id,
-			name: 'New assistant',
-			aboutUserFromUser: true,
-			assistantInstructionsFromUser: true
-		});
-		assistants[newAssistant.id!] = newAssistant;
-		addingAssistant = false;
-		debug('new assistant', newAssistant);
-	}
-
-	async function deleteAssistant(assistant: AssistantInterface) {
-		debug('delete assistant', assistant);
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-		const del = await APIdeleteAssistant(assistant);
-		delete assistants[del.id!];
-		assistants = assistants;
-		debug('delete assistant done', del);
-	}
 </script>
 
 <div class="flex flex-col gap-1">
@@ -87,54 +52,11 @@
 		{/if}
 	</div>
 
-	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,16rem,12rem,auto,6rem,6rem,0] gap-4 gap-y-2">
-		<div class="font-bold">Name</div>
-		<div class="font-bold">Model</div>
-		<div class="font-bold">API key</div>
-		<div class="font-bold">Descripton</div>
-		<div />
-		<div />
-		<div />
+	<div class=" max-w-screen-xl">
+		<div class="divider w-full">Your assistants</div>
+		<AssistantGrid {dbUser} {assistants} {models} {providers} {apiKeys} edit={!loading}/>
 
-		{#each Object.entries(assistants) as [idx, assistant]}
-			<Assistant
-				{dbUser}
-				bind:assistant
-				{models}
-				{providers}
-				{apiKeys}
-				deleteAssistant={async () => deleteAssistant(assistant)}
-				edit={true} />
-		{/each}
-		<button
-			class="btn btn-outline w-fit"
-			disabled={addingAssistant || loading}
-			on:click={async () => {
-				await addAssistant();
-			}}>
-			{#if addingAssistant}
-				<div class="loading" />
-			{:else}
-				<Plus />
-			{/if}
-			Assistant
-		</button>
-	</div>
-
-	<div class="grid min-w-max max-w-screen-xl grid-cols-[10rem,12rem,12rem,auto,6rem,6rem,0] gap-4 gap-y-2">
-		<div class="divider col-span-full w-full">Default assistants</div>
-		<div class="font-bold">Name</div>
-		<div class="font-bold">Model</div>
-		<div class="font-bold">API key</div>
-		<div class="font-bold">Descripton</div>
-		<div />
-		<div />
-		<div />
-
-		{#each Object.entries(defaultAssistants) as [i, assistant]}
-			<Assistant {dbUser} bind:assistant {models} {providers} {apiKeys} deleteAssistant={() => {}} edit={false} />
-		{/each}
+		<div class="divider w-full">Default assistants</div>
+		<AssistantGrid {dbUser} assistants={defaultAssistants} {models} {providers} {apiKeys} edit={false}/>
 	</div>
 </div>
-
-<!-- <pre>{JSON.stringify({ assistants, user, models }, null, 2)}</pre> -->

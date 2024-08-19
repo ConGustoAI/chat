@@ -52,8 +52,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const { session, user } = await event.locals.safeGetSession();
 	event.locals.session = session ?? undefined;
 	event.locals.user = user ?? undefined;
-	debug('session', event.locals.session);
-	debug('user', event.locals.user);
+	// debug('session', event.locals.session);
+	// debug('user', event.locals.user);
 
 	if (user) {
 		[event.locals.dbUser, event.locals.assistants] = (await Promise.all([
@@ -77,7 +77,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.dbUser = undefined;
 		event.locals.assistants = (await DBgetDefaultAssistants()) as AssistantInterface[];
 	}
-	debug('dbUser', event.locals.dbUser);
+	// debug('dbUser', event.locals.dbUser);
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {

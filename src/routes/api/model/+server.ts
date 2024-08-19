@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
 export const DELETE: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	const model = (await request.json()) as ModelInterface;
 
-	debug('DELETE %o');
+	debug('DELETE %o', model);
 	const res = await DBdeleteModel({ dbUser, model });
 	debug('DELETE -> %o', res);
 

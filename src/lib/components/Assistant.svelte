@@ -4,7 +4,7 @@
 	import { defaultsUUID } from '$lib/db/schema';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { Check, Trash2 } from 'lucide-svelte';
+	import { Check, Copy, Trash2 } from 'lucide-svelte';
 
 	export let assistant: AssistantInterface;
 	export let models: { [key: string]: ModelInterface };
@@ -12,6 +12,7 @@
 	export let apiKeys: { [key: string]: ApiKeyInterface };
 	export let dbUser: UserInterface | undefined;
 	export let deleteAssistant;
+	export let copyAssistant;
 	export let edit: boolean;
 
 	let status: string | null = null;
@@ -81,6 +82,21 @@
 
 	let detailsToggled = false;
 </script>
+
+<button
+	class="btn btn-outline"
+	on:click={async () => {
+		status = 'copying';
+		await copyAssistant();
+		status = null;
+	}}
+	disabled={status === 'copying'}>
+	{#if status === 'copying'}
+		<div class="loading" />
+	{:else}
+		<Copy />
+	{/if}
+</button>
 
 <input
 	type="text"
@@ -159,11 +175,11 @@
 
 {#if detailsToggled}
 	{@const model = assistant.model ? models[assistant.model] : undefined}
-	<div class="col-span-7 mb-6 w-full">
+	<div class="col-span-full col-start-2 mb-6 w-full">
 		<div class="divider">{assistant.name} Details</div>
 	</div>
 
-	<div class="col-span-full mb-6 flex w-full flex-col gap-2">
+	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col gap-2">
 		<div class="flex gap-4">
 			<label for="imagesCheckbox-{assistant.id}" class="cursor-pointer">Images</label>
 			<input

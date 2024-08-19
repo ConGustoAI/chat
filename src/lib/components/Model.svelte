@@ -8,7 +8,7 @@
 	export let dbUser: UserInterface | undefined;
 	export let model: ModelInterface;
 	export let edit: boolean;
-	export let onDeleteModel;
+	export let deleteModel;
 
 	// Don't let the user navigate off if changes are unsaved
 	let hasUnsavedChanges = false;
@@ -112,7 +112,8 @@
 	disabled={!edit || status === 'deleting'}
 	on:click={async () => {
 		status = 'deleting';
-		await onDeleteModel();
+		await deleteModel();
+		status = null;
 	}}>
 	{#if status === 'deleting'}
 		<div class="loading" />

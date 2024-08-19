@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { defaultsUUID, providerTypes } from '$lib/db/schema';
-	import { assert, capitalize } from '$lib/utils';
-	import { Check, Plus, Trash2 } from 'lucide-svelte';
-	import { APIdeleteKey, APIupsertKey, APIupsertProvider } from '$lib/api';
 	import { beforeNavigate } from '$app/navigation';
-	import ProviderApiKeys from './ProviderApiKeys.svelte';
-	import ProviderModels from './ProviderModels.svelte';
-	import { APIdeleteModel, APIupsertModel } from '$lib/api/model';
+	import { APIupsertProvider } from '$lib/api';
+	import { providerTypes } from '$lib/db/schema';
 	import { toLogin } from '$lib/stores/loginModal';
+	import { assert, capitalize } from '$lib/utils';
+	import { Check, Copy, Trash2 } from 'lucide-svelte';
 
 	import dbg from 'debug';
+	import ApiKeysGrid from './ApiKeysGrid.svelte';
+	import ModelsGrid from './ModelsGrid.svelte';
 	const debug = dbg('app:ui:components:Provider');
 
 	export let dbUser: UserInterface | undefined;
@@ -18,9 +17,9 @@
 	export let defaultModels: { [key: string]: ModelInterface } = {};
 	export let apiKeys: { [key: string]: ApiKeyInterface };
 	export let defaultApiKeys: { [key: string]: ApiKeyInterface } = {};
-	export let onDeleteProvider;
+	export let deleteProvider = async (p: ProviderInterface) => {};
 	export let edit: boolean;
-	export let editDefaults: boolean;
+	export let editingDefault = false;
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -35,85 +34,6 @@
 			}
 		}
 	});
-
-	let addingKey = false;
-	async function addKey(p: ProviderInterface) {
-		debug('add key');
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-		addingKey = true;
-		const apiKey = await APIupsertKey({
-			userID: editDefaults ? defaultsUUID : dbUser.id,
-			providerID: p.id!,
-			label: 'New Key',
-			key: ''
-		});
-		if (editDefaults) defaultApiKeys[apiKey.id!] = apiKey;
-		else apiKeys[apiKey.id!] = apiKey;
-		addingKey = false;
-		debug('new key', apiKey);
-	}
-
-	async function delteteAPIKey(apiKey: ApiKeyInterface) {
-		debug('delete key', apiKey);
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-
-		const del = await APIdeleteKey(apiKey);
-		if (editDefaults) {
-			delete defaultApiKeys[del.id!];
-			defaultApiKeys = defaultApiKeys;
-		} else {
-			delete apiKeys[del.id!];
-			apiKeys = apiKeys;
-		}
-
-		debug('delete key done', del);
-	}
-
-	let addingModel = false;
-	async function addModel() {
-		debug('add model');
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-		addingModel = true;
-		const newModel = await APIupsertModel({
-			userID: editDefaults ? defaultsUUID : dbUser.id,
-			providerID: provider.id!,
-			displayName: 'New Model',
-			name: '',
-			inputContext: 8000,
-			images: false,
-			prefill: false
-		});
-		if (editDefaults) defaultModels[newModel.id!] = newModel;
-		else models[newModel.id!] = newModel;
-		addingModel = false;
-		debug('new model', newModel);
-	}
-
-	async function deleteModel(model: ModelInterface) {
-		debug('delete model', model);
-		if (!dbUser) {
-			toLogin();
-			return;
-		}
-		const del = await APIdeleteModel(model);
-		if (editDefaults) {
-			delete defaultModels[del.id!];
-			defaultModels = defaultModels;
-		} else {
-			delete models[del.id!];
-			models = models;
-		}
-		debug('delete model done', del);
-	}
 
 	let types = providerTypes.enumValues.map((type) => {
 		return { value: type, label: type };
@@ -156,8 +76,8 @@
 		status = 'changed';
 	}
 
-	let keysToggled = false;
-	let modelToggled = false;
+	let showApiKeys = false;
+	let showModels = false;
 </script>
 
 <input
@@ -180,18 +100,18 @@
 	on:change={statusChanged}
 	disabled={!edit} />
 
-<button class="btn btn-outline w-full" class:btn-active={keysToggled} on:click={() => (keysToggled = !keysToggled)}>
+<button class="btn btn-outline w-full" class:btn-active={showApiKeys} on:click={() => (showApiKeys = !showApiKeys)}>
 	API Keys
 </button>
-<button class="btn btn-outline w-full" class:btn-active={modelToggled} on:click={() => (modelToggled = !modelToggled)}>
+<button class="btn btn-outline w-full" class:btn-active={showModels} on:click={() => (showModels = !showModels)}>
 	Models
 </button>
 <button
 	class="btn btn-outline"
 	on:click={() => {
 		status = 'deleting';
-		onDeleteProvider();
-		status = 'deleted';
+		deleteProvider(provider);
+		status = null;
 	}}
 	disabled={!edit || status === 'deleting'}>
 	{#if status === 'deleting'}
@@ -210,159 +130,52 @@
 <div class="col-span-full text-error" class:hidden={status !== 'error'}>
 	<span>{statusMessage}</span>
 </div>
-{#if modelToggled}
-	<span />
-	<div class="col-span-6 mb-6 w-full">
-		{#if !editDefaults}
-			<div
-				class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">{provider.name}: Your models</div>
-				<span class="label-text">Display name</span>
-				<span class="label-text">Model name</span>
-				<span class="label-text w-full">Input context</span>
-				<span class="label-text">Images</span>
-				<span class="label-text">Audio</span>
-				<span class="label-text">Video</span>
-				<span class="label-text">Prefill</span>
-				<span />
-				<span />
 
-				{#each Object.entries(models) as [id, model]}
-					{#if model.providerID === provider.id}
-						<ProviderModels {dbUser} bind:model onDeleteModel={async () => await deleteModel(model)} edit={true} />
-					{/if}
-				{/each}
-
-				<button
-					class="btn btn-outline w-fit"
-					on:click={async () => {
-						await addModel();
-					}}>
-					{#if addingModel}
-						<div class="loading" />
-					{:else}
-						<Plus />
-					{/if}
-					Model
-				</button>
-			</div>
+{#if showModels}
+	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col gap-4">
+		{#if !editingDefault}
+			<div class="divider col-span-full w-full">{provider.name}: Your models</div>
+			<ModelsGrid {dbUser} {provider} bind:models edit={true} />
 		{/if}
-		{#if Object.keys(defaultModels).length || editDefaults}
-			<div
-				class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+
+		{#if editingDefault || Object.keys(defaultModels).length}
+			<div class="flex">
 				<div class="divider col-span-full w-full">
 					{provider.name}: Default models
-				</div>
-				{#if editDefaults}
-					<div
-						class="center alert alert-warning col-span-full flex w-full items-center justify-center py-0 text-center">
-						<p>Changes made here will be visible to and will affect all users</p>
-					</div>
-				{/if}
-				<span class="label-text">Display name</span>
-				<span class="label-text">Model name</span>
-				<span class="label-text w-full">Input context</span>
-				<span class="label-text">Images</span>
-				<span class="label-text">Audio</span>
-				<span class="label-text">Video</span>
-				<span class="label-text">Prefill</span>
-				<span />
-				<span />
-
-				{#each Object.entries(defaultModels) as [id, model]}
-					{#if model.providerID === provider.id}
-						<ProviderModels {dbUser} bind:model onDeleteModel={() => {}} edit={editDefaults} />
+					{#if editingDefault}
+						<span class="alert alert-warning py-0">Changes made here will be visible to and will affect all users</span>
 					{/if}
-				{/each}
-				{#if editDefaults}
-					<button
-						class="btn btn-outline w-fit"
-						on:click={async () => {
-							await addModel();
-						}}>
-						{#if addingModel}
-							<div class="loading" />
-						{:else}
-							<Plus />
-						{/if}
-						Model
-					</button>
-				{/if}
+				</div>
 			</div>
+			<ModelsGrid {dbUser} {provider} bind:models={defaultModels} edit={editingDefault} addDefault={editingDefault} />
 		{/if}
 	</div>
 {/if}
 
-{#if keysToggled}
-	<div />
-	<div class="col-span-6 mb-6 w-full">
-		{#if !editDefaults}
-			<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">{provider.name}: Your API keys</div>
-				<span class="label-text">Key label</span>
-				<span class="label-text">Key</span>
-				<span />
-				<span />
-
-				{#each Object.entries(apiKeys) as [id, key]}
-					{#if key.providerID === provider.id}
-						<ProviderApiKeys {dbUser} bind:apiKey={key} onDeleteKey={() => delteteAPIKey(key)} edit={true} />
-					{/if}
-				{/each}
-				<button
-					class="btn btn-outline min-h-fit w-fit"
-					on:click={async () => {
-						await addKey(provider);
-					}}>
-					{#if addingKey}
-						<div class="loading" />
-					{:else}
-						<Plus />
-					{/if}
-					Key</button>
-			</div>
+{#if showApiKeys}
+	<div class="col-span-full col-start-2 flex w-full flex-col gap-4">
+		{#if !editingDefault}
+			<div class="divider col-span-full w-full">{provider.name}: Your API keys</div>
+			<ApiKeysGrid {dbUser} {provider} bind:apiKeys edit={true} />
 		{/if}
 
-		{#if Object.keys(defaultApiKeys).length || editDefaults}
-			<div />
-			<div class="col-span-6 grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
-				<div class="divider col-span-full w-full">{provider.name}: Default API keys</div>
-				{#if editDefaults}
-					<div class="center alert alert-error col-span-full flex w-full items-center justify-center py-0 text-center">
-						<p>Default keys are available to all users. The key itself is never revealed to the user</p>
-					</div>
-				{/if}
-
-				<span class="label-text">Key label</span>
-				<span class="label-text">Key</span>
-				<span />
-				<span />
-
-				{#each Object.entries(defaultApiKeys) as [id, key]}
-					{#if key.providerID === provider.id}
-						<ProviderApiKeys
-							{dbUser}
-							bind:apiKey={key}
-							onDeleteKey={async () => {
-								await delteteAPIKey(key);
-							}}
-							edit={editDefaults} />
+		{#if editingDefault || Object.keys(defaultApiKeys).filter((k) => defaultApiKeys[k].providerID == provider.id).length}
+			<div class="flex">
+				<div class="divider col-span-full w-full">
+					{provider.name}: Default API Keys
+					{#if editingDefault}
+						<span class="alert alert-error py-0"
+							>Only admins can see the Default Key values, but any user can make requests with them</span>
 					{/if}
-				{/each}
-				{#if editDefaults}
-					<button
-						class="btn btn-outline min-h-fit w-fit"
-						on:click={async () => {
-							await addKey(provider);
-						}}>
-						{#if addingKey}
-							<div class="loading" />
-						{:else}
-							<Plus />
-						{/if}
-						Key</button>
-				{/if}
+				</div>
 			</div>
+			<ApiKeysGrid
+				{dbUser}
+				{provider}
+				bind:apiKeys={defaultApiKeys}
+				edit={editingDefault}
+				addDefault={editingDefault} />
 		{/if}
+		<div class="divider col-span-full w-full" />
 	</div>
 {/if}

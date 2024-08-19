@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
 	import { APIupsertKey } from '$lib/api';
-	import { defaultsUUID } from '$lib/db/schema';
+	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
-	import { toLogin } from '$lib/stores/loginModal';
-	export let dbUser: UserInterface|undefined;
+	export let dbUser: UserInterface | undefined;
 	export let apiKey: ApiKeyInterface;
-	export let edit: boolean;
-	export let onDeleteKey;
+	export let edit: boolean = false;
+	export let deleteKey;
 	// Don't let the user navigate off if changes are unsaved
 	let hasUnsavedChanges = false;
 	beforeNavigate((navigation) => {
@@ -76,10 +75,11 @@
 	disabled={!edit} />
 <button
 	class="btn btn-outline"
-	disabled={!edit}
-	on:click={() => {
-		status = 'saving';
-		onDeleteKey();
+	disabled={!edit || status === 'deleting'}
+	on:click={async () => {
+		status = 'deleting';
+		await deleteKey();
+		status = null;
 	}}>
 	<Trash2 />
 </button>
