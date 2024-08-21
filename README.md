@@ -5,9 +5,9 @@
 Vision:
 To build the best AI Chat application for developers and power users.
 
-Planned Features:
-- [x] Any model from any provider
-- Multi-modal
+Features:
+- [x] Any model from any API provider
+- [ ] Multi-modal
     - [x] Text
     - [ ] Images
     - [ ] Audio
@@ -22,28 +22,29 @@ Milestones:
 
 - ![GitHub milestone details](https://img.shields.io/github/milestones/progress/congustoai/chat/1)
 - ![GitHub milestone details](https://img.shields.io/github/milestones/progress/congustoai/chat/2)
-- ![GitHub milestone details](https://img.shields.io/github/milestones/progress/congustoai/chat/3)
 - ![GitHub milestone details](https://img.shields.io/github/milestones/progress/congustoai/chat/4)
+- ![GitHub milestone details](https://img.shields.io/github/milestones/progress/congustoai/chat/3)
 
 ## Hosted Version
 
 - Go to [Congusto Chat](https://chat.congusto.ai) and create an account.
-- Go to Settings/Providers, add your API Key to an existing provider, or create a new provider.
-- Go to Settings/Assistants, create a new assistant that combines the model, API Key, and the system prompt.
+- Go to Settings/Providers, add your API Key to an existing provider, or configure a new provider and models.
+- Go to Settings/Assistants, create a new assistant that combines the model, API Key, and your system prompt.
 - Start chatting.
 
 ## Deploy your own
 
 When deploying Congusto Chat, you will need:
 - Supabase, used for Authentication
-- Postgres, used for storing the data. Can be the Supabase Postgres, as you get it for free with Supabase.
+- Postgres, used for storing the data.
+    - Using the Postgres from Supabase is the easiest way to go, but you can also deploy your own - there is no dependency on Supabase.
 
-TODO: Local deployment with SQLite only.
+TODO: Local deployment with SQLite and no Auth.
 
 ### Supabase
 
 We suggest at least starting with a hosted Supabase instance, as deploying your own is not entirely trivial.
-- Register at [Supabase](https://supabase.com) and create a new project (free)
+- Register at [Supabase](https://supabase.com) and create a new project (free).
 - Got to `https://supabase.com/dashboard/project/[your project]/settings/auth`
     - Check the "Allow new users to sign up" option. You can allow sign-ups, or manage users manually through Supabase dashboard.
     - If you want Email sign-ups, I suggest configuring an SMTP server (AWS SES, Sendgrid, etc.), as Supabase has very low limits for sending emails.
@@ -65,12 +66,10 @@ We suggest at least starting with a hosted Supabase instance, as deploying your 
     - Go to https://supabase.com/dashboard/project/[your project]/settings/database
         - Select [x] Display connection pooler: Mode: Session and copy the **Database URL**.
 
-We will need to set the following environment variables soon:
-
 ### Local development
 
 - Clone the repository
-`git clone https://github.com/ConGustoAI/chat` and `cd chat`
+`git clone https://github.com/ConGustoAI/chat`
 - Fill in the `.env` file with the setting you got from Supabase:
 ```
 DATABASE_URL=portgres://....
@@ -79,6 +78,8 @@ PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
 - Make sure you have NodeJS v20 and Bun installed.
+    - Install NodeJS 20, platform-dependent.
+    - `npm install -g bun`
 
 - Install the dependencies
 `bun i`
@@ -92,13 +93,16 @@ PUBLIC_SUPABASE_ANON_KEY=...
 - Open the browser at http://localhost:5173 and sign up as a new user.
 
 - Go to the Supabase dashboard and check the user is created:
-    https://supabase.com/dashboard/project/[your user]/auth/users
+    - `https://supabase.com/dashboard/project/[your project]/auth/users`
 
 - Go to the Supabase Table Editor, select the `public` schema and the `users` table.
+    - `https://supabase.com/dashboard/project/[your project]/editor`
     - Make yourself an Admin by setting `admin` to `true` for your user.
 
 
+## Deploy to Vercel
 
+...
 
 
 

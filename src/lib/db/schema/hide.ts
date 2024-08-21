@@ -1,15 +1,13 @@
-import { pgTable, uuid, timestamp } from 'drizzle-orm/pg-core';
+// import { relations } from 'drizzle-orm';
+import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { usersTable } from './users';
-import { assistantsTable } from './assistants';
-import { relations } from 'drizzle-orm';
 
-export const hiddenAssistants = pgTable('user_assistants', {
-	assistantId: uuid('assistant_id')
-		.references(() => assistantsTable.id, { onDelete: 'cascade' })
-		.primaryKey(),
+export const hiddenItems = pgTable('hidden_items', {
+	id: uuid('id').defaultRandom().primaryKey(),
 	userId: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	itemID: uuid('item_id').notNull(), // This can reference assistants/models/providers/apikeys.
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
@@ -17,13 +15,9 @@ export const hiddenAssistants = pgTable('user_assistants', {
 		.$onUpdate(() => new Date())
 });
 
-export const userHiddenAssistantsTableRelations = relations(hiddenAssistants, ({ one }) => ({
-	user: one(usersTable, {
-		fields: [hiddenAssistants.userId],
-		references: [usersTable.id]
-	}),
-	assistant: one(assistantsTable, {
-		fields: [hiddenAssistants.assistantId],
-		references: [assistantsTable.id]
-	})
-}));
+// export const userHiddenItemsRelations = relations(hiddenItems, ({ one }) => ({
+// 	user: one(usersTable, {
+// 		fields: [hiddenItems.userId],
+// 		references: [usersTable.id]
+// 	}),
+// }));

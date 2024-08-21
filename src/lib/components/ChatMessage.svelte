@@ -2,11 +2,11 @@
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
+	import { dbUser } from '$lib/stores/appstate';
 
 	export let conversation: ConversationInterface | undefined;
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
-	export let hacker = false;
 
 	let chatError: string | undefined;
 	let markdown: boolean = true;
@@ -134,7 +134,7 @@
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
 				{/if}
 
-				{#if message.role !== 'assistant' || hacker}
+				{#if message.role !== 'assistant' || !$dbUser || $dbUser.hacker}
 					<button
 						class="btn btn-ghost btn-xs rounded-md p-0 px-1"
 						on:click={() => {
@@ -159,7 +159,7 @@
 					on:click={() => {
 						deleteMessage();
 					}}><Trash2 size={15} /></button> -->
-				{#if hacker}
+				{#if !$dbUser || $dbUser.hacker}
 					<button
 						class="btn btn-outline btn-xs rounded-md p-0 px-1"
 						on:click={() => {

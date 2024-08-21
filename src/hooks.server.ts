@@ -7,7 +7,7 @@ const debug = dbg('app:hooks:supabase');
 export const sse = false;
 
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { DBgetAssistants, DBgetUser, DBinsertUser } from '$lib/db/utils';
+import { DBgetAssistants, DBgetHiddenItems, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// debug('start event handler', event);
@@ -55,10 +55,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// debug('user', event.locals.user);
 
 	if (user) {
-		[event.locals.dbUser, event.locals.assistants] = (await Promise.all([
+		[event.locals.hiddenItems, event.locals.dbUser, event.locals.assistants] = (await Promise.all([
+			DBgetHiddenItems({ dbUser: { id: user.id } }),
 			DBgetUser({ id: user.id }),
 			DBgetAssistants({ dbUser: { id: user.id } })
-		])) as [UserInterface, AssistantInterface[]];
+		])) as [Set<string>, UserInterface, AssistantInterface[]];
 
 		if (!event.locals.dbUser) {
 			event.locals.dbUser = (await DBinsertUser({
@@ -71,8 +72,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 			})) as UserInterface;
 		}
 
-		if (user.user_metadata.avatar_url) event.locals.dbUser.avatar = user.user_metadata.avatar_url;
+		// The user had no avattar before, but the new log in method was used that provides an avatar
+		if (!event.locals.dbUser.avatar && user.user_metadata.avatar_url) {
+			DBupdateUser({
+				dbUser: event.locals.dbUser,
+				updatedUser: { ...event.locals.dbUser, avatar: user.user_metadata.avatar_url }
+			});
+
+			event.locals.dbUser.avatar = user.user_metadata.avatar_url;
+		}
 	} else {
+		event.locals.hiddenItems = new Set();
 		event.locals.dbUser = undefined;
 		event.locals.assistants = (await DBgetAssistants({})) as AssistantInterface[];
 	}

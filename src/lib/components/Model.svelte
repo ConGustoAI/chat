@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
+	import { APIhideItem, APIunhideItem } from '$lib/api';
 	import { APIupsertModel } from '$lib/api/model';
 	import { DeleteButton } from '$lib/components';
-	import { dbUser } from '$lib/stores/appstate';
+	import { dbUser, hiddenItems } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { Check } from 'lucide-svelte';
+	import { all } from 'lowlight';
+	import { Check, Eye, EyeOff } from 'lucide-svelte';
 
 	export let model: ModelInterface;
 	export let edit: boolean;
 	export let deleteModel;
+	export let allowHiding = true;
 
 	// Don't let the user navigate off if changes are unsaved
 	let hasUnsavedChanges = false;
@@ -49,6 +52,24 @@
 						errorMessage = e.message;
 					});
 			}, 750);
+		}
+	}
+
+	async function toggleHidden() {
+		if (!$dbUser) {
+			toLogin();
+			return;
+		}
+
+		if (model.id) {
+			if ($hiddenItems.has(model.id)) {
+				await APIunhideItem(model.id);
+				$hiddenItems.delete(model.id);
+			} else {
+				await APIhideItem(model.id);
+				$hiddenItems.add(model.id);
+			}
+			$hiddenItems = $hiddenItems;
 		}
 	}
 
@@ -107,6 +128,23 @@
 	bind:checked={model.prefill}
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
+
+<button
+	class="btn btn-outline"
+	disabled={status === 'hiding'|| !allowHiding}
+	on:click={async () => {
+		status = 'hiding';
+		await toggleHidden();
+		status = null;
+	}}>
+	{#if status === 'hiding'}
+		<div class="loading" />
+	{:else if $hiddenItems.has(model.id ?? '') && allowHiding}
+		<EyeOff />
+	{:else}
+		<Eye />
+	{/if}
+</button>
 
 <DeleteButton
 	btnClass="btn btn-outline"

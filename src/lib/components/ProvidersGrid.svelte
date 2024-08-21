@@ -10,6 +10,7 @@
 	const debug = dbg('app:ui:components:ProviderGrid');
 
 	export let edit = false;
+	export let allowHiding = true;
 
 	export let showDefault: boolean;
 	export let showCustom: boolean;
@@ -51,14 +52,15 @@
 </script>
 
 <div class="flex w-full flex-col gap-4">
-	<div class="grid w-full grid-cols-[min-content,10rem,8rem,auto,6rem,6rem,4rem,0] gap-4 gap-y-2">
+	<div class="grid w-full grid-cols-[min-content,10rem,8rem,auto,6rem,6rem,min-content,4rem,0] gap-4 gap-y-2">
 		<div />
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>
 		<div class="font-bold">Base URL</div>
 		<div />
 		<div />
-		<div />
+		<div class="font-bold">Hide</div>
+		<div class="font-bold">Delete</div>
 		<div />
 
 		{#each Object.entries($providers) as [i, provider]}
@@ -66,6 +68,7 @@
 				<Provider
 					bind:provider
 					{edit}
+					{allowHiding}
 					{showDefaultChildren}
 					{showCustomChildren}
 					{editDefaultChildren}

@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { APIupdateUser, APIupsertConversation } from '$lib/api';
-	import { Star, Info, Settings, UserCircle } from 'lucide-svelte';
+	import { assistants, dbUser, hiddenItems } from '$lib/stores/appstate';
 	import { loginModal } from '$lib/stores/loginModal';
-	// import { conversations, assistants, conversation, updatingLike, convId } from '$lib/stores';
-	// import { updateLike } from '$lib/utils';
+	import { Info, Star, UserCircle } from 'lucide-svelte';
 
-	// $: conversation = conversations[convId];
 	export let conversation: ConversationInterface | undefined;
-	export let assistants: AssistantInterface[];
-	export let user: UserInterface | undefined;
 	export let updatingLike: boolean;
 	export let chatLoading: boolean;
 
@@ -31,12 +27,12 @@
 	}
 
 	async function setHacker() {
-		if (!user) return;
+		if (!$dbUser) return;
 		try {
-			user = await APIupdateUser({ id: user.id, hacker: user.hacker });
+			$dbUser = await APIupdateUser({ id: $dbUser.id, hacker: $dbUser.hacker });
 		} catch (e) {
-			console.error('Failed to update user', e);
-			user.hacker = !user.hacker;
+			console.error('Failed to update $dbUser', e);
+			$dbUser.hacker = !$dbUser.hacker;
 		}
 	}
 
@@ -60,8 +56,10 @@
 		{#if conversation}
 			{#if !conversation.id}
 				<select class="select select-bordered select-sm" bind:value={conversation.assistant}>
-					{#each assistants as assistant}
-						<option value={assistant.id}>{assistant.name}</option>
+					{#each Object.entries($assistants) as [id, assistant]}
+						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+							<option value={id}>{assistant.name}</option>
+						{/if}
 					{/each}
 				</select>
 			{:else if updatingLike}
@@ -102,11 +100,11 @@
 		<Info />
 		<div class="dropdown dropdown-end">
 			<div tabindex="0" role="button">
-				{#if user?.avatar}
+				{#if $dbUser?.avatar}
 					<div class="p-auto avatar m-auto align-middle">
 						<div class="bordered w-6 rounded-xl">
 							<!-- https://stackoverflow.com/questions/40570117/http403-forbidden-error-when-trying-to-load-img-src-with-google-profile-pic -->
-							<img src={user.avatar} referrerpolicy="no-referrer" alt="User avatar" />
+							<img src={$dbUser.avatar} referrerpolicy="no-referrer" alt="User avatar" />
 						</div>
 					</div>
 				{:else}
@@ -117,15 +115,15 @@
 			<ul tabindex="0" class="menu dropdown-content z-[1] rounded-md bg-primary p-2">
 				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={gotoSettings}>Settings</button>
 
-				{#if user}
+				{#if $dbUser}
 					<div class="btn btn-primary btn-sm flex flex-nowrap items-center gap-2">
 						Hacker
-						<input type="checkbox" class="toggle" bind:checked={user.hacker} on:change={setHacker} />
+						<input type="checkbox" class="toggle" bind:checked={$dbUser.hacker} on:change={setHacker} />
 					</div>
 				{/if}
 
 				<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => TriggerLoginModal()}>
-					{#if user}Log out{:else}Log in{/if}
+					{#if $dbUser}Log out{:else}Log in{/if}
 				</button>
 			</ul>
 		</div>

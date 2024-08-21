@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { APIupsertAssistant } from '$lib/api';
+	import { APIhideItem, APIunhideItem, APIupsertAssistant } from '$lib/api';
+	import { DeleteButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
+	import { apiKeys, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { Check, Copy, Trash2 } from 'lucide-svelte';
-	import { dbUser, models, providers, apiKeys } from '$lib/stores/appstate';
-	import { DeleteButton } from '$lib/components';
+	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 
 	export let assistant: AssistantInterface;
 	export let deleteAssistant;
 	export let copyAssistant;
 	export let edit: boolean;
 	export let showDefault: boolean;
+	export let allowHiding = true;
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -80,6 +81,38 @@
 	}
 
 	let detailsToggled = false;
+
+	async function toggleHidden() {
+		if (!$dbUser) {
+			toLogin();
+			return;
+		}
+
+		if (assistant.id && allowHiding) {
+			if ($hiddenItems.has(assistant.id)) {
+				await APIunhideItem(assistant.id);
+				$hiddenItems.delete(assistant.id);
+			} else {
+				await APIhideItem(assistant.id);
+				$hiddenItems.add(assistant.id);
+			}
+			$hiddenItems = $hiddenItems;
+		}
+	}
+
+	let yourProviders: typeof $providers;
+	let defaultProviders: typeof $providers;
+
+	$: yourProviders = Object.fromEntries(
+		Object.entries($providers).filter(
+			([pidx, provider]) => provider.userID === $dbUser?.id && !$hiddenItems.has(provider.id!)
+		)
+	);
+	$: defaultProviders = Object.fromEntries(
+		Object.entries($providers).filter(
+			([pidx, provider]) => provider.userID === defaultsUUID && !$hiddenItems.has(provider.id!)
+		)
+	);
 </script>
 
 <button
@@ -106,28 +139,44 @@
 	disabled={!edit} />
 
 <select class="select select-bordered w-full" bind:value={assistant.model} on:change={statusChanged} disabled={!edit}>
-	{#each Object.entries($providers) as [pidx, provider]}
-		<option disabled class="text-lg font-bold">{provider.name}</option>
-		{#each Object.entries($models) as [midx, model]}
-			{#if model.providerID === provider.id}
-				<option value={model.id}>{provider.name}/{model.displayName}</option>
-			{/if}
+	{#if Object.keys(yourProviders).length}
+		<option disabled class="text-lg font-bold">Your providers</option>
+		{#each Object.entries(yourProviders) as [pidx, provider]}
+			<!-- <option disabled class="text-lg font-bold">{provider.name}</option> -->
+			{#each Object.entries($models) as [midx, model]}
+				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
+					<option value={model.id}>{provider.name}/{model.displayName}</option>
+				{/if}
+			{/each}
 		{/each}
-	{/each}
+	{/if}
+
+	{#if Object.keys(defaultProviders).length}
+		<option disabled class="text-lg font-bold">Default providers</option>
+		{#each Object.entries(defaultProviders) as [pidx, provider]}
+			<!-- <option disabled class="text-lg font-bold">{provider.name}</option> -->
+			{#each Object.entries($models) as [midx, model]}
+				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
+					<option value={model.id}>{provider.name}/{model.displayName}</option>
+				{/if}
+			{/each}
+		{/each}
+	{/if}
 </select>
 
 <select class="select select-bordered" bind:value={assistant.apiKey} on:change={statusChanged} disabled={!edit}>
 	{#if assistant.model}
 		{@const model = $models[assistant.model]}
-		{@const provider = $providers[model.providerID]}
+		{@const provider = model ? $providers[model.providerID] : null}
+		{#if provider}
+			<option value={defaultsUUID}>First available</option>
 
-		<option value={defaultsUUID}>First available</option>
-
-		{#each Object.entries($apiKeys) as [kid, key]}
-			{#if key.providerID === model.providerID}
-				<option value={key.id}>{provider.name}/{key.label}</option>
-			{/if}
-		{/each}
+			{#each Object.entries($apiKeys) as [kid, key]}
+				{#if key.providerID === model.providerID}
+					<option value={key.id}>{provider.name}/{key.label}</option>
+				{/if}
+			{/each}
+		{/if}
 	{:else}
 		<option disabled>No model</option>
 	{/if}
@@ -146,6 +195,23 @@
 	on:click={() => (detailsToggled = !detailsToggled)}
 	class:btn-active={detailsToggled}>
 	Details
+</button>
+
+<button
+	class="btn btn-outline"
+	disabled={status === 'hiding' || !allowHiding}
+	on:click={async () => {
+		status = 'hiding';
+		await toggleHidden();
+		status = null;
+	}}>
+	{#if status === 'hiding'}
+		<div class="loading" />
+	{:else if $hiddenItems.has(assistant.id ?? '') && allowHiding}
+		<EyeOff />
+	{:else}
+		<Eye />
+	{/if}
 </button>
 
 <DeleteButton

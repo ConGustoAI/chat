@@ -8,13 +8,13 @@ export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'g
 
 export const providersTable = pgTable('providers', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	hidden: boolean('hidden').default(false),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	name: text('name').notNull(),
 	type: providerTypes('type').notNull(),
 	baseURL: text('base_url').notNull(),
-	hidden: boolean('hidden').default(false),
 	default: boolean('default').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')

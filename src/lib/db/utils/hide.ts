@@ -1,36 +1,34 @@
-import { error } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
-import { hiddenAssistants } from '../schema';
+import { hiddenItems } from '../schema';
+import { error } from '@sveltejs/kit';
 
-export async function DBaddHiddenAssistant(userId: string, assistantId: string) {
-	const upsert = await db.insert(hiddenAssistants).values({ assistantId, userId }).onConflictDoNothing().returning();
+export async function DBhideItem({ dbUser, itemID }: { dbUser?: UserInterface; itemID: string }) {
+	if (!dbUser) error(401, 'Unauthorized');
 
-	if (!upsert || !upsert.length) {
-		error(500, 'Failed to add hidden assistant');
-	}
-
-	return upsert[0];
+	return await db
+		.insert(hiddenItems)
+		.values({
+			userId: dbUser.id,
+			itemID
+		})
+		.onConflictDoNothing();
 }
 
-export async function DBdeleteHiddenAssistant(userId: string, assistantId: string) {
-	const res = await db
-		.delete(hiddenAssistants)
-		.where(and(eq(hiddenAssistants.userId, userId), eq(hiddenAssistants.assistantId, assistantId)))
+export async function DBunhideItem({ dbUser, itemID }: { dbUser?: UserInterface; itemID: string }) {
+	if (!dbUser) error(401, 'Unauthorized');
+
+	return await db
+		.delete(hiddenItems)
+		.where(and(eq(hiddenItems.userId, dbUser.id), eq(hiddenItems.itemID, itemID)))
 		.returning();
-
-	if (!res || !res.length) {
-		error(500, 'Failed to delete hidden assistant');
-	}
-
-	return res[0];
 }
 
-export async function DBgetHiddenAssistants(userId: string) {
-	const result = await db
-		.select()
-		.from(hiddenAssistants)
-		.where(eq(hiddenAssistants.userId, userId));
+export async function DBgetHiddenItems({ dbUser }: { dbUser?: UserInterface }) {
+	if (!dbUser) return new Set();
 
-	return result;
+	const items = await db.query.hiddenItems.findMany({
+		where: eq(hiddenItems.userId, dbUser.id)
+	});
+	return new Set(items.map((item) => item.itemID));
 }

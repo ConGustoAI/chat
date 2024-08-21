@@ -13,6 +13,7 @@
 	export let edit;
 	export let showDefault: boolean;
 	export let showCustom: boolean;
+	export let allowHiding = true;
 
 	export let newChildUserID: string | undefined;
 
@@ -59,7 +60,7 @@
 
 <div class="flex w-full flex-col gap-4">
 	<div
-		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 		<span class="label-text">Display name</span>
 		<span class="label-text">Model name</span>
 		<span class="label-text w-full">Input context</span>
@@ -69,10 +70,11 @@
 		<span class="label-text">Prefill</span>
 		<span />
 		<span />
+		<span />
 
 		{#each Object.entries($models) as [id, model]}
 			{#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))}
-				<Model bind:model {deleteModel} {edit} />
+				<Model bind:model {deleteModel} {edit} {allowHiding} />
 			{/if}
 		{/each}
 	</div>

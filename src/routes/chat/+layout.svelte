@@ -2,26 +2,21 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import {
-		APIfetchAssistants,
+		APIdeleteConversation,
 		APIfetchConversation,
 		APIfetchConversations,
-		APIfetchDefaultConversation,
-		APIfetchDefaultConversations,
-		APIdeleteConversation
+		APIfetchDefaultConversation
 	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, DrawerButton } from '$lib/components';
-	import { errorToMessage, newConversation } from '$lib/utils';
+	import { assistants, dbUser, hiddenItems } from '$lib/stores/appstate';
+	import { loginModal } from '$lib/stores/loginModal';
+	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { toIdMap } from '$lib/utils';
-	import { loginModal } from '$lib/stores/loginModal';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:chat');
-
-	export let data;
-	let { dbUser, assistants } = data;
 
 	let conversations: Record<string, ConversationInterface> = {};
 	let conversationOrder: string[] = [];
@@ -42,22 +37,15 @@
 		chatLoading = true;
 		let convosPromise;
 		let convoPromise;
-		if (dbUser) {
-			convosPromise = APIfetchConversations();
-			convoPromise = APIfetchConversation(convId);
-		} else {
-			convosPromise = APIfetchDefaultConversations();
-			convoPromise = APIfetchDefaultConversation(convId);
-		}
 
 		const [gotConvos, cgotConvo] = await Promise.all([
-			convosPromise.catch((e) => {
+			APIfetchConversations().catch((e) => {
 				debug('Failed to fetch conversations:', e);
 				return [];
 			}),
-			convoPromise.catch((e) => {
+			APIfetchConversation(convId).catch((e) => {
 				debug('Failed to fetch conversation:', e);
-				return { userID: dbUser?.id ?? 'none' } as ConversationInterface;
+				return { userID: $dbUser?.id ?? 'none' } as ConversationInterface;
 			})
 		]);
 
@@ -66,7 +54,7 @@
 			conversations[cgotConvo.id] = cgotConvo;
 			conversation = conversations[cgotConvo.id];
 		} else {
-			conversation = newConversation(dbUser?.id ?? 'anon', dbUser?.assistant);
+			conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
 		}
 
 		conversationOrder = Object.keys(conversations);
@@ -198,7 +186,7 @@
 
 	function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
-		conversation = newConversation(dbUser?.id ?? 'anon', assistantId);
+		conversation = newConversation($dbUser?.id ?? 'anon', assistantId);
 		goto('/chat');
 	}
 
@@ -215,12 +203,14 @@
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="m-2 flex w-56 shrink-0 flex-col gap-4" class:hidden={!drawer_open}>
 		<div class="flex w-full">
-			<button class="btn btn-primary grow" on:click={() => NewChat(dbUser?.assistant)}>New chat</button>
+			<button class="btn btn-primary grow" on:click={() => NewChat($dbUser?.assistant)}>New chat</button>
 			<details class="dropdown dropdown-end my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-primary mx-1 border border-l-2 p-1"><ChevronUp class="rotate-180" /></summary>
 				<ul class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
-					{#each assistants as assistant}
-						<button class="btn btn-primary w-full" on:click={() => NewChat(assistant.id)}>{assistant.name}</button>
+					{#each Object.entries($assistants) as [id, assistant]}
+						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+							<button class="btn btn-primary w-full" on:click={() => NewChat(assistant.id)}>{assistant.name}</button>
+						{/if}
 					{/each}
 				</ul>
 			</details>
@@ -233,12 +223,12 @@
 	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
-		<ChatTitle {chatLoading} bind:conversation {assistants} bind:user={dbUser} bind:updatingLike />
+		<ChatTitle {chatLoading} bind:conversation bind:updatingLike />
 
 		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
 			{#if conversation?.messages}
 				{#each conversation.messages as m}
-					<ChatMessage bind:conversation bind:message={m} {submitConversation} hacker={!dbUser || dbUser?.hacker} />
+					<ChatMessage bind:conversation bind:message={m} {submitConversation} />
 				{/each}
 				<div class=" mb-20 w-full" />
 			{:else}

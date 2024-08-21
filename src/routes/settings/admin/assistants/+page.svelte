@@ -14,6 +14,6 @@
 
 	<div class="w-full">
 		<div class="divider w-full">Default assistants</div>
-		<AssistantGrid showDefault={true} edit={true} />
+		<AssistantGrid showDefault={true} edit={true} allowHiding={false}/>
 	</div>
 </div>

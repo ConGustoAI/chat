@@ -10,6 +10,7 @@ export const assistantsTable = pgTable('assistants', {
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	hidden: boolean('hidden').default(false),
 	name: text('name').notNull().default('Assistant'),
 	about: text('about'),
 	default: boolean('default').default(false),

@@ -11,6 +11,7 @@ declare global {
 			user: User | undefined;
 			dbUser: UserInterface | undefined;
 			assistants: AssistantInterface[];
+			hiddenItems: Set<string>;
 		}
 		interface PageData {
 			session: Session | null;
@@ -88,6 +89,13 @@ declare global {
 		video?: boolean;
 		prefill?: boolean;
 		createdAt?: Date;
+		updatedAt?: Date;
+	}
+
+	interface HiddenItemInterface {
+		userID: string;
+		id: string; // Can refer to assistants/providers/models/apikeys.
+		createAt?: Date;
 		updatedAt?: Date;
 	}
 

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { APIupsertKey } from '$lib/api';
-	import { dbUser } from '$lib/stores/appstate';
+	import { APIhideItem, APIunhideItem, APIupsertKey } from '$lib/api';
+	import { dbUser, hiddenItems } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { Check } from 'lucide-svelte';
+	import { Check, Eye, EyeOff } from 'lucide-svelte';
 	import { DeleteButton } from '$lib/components';
 
 	export let apiKey: ApiKeyInterface;

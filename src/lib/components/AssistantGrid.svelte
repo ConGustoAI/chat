@@ -10,6 +10,7 @@
 	const debug = dbg('app:ui:components:AssistantGrid');
 
 	export let edit = false;
+	export let allowHiding = true;
 
 	// Either show the users assistnts or the default assistants.
 	export let showDefault = false;
@@ -72,19 +73,20 @@
 </script>
 
 <div class="mb-10 flex flex-col gap-4">
-	<div class="grid grid-cols-[min-content,10rem,max-content,12rem,auto,6rem,6rem,0] gap-4 gap-y-2">
+	<div class="grid grid-cols-[min-content,10rem,max-content,12rem,auto,6rem,min-content,min-content,0] gap-4 gap-y-2">
 		<div />
 		<div class="font-bold">Name</div>
 		<div class="font-bold">Model</div>
 		<div class="font-bold">API key</div>
 		<div class="font-bold">Descripton</div>
 		<div />
-		<div />
+		<div class="font-bold">Hide</div>
+		<div class="font-bold">Delete</div>
 		<div />
 
 		{#each Object.entries($assistants) as [i, assistant]}
 			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
-				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} />
+				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding}  />
 			{/if}
 		{/each}
 		{#if edit}

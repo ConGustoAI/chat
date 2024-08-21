@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { APIdeleteProvider, APIupsertModel, APIupsertProvider } from '$lib/api';
+	import { APIdeleteProvider, APIhideItem, APIunhideItem, APIupsertModel, APIupsertProvider } from '$lib/api';
 	import { defaultsUUID, providerTypes } from '$lib/db/schema';
-	import { apiKeys, dbUser, providers, models } from '$lib/stores/appstate';
+	import { apiKeys, dbUser, providers, models, hiddenItems } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert, capitalize } from '$lib/utils';
-	import { Check, Copy, Trash2 } from 'lucide-svelte';
+	import { Check, Copy, Eye, EyeOff, Trash2 } from 'lucide-svelte';
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
 
 	import dbg from 'debug';
@@ -14,6 +14,8 @@
 	export let provider: ProviderInterface;
 
 	export let edit: boolean;
+	export let allowHiding = true;
+
 	export let showDefaultChildren: boolean;
 	export let showCustomChildren: boolean;
 
@@ -22,6 +24,7 @@
 
 	export let newChildUserID: string | undefined;
 	export let newProviderUserID: string | undefined;
+
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -135,6 +138,24 @@
 		});
 	}
 
+	async function toggleHidden() {
+		if (!$dbUser) {
+			toLogin();
+			return;
+		}
+
+		if (provider.id && allowHiding) {
+			if ($hiddenItems.has(provider.id)) {
+				await APIunhideItem(provider.id);
+				$hiddenItems.delete(provider.id);
+			} else {
+				await APIhideItem(provider.id);
+				$hiddenItems.add(provider.id);
+			}
+			$hiddenItems = $hiddenItems;
+		}
+	}
+
 	function statusChanged() {
 		status = 'changed';
 	}
@@ -185,6 +206,23 @@
 	Models
 </button>
 
+<button
+	class="btn btn-outline"
+	disabled={status === 'hiding' || !allowHiding}
+	on:click={async () => {
+		status = 'hiding';
+		await toggleHidden();
+		status = null;
+	}}>
+	{#if status === 'hiding'}
+		<div class="loading" />
+	{:else if $hiddenItems.has(provider.id ?? '') && allowHiding}
+		<EyeOff />
+	{:else}
+		<Eye />
+	{/if}
+</button>
+
 <DeleteButton
 	btnClass="btn btn-outline"
 	deleteAction={async () => {
@@ -209,7 +247,7 @@
 	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col items-center gap-4">
 		{#if showCustomChildren}
 			<div class="divider col-span-full w-full">{provider.name}: Your models</div>
-			<ModelsGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} />
+			<ModelsGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} {allowHiding}/>
 		{/if}
 
 		{#if showDefaultChildren}
@@ -224,7 +262,7 @@
 				</div>
 			{/if}
 
-			<ModelsGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} />
+			<ModelsGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} {allowHiding}/>
 		{/if}
 		<div class="divider col-span-full w-full" />
 	</div>

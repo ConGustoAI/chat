@@ -24,6 +24,7 @@
 			showCustomChildren={false}
 			editCustomChildren={false}
 			edit={true}
+			allowHiding={false}
 			newProviderUserID={defaultsUUID}
 			newChildUserID={defaultsUUID} />
 	</div>

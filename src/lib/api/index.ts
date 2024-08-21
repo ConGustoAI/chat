@@ -6,3 +6,4 @@ export * from './user';
 export * from './model';
 export * from './message';
 export * from './chat';
+export * from './hide';
