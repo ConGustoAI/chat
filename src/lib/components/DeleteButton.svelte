@@ -2,39 +2,38 @@
 	import { cn } from '$lib/utils';
 	import { Trash2 } from 'lucide-svelte';
 
-	export let deleteAction: () => void;
+	export let deleteAction: () => Promise<void> | void;
 	export let size = 15;
 	export let btnClass = '';
 	let className = '';
 	export { className as class };
 
+	export let disabled = false;
 	let deleting = false;
+	let menu: HTMLUListElement;
 </script>
 
-<div class={cn('dropdown', className)}>
-	<div tabindex="0" role="button" class={cn('btn', btnClass)}>
+<details class={cn('dropdown ', className)}>
+	<summary class={cn('btn', disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
 			<div class="loading loading-sm" />
 		{:else}
 			<Trash2 {size} />
 		{/if}
-	</div>
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<ul tabindex="0" class="menu dropdown-content z-[1] w-fit p-2">
+	</summary>
+
+	<ul bind:this={menu} class="menu dropdown-content z-[1] w-fit p-2">
 		<li>
 			<button
 				class="btn btn-primary btn-sm text-nowrap rounded-md"
 				on:click={async () => {
+					menu.hidden = true;
+					disabled = true;
 					deleting = true;
 					await deleteAction();
+					disabled = false;
 					deleting = false;
 				}}>Yes, delete!</button>
 		</li>
 	</ul>
-</div>
-
-<!-- <button
-	class="btn btn-ghost btn-xs rounded-md p-0 px-1"
-	on:click={() => {
-		deleteMessage();
-	}}><Trash2 size={15} /></button> -->
+</details>

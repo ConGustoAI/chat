@@ -6,7 +6,7 @@
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert, capitalize } from '$lib/utils';
 	import { Check, Copy, Trash2 } from 'lucide-svelte';
-	import { ApiKeysGrid, ModelsGrid } from '$lib/components';
+	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:Provider');
@@ -184,20 +184,16 @@
 <button class="btn btn-outline w-full" class:btn-active={showModels} on:click={() => (showModels = !showModels)}>
 	Models
 </button>
-<button
-	class="btn btn-outline"
-	on:click={() => {
+
+<DeleteButton
+	btnClass="btn btn-outline"
+	deleteAction={async () => {
 		status = 'deleting';
-		deleteProvider(provider);
+		await deleteProvider(provider);
 		status = null;
 	}}
-	disabled={!edit || status === 'deleting'}>
-	{#if status === 'deleting'}
-		<div class="loading" />
-	{:else}
-		<Trash2 />
-	{/if}
-</button>
+	size={24}
+	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />

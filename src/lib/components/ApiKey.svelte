@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
 	import { APIupsertKey } from '$lib/api';
+	import { dbUser } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { Check, Trash2 } from 'lucide-svelte';
-	import { dbUser } from '$lib/stores/appstate';
+	import { Check } from 'lucide-svelte';
+	import { DeleteButton } from '$lib/components';
 
 	export let apiKey: ApiKeyInterface;
 	export let edit: boolean = false;
@@ -74,16 +75,17 @@
 	on:input={statusChanged}
 	spellcheck="false"
 	disabled={!edit} />
-<button
-	class="btn btn-outline"
-	disabled={!edit || status === 'deleting'}
-	on:click={async () => {
+
+<DeleteButton
+	btnClass="btn btn-outline"
+	deleteAction={async () => {
 		status = 'deleting';
 		await deleteKey(apiKey);
 		status = null;
-	}}>
-	<Trash2 />
-</button>
+	}}
+	size={24}
+	disabled={!edit || status === 'deleting'} />
+
 <div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
 	<div class="absolute top-1" class:hidden={status !== 'saved'}>

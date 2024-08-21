@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
 	import { APIupsertModel } from '$lib/api/model';
-	import { assert } from '$lib/utils';
-	import { Check, Trash2 } from 'lucide-svelte';
-	import { toLogin } from '$lib/stores/loginModal';
+	import { DeleteButton } from '$lib/components';
 	import { dbUser } from '$lib/stores/appstate';
+	import { toLogin } from '$lib/stores/loginModal';
+	import { assert } from '$lib/utils';
+	import { Check } from 'lucide-svelte';
 
 	export let model: ModelInterface;
 	export let edit: boolean;
@@ -107,20 +108,16 @@
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
 
-<button
-	class="btn btn-outline w-full justify-self-end"
-	disabled={!edit || status === 'deleting'}
-	on:click={async () => {
+<DeleteButton
+	btnClass="btn btn-outline"
+	deleteAction={async () => {
 		status = 'deleting';
 		await deleteModel(model);
 		status = null;
-	}}>
-	{#if status === 'deleting'}
-		<div class="loading" />
-	{:else}
-		<Trash2 />
-	{/if}
-</button>
+	}}
+	size={24}
+	disabled={!edit || status === 'deleting'} />
+
 <div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
 	<div class="absolute top-1" class:hidden={status !== 'saved'}>

@@ -6,6 +6,7 @@
 	import { assert } from '$lib/utils';
 	import { Check, Copy, Trash2 } from 'lucide-svelte';
 	import { dbUser, models, providers, apiKeys } from '$lib/stores/appstate';
+	import { DeleteButton } from '$lib/components';
 
 	export let assistant: AssistantInterface;
 	export let deleteAssistant;
@@ -147,20 +148,15 @@
 	Details
 </button>
 
-<button
-	class="btn btn-outline"
-	on:click={async () => {
+<DeleteButton
+	btnClass="btn btn-outline"
+	deleteAction={async () => {
 		status = 'deleting';
 		await deleteAssistant(assistant);
 		status = null;
 	}}
-	disabled={!edit || status === 'deleting'}>
-	{#if status === 'deleting'}
-		<div class="loading" />
-	{:else}
-		<Trash2 />
-	{/if}
-</button>
+	size={24}
+	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">
 	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
@@ -273,11 +269,7 @@
 			</div>
 
 			{#if assistant.assistantInstructionsFromUser}
-				<textarea
-					class="textarea textarea-bordered w-full"
-					rows="3"
-					disabled
-					value={$dbUser?.assistantInstructions} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={$dbUser?.assistantInstructions} />
 			{:else}
 				<textarea
 					class="textarea textarea-bordered w-full"
