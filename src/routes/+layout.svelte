@@ -1,20 +1,25 @@
 <script>
 	import '../app.css';
 
-	import { ModeWatcher, mode, setTheme } from 'mode-watcher';
-	import { toggleMode } from 'mode-watcher';
 	import { Login } from '$lib/components';
 	import { loginModal } from '$lib/stores/loginModal';
+	import { ModeWatcher } from 'mode-watcher';
+	import { toIdMap } from '$lib/utils';
 
 	export let data;
 	export let form;
 
-	function cycleTheme() {
-		toggleMode();
-		const theme = $mode === 'dark' ? 'dark' : 'light';
-		setTheme(theme);
-		document.documentElement.setAttribute('data-theme', theme);
-	}
+	import { dbUser, assistants } from '$lib/stores/appstate';
+	import dbg from 'debug';
+	import { onMount } from 'svelte';
+	const debug = dbg('app:ui:settings:layout');
+
+	onMount(async () => {
+		debug('onMount');
+		$dbUser = data.dbUser;
+		$assistants = toIdMap(data.assistants);
+		debug('onMount', { $dbUser });
+	});
 </script>
 
 <ModeWatcher />

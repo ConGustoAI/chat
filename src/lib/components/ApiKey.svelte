@@ -4,7 +4,8 @@
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
-	export let dbUser: UserInterface | undefined;
+	import { dbUser } from '$lib/stores/appstate';
+
 	export let apiKey: ApiKeyInterface;
 	export let edit: boolean = false;
 	export let deleteKey;
@@ -27,7 +28,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				if (!dbUser) {
+				if (!$dbUser) {
 					toLogin();
 					return;
 				}
@@ -78,7 +79,7 @@
 	disabled={!edit || status === 'deleting'}
 	on:click={async () => {
 		status = 'deleting';
-		await deleteKey();
+		await deleteKey(apiKey);
 		status = null;
 	}}>
 	<Trash2 />

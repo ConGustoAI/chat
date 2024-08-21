@@ -2,20 +2,18 @@
 	import { APIdeleteAssistant, APIupsertAssistant } from '$lib/api';
 	import { Assistant } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
+	import { assistants, dbUser } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
-	import dbg from 'debug';
 	import { Plus } from 'lucide-svelte';
+
+	import dbg from 'debug';
 	const debug = dbg('app:ui:components:AssistantGrid');
 
-	export let assistants: { [key: string]: AssistantInterface } = {};
-	export let providers: { [key: string]: ProviderInterface } = {};
-	export let models: { [key: string]: ModelInterface } = {};
-	export let apiKeys: { [key: string]: ApiKeyInterface } = {};
-
-	export let dbUser: UserInterface | undefined;
 	export let edit = false;
-	// Add the assistant as a default assistant.
-	export let addDefault = false;
+
+	// Either show the users assistnts or the default assistants.
+	export let showDefault = false;
+	export let newItemUserID = defaultsUUID;
 
 	let addingAssistant = false;
 	async function addAssistant() {
@@ -26,12 +24,15 @@
 		}
 		addingAssistant = true;
 		const newAssistant = await APIupsertAssistant({
-			userID: addDefault ? defaultsUUID : dbUser.id,
+			userID: newItemUserID,
 			name: 'New assistant',
 			aboutUserFromUser: true,
 			assistantInstructionsFromUser: true
 		});
-		assistants[newAssistant.id!] = newAssistant;
+		assistants.update((current) => {
+			current[newAssistant.id!] = newAssistant;
+			return current;
+		});
 		addingAssistant = false;
 		debug('new assistant', newAssistant);
 	}
@@ -46,9 +47,12 @@
 			...assistant,
 			id: undefined,
 			name: assistant.name + ' (copy)',
-			userID: addDefault ? defaultsUUID : dbUser.id
+			userID: newItemUserID
 		});
-		assistants[newAssistant.id!] = newAssistant;
+		assistants.update((current) => {
+			current[newAssistant.id!] = newAssistant;
+			return current;
+		});
 		debug('copy assistant done', newAssistant);
 	}
 
@@ -59,8 +63,10 @@
 			return;
 		}
 		const del = await APIdeleteAssistant(assistant);
-		delete assistants[del.id!];
-		assistants = assistants;
+		assistants.update((current) => {
+			delete current[del.id!];
+			return current;
+		});
 		debug('delete assistant done', del);
 	}
 </script>
@@ -76,16 +82,10 @@
 		<div />
 		<div />
 
-		{#each Object.entries(assistants) as [i, assistant]}
-			<Assistant
-				{dbUser}
-				bind:assistant
-				{models}
-				{providers}
-				{apiKeys}
-				deleteAssistant={async () => await deleteAssistant(assistant)}
-				copyAssistant={async () => await copyAssistant(assistant)}
-				{edit} />
+		{#each Object.entries($assistants) as [i, assistant]}
+			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
+				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} />
+			{/if}
 		{/each}
 		{#if edit}
 			<button

@@ -4,8 +4,8 @@
 	import { assert } from '$lib/utils';
 	import { Check, Trash2 } from 'lucide-svelte';
 	import { toLogin } from '$lib/stores/loginModal';
+	import { dbUser } from '$lib/stores/appstate';
 
-	export let dbUser: UserInterface | undefined;
 	export let model: ModelInterface;
 	export let edit: boolean;
 	export let deleteModel;
@@ -28,7 +28,7 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
-				if (!dbUser) {
+				if (!$dbUser) {
 					toLogin();
 					return;
 				}
@@ -112,7 +112,7 @@
 	disabled={!edit || status === 'deleting'}
 	on:click={async () => {
 		status = 'deleting';
-		await deleteModel();
+		await deleteModel(model);
 		status = null;
 	}}>
 	{#if status === 'deleting'}

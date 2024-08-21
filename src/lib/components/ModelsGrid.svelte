@@ -3,27 +3,29 @@
 	import { Model } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { toLogin } from '$lib/stores/loginModal';
+	import { models, dbUser } from '$lib/stores/appstate';
 	import { Plus } from 'lucide-svelte';
 	import dbg from 'debug';
 
 	const debug = dbg('app:ui:components:ModelsGrid');
 
-	export let models: { [key: string]: ModelInterface } = {};
 	export let provider: ProviderInterface;
-	export let dbUser: UserInterface | undefined;
-	export let edit = false;
-	export let addDefault = false;
+	export let edit;
+	export let showDefault: boolean;
+	export let showCustom: boolean;
+
+	export let newChildUserID: string | undefined;
 
 	let addingModel = false;
 	async function addModel() {
 		debug('add model');
-		if (!dbUser) {
+		if (!$dbUser || !newChildUserID) {
 			toLogin();
 			return;
 		}
 		addingModel = true;
 		const newModel = await APIupsertModel({
-			userID: addDefault ? defaultsUUID : dbUser.id,
+			userID: newChildUserID,
 			providerID: provider.id!,
 			displayName: 'New Model',
 			name: '',
@@ -31,26 +33,31 @@
 			images: false,
 			prefill: false
 		});
-		models[newModel.id!] = newModel;
+		models.update((current) => {
+			current[newModel.id!] = newModel;
+			return current;
+		});
 		addingModel = false;
 		debug('new model', newModel);
 	}
 
 	async function deleteModel(model: ModelInterface) {
 		debug('delete model', model);
-		if (!dbUser) {
+		const user = $dbUser;
+		if (!user) {
 			toLogin();
 			return;
 		}
 		const del = await APIdeleteModel(model);
-		delete models[del.id!];
-		models = models;
-
+		models.update((current) => {
+			delete current[del.id!];
+			return current;
+		});
 		debug('delete model done', del);
 	}
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
 	<div
 		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 		<span class="label-text">Display name</span>
@@ -63,9 +70,9 @@
 		<span />
 		<span />
 
-		{#each Object.entries(models) as [id, model]}
-			{#if model.providerID === provider.id}
-				<Model {dbUser} bind:model deleteModel={async () => await deleteModel(model)} {edit} />
+		{#each Object.entries($models) as [id, model]}
+			{#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))}
+				<Model bind:model {deleteModel} {edit} />
 			{/if}
 		{/each}
 	</div>

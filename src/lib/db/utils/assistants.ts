@@ -4,41 +4,18 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '..';
 import { assistantsTable, defaultsUUID } from '../schema';
 
-export async function DBgetDefaultAssistants() {
-	const assistants = await db.query.assistantsTable.findMany({
-		where: (table, { eq }) => eq(table.userID, defaultsUUID)
-	});
-
-	if (!assistants) error(500, 'Failed to fetch default assistants');
-
-	return assistants;
-}
-
-export async function DBgetDefaultAssistant({ id }: { id: string }) {
-	if (!id) error(400, 'Assistant ID is required');
-
-	const assistant = await db.query.assistantsTable.findFirst({
-		where: (table, { eq }) => and(eq(table.id, id), eq(table.userID, defaultsUUID))
-	});
-
-	if (!assistant) {
-		error(404, 'Default assistant not found');
-	}
-
-	return assistant;
-}
-
 export async function DBgetAssistants({ dbUser }: { dbUser?: UserInterface }) {
 	// Note: If the user is not authorized, we only return the default assistants.
 	const assistants = await db.query.assistantsTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
+		orderBy: (table, { asc }) => asc(table.updatedAt)
 	});
 
 	return assistants;
 }
 
 export async function DBgetAssistant({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	// Note: If the user is not authorized, we only return the default assistants.
+	// Note: If the user is not authorized, we only return the default assistant.
 	if (!id) error(400, 'Assistant ID is required');
 
 	const assistant = await db.query.assistantsTable.findFirst({

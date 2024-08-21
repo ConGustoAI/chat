@@ -1,4 +1,3 @@
-// import { createServerClient } from '@supabase/ssr';
 import { createServerClient } from '@supabase/ssr';
 import { type Handle } from '@sveltejs/kit';
 import dbg from 'debug';
@@ -8,7 +7,7 @@ const debug = dbg('app:hooks:supabase');
 export const sse = false;
 
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { DBgetAssistants, DBgetDefaultAssistants, DBgetUser, DBinsertUser } from '$lib/db/utils';
+import { DBgetAssistants, DBgetUser, DBinsertUser } from '$lib/db/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// debug('start event handler', event);
@@ -75,7 +74,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (user.user_metadata.avatar_url) event.locals.dbUser.avatar = user.user_metadata.avatar_url;
 	} else {
 		event.locals.dbUser = undefined;
-		event.locals.assistants = (await DBgetDefaultAssistants()) as AssistantInterface[];
+		event.locals.assistants = (await DBgetAssistants({})) as AssistantInterface[];
 	}
 	// debug('dbUser', event.locals.dbUser);
 

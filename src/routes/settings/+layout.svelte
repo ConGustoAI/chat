@@ -1,9 +1,30 @@
 <script lang="ts">
-	import SidebarNav from '$lib/components/SidebarNav.svelte';
+	import { APIfetchAssistants, APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
+	import { SidebarNav } from '$lib/components';
+	import { apiKeys, assistants, dbUser, models, providers } from '$lib/stores/appstate';
+	import { toIdMap } from '$lib/utils';
 	import { ArrowLeftCircle } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
-	export let data;
-	export let { dbUser } = data;
+	import dbg from 'debug';
+	const debug = dbg('app:ui:settings:layout');
+
+	let loading = false;
+	onMount(async () => {
+		debug('onMount');
+		loading = true;
+		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
+			APIfetchProviders(),
+			APIfetchModels(),
+			APIfetchKeys()
+		]);
+
+		$providers = toIdMap(fetchedProviders);
+		$models = toIdMap(fetchedModels);
+		$apiKeys = toIdMap(fetchedApiKeys);
+		loading = false;
+		debug('onMount', { assistants: $assistants, providers: $providers, models: $models });
+	});
 
 	const sidebarNavItems = [
 		{
@@ -45,10 +66,14 @@
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat
 	</a>
-	<!-- We allow anonymous users a sneak peek under into the Admin panel. All security is handled on the server side-->
-	<SidebarNav items={sidebarNavItems} adminItems={!dbUser || dbUser?.admin ? adminSidebarItems : []}>
+
+	<SidebarNav items={sidebarNavItems} adminItems={$dbUser?.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
-			<slot />
+			{#if loading}
+				<div class="loading loading-lg" />
+			{:else}
+				<slot />
+			{/if}
 		</div>
 	</SidebarNav>
 </div>

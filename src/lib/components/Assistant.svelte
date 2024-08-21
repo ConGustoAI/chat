@@ -5,15 +5,13 @@
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Copy, Trash2 } from 'lucide-svelte';
+	import { dbUser, models, providers, apiKeys } from '$lib/stores/appstate';
 
 	export let assistant: AssistantInterface;
-	export let models: { [key: string]: ModelInterface };
-	export let providers: { [key: string]: ProviderInterface };
-	export let apiKeys: { [key: string]: ApiKeyInterface };
-	export let dbUser: UserInterface | undefined;
 	export let deleteAssistant;
 	export let copyAssistant;
 	export let edit: boolean;
+	export let showDefault: boolean;
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -39,7 +37,7 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
-				if (!dbUser) {
+				if (!$dbUser) {
 					toLogin();
 					return;
 				}
@@ -64,16 +62,16 @@
 	}
 
 	function statusChanged() {
-		if (assistant.images && assistant.model && !models[assistant.model].images) {
+		if (assistant.images && assistant.model && !$models[assistant.model].images) {
 			assistant.images = false;
 		}
-		if (assistant.audio && assistant.model && !models[assistant.model].audio) {
+		if (assistant.audio && assistant.model && !$models[assistant.model].audio) {
 			assistant.audio = false;
 		}
-		if (assistant.video && assistant.model && !models[assistant.model].video) {
+		if (assistant.video && assistant.model && !$models[assistant.model].video) {
 			assistant.video = false;
 		}
-		if (assistant.prefill && assistant.model && !models[assistant.model].prefill) {
+		if (assistant.prefill && assistant.model && !$models[assistant.model].prefill) {
 			assistant.prefill = false;
 		}
 
@@ -87,7 +85,7 @@
 	class="btn btn-outline"
 	on:click={async () => {
 		status = 'copying';
-		await copyAssistant();
+		await copyAssistant(assistant);
 		status = null;
 	}}
 	disabled={status === 'copying'}>
@@ -107,9 +105,9 @@
 	disabled={!edit} />
 
 <select class="select select-bordered w-full" bind:value={assistant.model} on:change={statusChanged} disabled={!edit}>
-	{#each Object.entries(providers) as [pidx, provider]}
+	{#each Object.entries($providers) as [pidx, provider]}
 		<option disabled class="text-lg font-bold">{provider.name}</option>
-		{#each Object.entries(models) as [midx, model]}
+		{#each Object.entries($models) as [midx, model]}
 			{#if model.providerID === provider.id}
 				<option value={model.id}>{provider.name}/{model.displayName}</option>
 			{/if}
@@ -119,12 +117,12 @@
 
 <select class="select select-bordered" bind:value={assistant.apiKey} on:change={statusChanged} disabled={!edit}>
 	{#if assistant.model}
-		{@const model = models[assistant.model]}
-		{@const provider = providers[model.providerID]}
+		{@const model = $models[assistant.model]}
+		{@const provider = $providers[model.providerID]}
 
 		<option value={defaultsUUID}>First available</option>
 
-		{#each Object.entries(apiKeys) as [kid, key]}
+		{#each Object.entries($apiKeys) as [kid, key]}
 			{#if key.providerID === model.providerID}
 				<option value={key.id}>{provider.name}/{key.label}</option>
 			{/if}
@@ -153,7 +151,8 @@
 	class="btn btn-outline"
 	on:click={async () => {
 		status = 'deleting';
-		await deleteAssistant();
+		await deleteAssistant(assistant);
+		status = null;
 	}}
 	disabled={!edit || status === 'deleting'}>
 	{#if status === 'deleting'}
@@ -174,13 +173,18 @@
 </div>
 
 {#if detailsToggled}
-	{@const model = assistant.model ? models[assistant.model] : undefined}
-	<div class="col-span-full col-start-2 mb-6 w-full">
-		<div class="divider">{assistant.name} Details</div>
+	{@const model = assistant.model ? $models[assistant.model] : undefined}
+	<div class="col-span-full col-start-2 w-full">
+		<div class="divider">{assistant.name}: Details</div>
 	</div>
 
 	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col gap-2">
-		<div class="flex gap-4">
+		{#if showDefault && edit}
+			<div class="divider w-full">
+				<div class="alert alert-warning w-fit py-0">Changes made here will be visible to and will affect all users</div>
+			</div>
+		{/if}
+		<div class="my-4 flex gap-4">
 			<label for="imagesCheckbox-{assistant.id}" class="cursor-pointer">Images</label>
 			<input
 				type="checkbox"
@@ -236,7 +240,7 @@
 			</div>
 
 			{#if assistant.aboutUserFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={dbUser?.aboutUser} />
+				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={$dbUser?.aboutUser} />
 			{:else}
 				<textarea
 					class="textarea textarea-bordered w-full"
@@ -269,7 +273,11 @@
 			</div>
 
 			{#if assistant.assistantInstructionsFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={dbUser?.assistantInstructions} />
+				<textarea
+					class="textarea textarea-bordered w-full"
+					rows="3"
+					disabled
+					value={$dbUser?.assistantInstructions} />
 			{:else}
 				<textarea
 					class="textarea textarea-bordered w-full"

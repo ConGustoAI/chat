@@ -1,25 +1,27 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { APIupsertProvider } from '$lib/api';
-	import { providerTypes } from '$lib/db/schema';
+	import { APIdeleteProvider, APIupsertModel, APIupsertProvider } from '$lib/api';
+	import { defaultsUUID, providerTypes } from '$lib/db/schema';
+	import { apiKeys, dbUser, providers, models } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert, capitalize } from '$lib/utils';
 	import { Check, Copy, Trash2 } from 'lucide-svelte';
+	import { ApiKeysGrid, ModelsGrid } from '$lib/components';
 
 	import dbg from 'debug';
-	import ApiKeysGrid from './ApiKeysGrid.svelte';
-	import ModelsGrid from './ModelsGrid.svelte';
 	const debug = dbg('app:ui:components:Provider');
 
-	export let dbUser: UserInterface | undefined;
 	export let provider: ProviderInterface;
-	export let models: { [key: string]: ModelInterface };
-	export let defaultModels: { [key: string]: ModelInterface } = {};
-	export let apiKeys: { [key: string]: ApiKeyInterface };
-	export let defaultApiKeys: { [key: string]: ApiKeyInterface } = {};
-	export let deleteProvider = async (p: ProviderInterface) => {};
+
 	export let edit: boolean;
-	export let editingDefault = false;
+	export let showDefaultChildren: boolean;
+	export let showCustomChildren: boolean;
+
+	export let editDefaultChildren: boolean;
+	export let editCustomChildren: boolean;
+
+	export let newChildUserID: string | undefined;
+	export let newProviderUserID: string | undefined;
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -49,7 +51,7 @@
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
-				if (!dbUser) {
+				if (!$dbUser) {
 					toLogin();
 					return;
 				}
@@ -72,6 +74,67 @@
 		}
 	}
 
+	async function copyProvider(provider: ProviderInterface) {
+		debug('copy provider', provider);
+		if (!$dbUser || !newProviderUserID || !newChildUserID) {
+			toLogin();
+			return;
+		}
+
+		const newProvider = await APIupsertProvider({
+			...provider,
+			id: undefined,
+			userID: newProviderUserID,
+			name: provider.name + ' (copy)'
+		});
+
+		let newModels: ModelInterface[] = [];
+
+		// Copy all models associated with the provider.
+		// If the new provider is a default provider, only copy the default models.
+		// If the new provider is a user provider, copy both default and user models.
+		Object.entries($models).forEach(([modelId, model]) => {
+			if (model.providerID === provider.id) {
+				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === $dbUser.id)) {
+					newModels.push({
+						...model,
+						id: undefined,
+						providerID: newProvider.id!,
+						userID: newChildUserID
+					});
+				}
+			}
+		});
+
+		const insertedModels = await Promise.all(newModels.map((m) => APIupsertModel(m)));
+		models.update((current) => {
+			insertedModels.forEach((m) => {
+				current[m.id!] = m;
+			});
+			return current;
+		});
+		providers.update((current) => {
+			current[newProvider.id!] = newProvider;
+			return current;
+		});
+		debug('copy provider done', { newProvider, newModels });
+	}
+
+	async function deleteProvider(provider: ProviderInterface) {
+		debug('delete provider', provider);
+		if (!$dbUser) {
+			toLogin();
+			return;
+		}
+
+		const del = await APIdeleteProvider(provider);
+		debug('delete provider', del);
+		providers.update((current) => {
+			delete current[del.id!];
+			return current;
+		});
+	}
+
 	function statusChanged() {
 		status = 'changed';
 	}
@@ -79,6 +142,21 @@
 	let showApiKeys = false;
 	let showModels = false;
 </script>
+
+<button
+	class="btn btn-outline"
+	on:click={async () => {
+		status = 'copying';
+		await copyProvider(provider);
+		status = null;
+	}}
+	disabled={status === 'copying'}>
+	{#if status === 'copying'}
+		<div class="loading" />
+	{:else}
+		<Copy />
+	{/if}
+</button>
 
 <input
 	type="text"
@@ -132,50 +210,51 @@
 </div>
 
 {#if showModels}
-	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col gap-4">
-		{#if !editingDefault}
+	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col items-center gap-4">
+		{#if showCustomChildren}
 			<div class="divider col-span-full w-full">{provider.name}: Your models</div>
-			<ModelsGrid {dbUser} {provider} bind:models edit={true} />
+			<ModelsGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} />
 		{/if}
 
-		{#if editingDefault || Object.keys(defaultModels).length}
-			<div class="flex">
-				<div class="divider col-span-full w-full">
-					{provider.name}: Default models
-					{#if editingDefault}
-						<span class="alert alert-warning py-0">Changes made here will be visible to and will affect all users</span>
-					{/if}
-				</div>
+		{#if showDefaultChildren}
+			<div class="divider col-span-full w-full">
+				{provider.name}: Default models
 			</div>
-			<ModelsGrid {dbUser} {provider} bind:models={defaultModels} edit={editingDefault} addDefault={editingDefault} />
+			{#if editDefaultChildren}
+				<div class="divider w-full">
+					<div class="alert alert-warning w-fit py-0">
+						Changes made here will be visible to and will affect all users
+					</div>
+				</div>
+			{/if}
+
+			<ModelsGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} />
 		{/if}
+		<div class="divider col-span-full w-full" />
 	</div>
 {/if}
 
 {#if showApiKeys}
-	<div class="col-span-full col-start-2 flex w-full flex-col gap-4">
-		{#if !editingDefault}
-			<div class="divider col-span-full w-full">{provider.name}: Your API keys</div>
-			<ApiKeysGrid {dbUser} {provider} bind:apiKeys edit={true} />
+	<div class="col-span-full col-start-2 flex w-full flex-col items-center gap-4">
+		{#if showCustomChildren}
+			<div class="divider w-full">{provider.name}: Your API keys</div>
+			<ApiKeysGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} />
 		{/if}
 
-		{#if editingDefault || Object.keys(defaultApiKeys).filter((k) => defaultApiKeys[k].providerID == provider.id).length}
-			<div class="flex">
-				<div class="divider col-span-full w-full">
-					{provider.name}: Default API Keys
-					{#if editingDefault}
-						<span class="alert alert-error py-0"
-							>Only admins can see the Default Key values, but any user can make requests with them</span>
-					{/if}
-				</div>
+		{#if showDefaultChildren && (Object.entries($apiKeys).filter(([k, v]) => v.providerID === provider.id && v.userID === defaultsUUID).length || editDefaultChildren)}
+			<div class="divider w-full">
+				{provider.name}: Default API Keys
 			</div>
-			<ApiKeysGrid
-				{dbUser}
-				{provider}
-				bind:apiKeys={defaultApiKeys}
-				edit={editingDefault}
-				addDefault={editingDefault} />
+			{#if editDefaultChildren}
+				<div class="divider w-full">
+					<div class="alert alert-error w-fit py-0">
+						Only admins can see default keys, but any user can make requests with them
+					</div>
+				</div>
+			{/if}
+
+			<ApiKeysGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} />
 		{/if}
-		<div class="divider col-span-full w-full" />
+		<div class="divider w-full" />
 	</div>
 {/if}
