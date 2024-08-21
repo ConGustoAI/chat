@@ -105,7 +105,8 @@
 				{#if user?.avatar}
 					<div class="p-auto avatar m-auto align-middle">
 						<div class="bordered w-6 rounded-xl">
-							<img src={user.avatar} alt="User avatar" />
+							<!-- https://stackoverflow.com/questions/40570117/http403-forbidden-error-when-trying-to-load-img-src-with-google-profile-pic -->
+							<img src={user.avatar} referrerpolicy="no-referrer" alt="User avatar" />
 						</div>
 					</div>
 				{:else}
