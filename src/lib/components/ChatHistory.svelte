@@ -8,7 +8,7 @@
 	export let deleteConversation;
 </script>
 
-<ul class="menu max-w-full p-0">
+<ul class="rtl no-scrollbar menu max-w-full flex-nowrap overflow-y-auto p-0">
 	{#each conversationOrder as c}
 		<li class="tooltip relative p-0" title={conversation?.summary} class:bg-primary-content={conversation?.id == c}>
 			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
