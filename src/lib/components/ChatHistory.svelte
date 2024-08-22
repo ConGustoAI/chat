@@ -22,7 +22,7 @@
 			</a>
 
 			<DeleteButton
-				class="absolute right-0 top-0.5 m-0 p-0"
+				class="absolute right-0 top-0.5 m-0 p-0 dropdown-left"
 				btnClass="btn btn-ghost btn-sm m-0 rounded-md p-0 px-1"
 				deleteAction={async () => {
 					await deleteConversation(conversations[c]);

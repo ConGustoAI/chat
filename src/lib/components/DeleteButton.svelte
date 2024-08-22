@@ -10,30 +10,31 @@
 
 	export let disabled = false;
 	let deleting = false;
-	let details: HTMLDetailsElement;
+	let details: HTMLElement;
 </script>
 
-<details bind:this={details} class={cn('dropdown ', className)}>
-	<summary class={cn('btn', disabled ? 'btn-disabled' : '', btnClass)}>
+<div class={cn('dropdown', className)}>
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<div tabindex={0} class={cn('inline-flex', disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
-			<div class="loading loading-sm" />
+			<div class="loading loading-sm inline" />
 		{:else}
 			<Trash2 {size} />
 		{/if}
-	</summary>
+	</div>
 
-	<ul class="menu dropdown-content z-[1] w-fit p-2">
+	<ul bind:this={details} class="menu dropdown-content z-20 w-fit p-2">
 		<li>
 			<button
 				class="btn btn-primary btn-sm text-nowrap rounded-md"
 				on:click={async () => {
-					details.open = false;
 					disabled = true;
 					deleting = true;
+					details.style.visibility = 'hidden';
 					await deleteAction();
 					disabled = false;
 					deleting = false;
 				}}>Yes, delete!</button>
 		</li>
 	</ul>
-</details>
+</div>
