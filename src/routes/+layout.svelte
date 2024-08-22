@@ -5,14 +5,13 @@
 	import { loginModal } from '$lib/stores/loginModal';
 	import { ModeWatcher } from 'mode-watcher';
 	import { toIdMap } from '$lib/utils';
+	import { dbUser, assistants, hiddenItems } from '$lib/stores/appstate';
+	import { onMount } from 'svelte';
+	import dbg from 'debug';
+	const debug = dbg('app:ui:settings:layout');
 
 	export let data;
 	export let form;
-
-	import { dbUser, assistants, hiddenItems } from '$lib/stores/appstate';
-	import dbg from 'debug';
-	import { onMount } from 'svelte';
-	const debug = dbg('app:ui:settings:layout');
 
 	onMount(async () => {
 		debug('onMount');
@@ -29,7 +28,7 @@
 
 <dialog bind:this={$loginModal} id="loginModal" class="modal modal-middle">
 	<div class="modal-box h-fit w-fit">
-		<Login loginData={data} loginForm={form} />
+		<Login {form} />
 	</div>
 
 	<form method="dialog" class="modal-backdrop">

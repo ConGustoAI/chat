@@ -1,93 +1,11 @@
 <script lang="ts">
-	import Google from '$lib/components/icons/Google.svelte';
-	import GitHub from '$lib/components/icons/GitHub.svelte';
-	import {} from '$app/stores';
+	import { Login } from '$lib/components';
 
-	let isLogin = true;
-	export let data;
 	export let form;
-
-	function toggleMode() {
-		isLogin = !isLogin;
-	}
 </script>
 
-{#if data.dbUser}
-	<div class="flex h-screen items-center justify-center bg-base-200">
-		<div class="card bg-base-100 shadow-xl">
-			<div class="card-body">
-				<p><strong>Email:</strong> {data.dbUser.email}</p>
-				<p><strong>User ID:</strong> {data.dbUser.id}</p>
-				<div class="flex gap-4">
-					<form method="POST" action="?/signout">
-						<button class="btn btn-primary">Log out</button>
-					</form>
-					<form method="POST" action="?/signoutAll">
-						<button class="btn btn-primary">Log out on all devices</button>
-					</form>
-				</div>
-			</div>
-		</div>
+<div class="flex h-full w-full items-center justify-center">
+	<div class="modal-box w-fit">
+		<Login {form} />
 	</div>
-{:else}
-	<div class="flex h-screen items-center justify-center bg-base-200">
-		<div class="card w-96 bg-base-100 shadow-xl">
-			<div class="card-body">
-				<h2 class="card-title justify-center">{isLogin ? 'Login' : 'Sign Up'}</h2>
-				<form method="post" action={isLogin ? ' ?/login' : '?/signup'}>
-					<div class="form-control">
-						<label class="label" for="email">
-							<span class="label-text">Email</span>
-						</label>
-						<input id="email" name="email" type="email" placeholder="email@example.com" class="input input-bordered" />
-						{#if form?.emailmissing}<p class="text-error">The email field is required</p>{/if}
-					</div>
-					<div class="form-control mt-4">
-						<label class="label" for="password">
-							<span class="label-text">Password</span>
-						</label>
-						<input id="password" name="password" type="password" placeholder="••••••••" class="input input-bordered" />
-						{#if form?.incorrect}<p class="text-error">Invalid credentials!</p>{/if}
-						{#if form?.pwmissing}<p class="text-error">The password field is required</p>{/if}
-					</div>
-					<div class="form-control mt-6">
-						<button class="btn btn-primary">{isLogin ? 'Login' : 'Sign Up'}</button>
-					</div>
-					{#if form?.error}
-						<div class="text-error">{form.error}</div>
-					{/if}
-					{#if isLogin}
-						<div class="mt-2 text-center">
-							<button formaction="?/recover" class="link-hover link">Forgot password?</button>
-						</div>
-					{/if}
-					<div class="mt-4 text-center">
-						<span>{isLogin ? "Don't have an account?" : 'Already have an account?'}</span>
-						<a href={null} class="link link-primary ml-1" on:click={toggleMode}>
-							{isLogin ? 'Sign up' : 'Login'}
-						</a>
-					</div>
-				</form>
-
-				<div class="divider">OR</div>
-				<form method="POST">
-					<div class="flex flex-col gap-2">
-						<button formaction="?/login&provider=google" class="btn btn-outline">
-							<Google />
-							{isLogin ? 'Log in' : 'Sign Up'} with Google
-						</button>
-						<button formaction="?/login&provider=github" class="btn btn-outline">
-							<GitHub />
-							{isLogin ? 'Log in' : 'Sign Up'} with GitHub
-						</button>
-					</div>
-					{#if form?.providererror}
-						<div class="text-error">{form.providererror}</div>
-					{/if}
-				</form>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<pre>{JSON.stringify(data, null, 2)}</pre>
+</div>
