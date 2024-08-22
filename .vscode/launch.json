@@ -1,0 +1,14 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"command": "bun run dev",
+			"name": "Run development server",
+			"env": {
+				"DEBUG": "app*"
+			},
+			"request": "launch",
+			"type": "node-terminal"
+		}
+	]
+}

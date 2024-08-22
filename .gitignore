@@ -1,4 +1,6 @@
 node_modules
+supabase
+package-lock.json
 
 # Output
 .output
