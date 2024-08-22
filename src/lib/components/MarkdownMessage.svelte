@@ -5,11 +5,11 @@
 	import rehypeHighlight from 'rehype-highlight';
 	import rehypeKatex from 'rehype-katex';
 	import rehypeStringify from 'rehype-stringify';
+	import remarkBreaks from 'remark-breaks';
 	import remarkGfm from 'remark-gfm';
 	import remarkMath from 'remark-math';
 	import remarkParse from 'remark-parse';
 	import remarkRehype from 'remark-rehype';
-	import remarkBreaks from 'remark-breaks';
 	import { unified } from 'unified';
 
 	export let message: MessageInterface;
@@ -36,10 +36,7 @@
 						h('code', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value),
 						h(
 							'code',
-							{
-								class: ['click-formula'],
-								style: 'display: none;'
-							},
+							{ class: ['click-formula'], style: 'display: none;' },
 							// @ts-ignore
 							node.children[0].value
 						)
@@ -47,7 +44,7 @@
 					const newNode = h(
 						'span .click-formula',
 						{
-							onClick: `
+							ondblclick: `
 this.childNodes.forEach((node) => {
 	console.log('click-formula');
 	node.style.display = node.style.display != 'none' ? 'none' : '${isMathInline ? 'inline' : 'block'}';
@@ -57,6 +54,42 @@ this.childNodes.forEach((node) => {
 						newChildren
 					);
 					Object.assign(node, newNode);
+				}
+			});
+		};
+	}
+
+	function rehypeSelectAll() {
+		return function (tree: Root) {
+			visit(tree, 'element', function (node) {
+				if (node.tagName === 'code') {
+					console.log('node', node);
+					if (
+						node.properties.className &&
+						Array.isArray(node.properties.className) &&
+						!node.properties.className?.includes('code-select')
+					) {
+						const newNode = {
+							...node,
+							properties: {
+								...node.properties,
+								className: [...(node.properties.className || []), 'code-select'],
+								tabindex: '0', // Make the element focusable
+								onkeydown: `
+								console.log('keydown', event);
+								if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+									event.preventDefault();
+									const range = document.createRange();
+									range.selectNodeContents(this);
+									const selection = window.getSelection();
+									selection.removeAllRanges();
+									selection.addRange(range);
+								}
+							`
+							}
+						};
+						Object.assign(node, newNode);
+					}
 				}
 			});
 		};
@@ -119,7 +152,7 @@ if (preElement) {
 
 					// There may be a more elegant way to implement this!
 
-					const newNode = h('pre .relative copy-button');
+					const newNode = h('pre .relative copy-button', { onclick: 'console.log("click")' });
 					newNode.children = [header, ...node.children];
 
 					Object.assign(node, newNode);
@@ -138,6 +171,7 @@ if (preElement) {
 			.use(rehypeHighlight, { detect: true })
 			.use(rehypeCopyButton)
 			.use(rehypeClickFormulas)
+			.use(rehypeSelectAll)
 			.use(rehypeKatex)
 			.use(rehypeStringify)
 			.processSync(text);
