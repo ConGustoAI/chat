@@ -52,7 +52,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-4">
-	<div class="grid w-full grid-cols-[min-content,10rem,8rem,auto,6rem,6rem,min-content,4rem,0] gap-4 gap-y-2">
+	<div class="grid w-full grid-cols-[min-content,10rem,8rem,auto,6rem,6rem,min-content,min-content,0] gap-4 gap-y-2">
 		<div />
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>

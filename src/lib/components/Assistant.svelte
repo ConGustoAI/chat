@@ -7,6 +7,9 @@
 	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
+	import dbg from 'debug';
+	import AssistantDefails from './AssistantDetails.svelte';
+	const debug = dbg('app:ui:components:Assistant');
 
 	export let assistant: AssistantInterface;
 	export let deleteAssistant;
@@ -80,7 +83,7 @@
 		status = 'changed';
 	}
 
-	let detailsToggled = false;
+	let detailsToggled = true;
 
 	async function toggleHidden() {
 		if (!$dbUser) {
@@ -113,6 +116,9 @@
 			([pidx, provider]) => provider.userID === defaultsUUID && !$hiddenItems.has(provider.id!)
 		)
 	);
+
+	$: model = assistant.model ? $models[assistant.model] : null;
+	$: provider = model ? $providers[model.providerID] : null;
 </script>
 
 <button
@@ -234,8 +240,7 @@
 	<span>{statusMessage}</span>
 </div>
 
-{#if detailsToggled}
-	{@const model = assistant.model ? $models[assistant.model] : undefined}
+{#if detailsToggled && model && provider}
 	<div class="col-span-full col-start-2 w-full">
 		<div class="divider">{assistant.name}: Details</div>
 	</div>
@@ -246,43 +251,9 @@
 				<div class="alert alert-warning w-fit py-0">Changes made here will be visible to and will affect all users</div>
 			</div>
 		{/if}
-		<div class="my-4 flex gap-4">
-			<label for="imagesCheckbox-{assistant.id}" class="cursor-pointer">Images</label>
-			<input
-				type="checkbox"
-				id="imagesCheckbox-{assistant.id}"
-				class="checkbox checkbox-sm"
-				bind:checked={assistant.images}
-				disabled={!model?.images || !edit}
-				on:change={statusChanged} />
 
-			<label for="audioCheckbox-{assistant.id}" class="cursor-pointer">Audio</label>
-			<input
-				type="checkbox"
-				id="audioCheckbox-{assistant.id}"
-				class="checkbox checkbox-sm"
-				bind:checked={assistant.audio}
-				disabled={!model?.audio || !edit}
-				on:change={statusChanged} />
+		<AssistantDefails bind:assistant {edit} {statusChanged} {model} {provider} />
 
-			<label for="videoCheckbox-{assistant.id}" class="cursor-pointer">Video</label>
-			<input
-				type="checkbox"
-				id="videoCheckbox-{assistant.id}"
-				class="checkbox checkbox-sm"
-				bind:checked={assistant.video}
-				disabled={!model?.video || !edit}
-				on:change={statusChanged} />
-
-			<label for="prefillCheckbox-{assistant.id}" class="cursor-pointer">Prefill</label>
-			<input
-				type="checkbox"
-				id="prefillCheckbox-{assistant.id}"
-				class="checkbox checkbox-sm"
-				bind:checked={assistant.prefill}
-				disabled={!model?.prefill || !edit}
-				on:change={statusChanged} />
-		</div>
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
 				<div class="label">

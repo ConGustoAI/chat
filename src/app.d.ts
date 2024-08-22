@@ -67,6 +67,8 @@ declare global {
 		video?: boolean;
 		prefill?: boolean;
 		inputContext: number;
+		outputContext: number;
+		maxTemp: number;
 		providerID: string;
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -84,10 +86,15 @@ declare global {
 		assistantInstructions?: string;
 		assistantInstructionsFromUser: boolean;
 		systemPrompt?: string;
+		temperature: number;
+		topP: number;
+		topK: number;
+		maxTokens: number;
 		images?: boolean;
 		audio?: boolean;
 		video?: boolean;
 		prefill?: boolean;
+		googleSafetyThreshold?: number;
 		createdAt?: Date;
 		updatedAt?: Date;
 	}

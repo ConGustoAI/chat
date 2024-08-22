@@ -30,7 +30,9 @@
 			providerID: provider.id!,
 			displayName: 'New Model',
 			name: '',
-			inputContext: 8000,
+			inputContext: 8192,
+			outputContext: 4096,
+			maxTemp: 2,
 			images: false,
 			prefill: false
 		});
@@ -60,17 +62,19 @@
 
 <div class="flex w-full flex-col gap-4">
 	<div
-		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
-		<span class="label-text">Display name</span>
-		<span class="label-text">Model name</span>
-		<span class="label-text w-full">Input context</span>
-		<span class="label-text">Images</span>
-		<span class="label-text">Audio</span>
-		<span class="label-text">Video</span>
-		<span class="label-text">Prefill</span>
-		<span />
-		<span />
-		<span />
+		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+		<div class="label-text">Display name</div>
+		<div class="label-text">Model name</div>
+		<div class="label-text w-full">Input</div>
+		<div class="label-text w-full">Output</div>
+		<div class="label-text">Max t&deg;</div>
+		<div class="label-text text-xl" title="Images">🎨</div>
+		<div class="label-text text-xl" title="Audio">🔉</div>
+		<div class="label-text text-xl" title="Video">📺</div>
+		<div class="label-text">Prefill</div>
+		<div class="font-bold">Hide</div>
+		<div class="font-bold">Delete</div>
+		<div />
 
 		{#each Object.entries($models) as [id, model]}
 			{#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))}

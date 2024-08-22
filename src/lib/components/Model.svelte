@@ -105,6 +105,20 @@
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
 <input
+	type="number"
+	class="input input-bordered w-28"
+	bind:value={model.outputContext}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="number"
+	class="input input-bordered w-14"
+	bind:value={model.maxTemp}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
+
+<input
 	type="checkbox"
 	class="checkbox"
 	bind:checked={model.images}
@@ -131,7 +145,7 @@
 
 <button
 	class="btn btn-outline"
-	disabled={status === 'hiding'|| !allowHiding}
+	disabled={status === 'hiding' || !allowHiding}
 	on:click={async () => {
 		status = 'hiding';
 		await toggleHidden();

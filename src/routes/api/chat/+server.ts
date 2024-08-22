@@ -6,9 +6,9 @@ import type { RequestHandler } from './$types';
 import { defaultsUUID, messagesTable } from '$lib/db/schema';
 import { DBupsertConversation, DBupsertMessages } from '$lib/db/utils';
 import { undefineExtras } from '$lib/utils';
-import { createAnthropic, type AnthropicProvider } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI, type GoogleGenerativeAIProvider } from '@ai-sdk/google';
-import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
 import { StreamData, streamText, type CoreAssistantMessage, type CoreUserMessage } from 'ai';
 import dbg from 'debug';
 import { inArray } from 'drizzle-orm';
@@ -74,13 +74,38 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	const clientSettings = { apiKey: key.key, baseURL: assistantData.model.provider.baseURL };
 
-	let client: OpenAIProvider | GoogleGenerativeAIProvider | AnthropicProvider;
+	// debug('clientSettings: %o', { clientSettings });
+
+	let client;
 	if (assistantData.model.provider.type === 'openai') {
-		client = createOpenAI(clientSettings);
+		const aiModel = createOpenAI(clientSettings);
+		client = aiModel(assistantData.model.name);
 	} else if (assistantData.model.provider.type === 'anthropic') {
-		client = createAnthropic(clientSettings);
+		const aiModel = createAnthropic(clientSettings);
+		client = aiModel(assistantData.model.name);
 	} else if (assistantData.model.provider.type === 'google') {
-		client = createGoogleGenerativeAI(clientSettings);
+		const theresholds = ['BLOCK_NONE', 'BLOCK_ONLY_HIGH', 'BLOCK_MEDIUM_AND_ABOVE', 'BLOCK_LOW_AND_ABOVE'];
+		let threshold;
+		if (
+			assistantData.googleSafetyThreshold !== null &&
+			assistantData.googleSafetyThreshold > 0 &&
+			assistantData.googleSafetyThreshold < 4
+		) {
+			threshold = theresholds[assistantData.googleSafetyThreshold];
+		} else {
+			threshold = 'BLOCK_NONE';
+		}
+
+		const safetySettings = [
+			{ category: 'HARM_CATEGORY_HARASSMENT', threshold },
+			{ category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold },
+			{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold },
+			{ category: 'HARM_CATEGORY_HATE_SPEECH', threshold }
+		];
+
+		const aiModel = createGoogleGenerativeAI(clientSettings);
+		// @ts-expect-error - google added more categories, waiting for Vercel AI to catcup up.
+		client = aiModel(assistantData.model.name, { safetySettings });
 	} else {
 		error(500, 'Unsupported provider, this is a bug');
 	}
@@ -156,9 +181,13 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	try {
 		const result = await streamText({
-			model: client(assistantData.model.name),
+			model: client,
 			messages: inputMessages,
 			system: assistantData.systemPrompt,
+			temperature: assistantData.temperature,
+			topP: assistantData.topP,
+			topK: assistantData.topK,
+			maxTokens: assistantData.maxTokens ?? assistantData.model.outputContext ?? 4096,
 			onFinish: onFinish
 		});
 

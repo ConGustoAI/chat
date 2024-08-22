@@ -1,12 +1,11 @@
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { providersTable } from './providers';
 import { relations } from 'drizzle-orm';
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
+import { providersTable } from './providers';
 import { usersTable } from './users';
 
 export const apiKeysTable = pgTable('api_keys', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	hidden: boolean('hidden').default(false),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),

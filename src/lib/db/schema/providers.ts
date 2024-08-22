@@ -8,7 +8,6 @@ export const providerTypes = pgEnum('provider_types', ['openai', 'anthropic', 'g
 
 export const providersTable = pgTable('providers', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	hidden: boolean('hidden').default(false),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),

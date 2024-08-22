@@ -1,16 +1,15 @@
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { boolean, integer,  pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { conversationsTable } from './conversations';
 import { apiKeysTable } from './keys';
 import { modelsTable } from './models';
 import { usersTable } from './users';
-import { relations } from 'drizzle-orm';
-import { conversationsTable } from './conversations';
 
 export const assistantsTable = pgTable('assistants', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	hidden: boolean('hidden').default(false),
 	name: text('name').notNull().default('Assistant'),
 	about: text('about'),
 	default: boolean('default').default(false),
@@ -21,10 +20,16 @@ export const assistantsTable = pgTable('assistants', {
 	assistantInstructions: text('assistant_instructions'),
 	assistantInstructionsFromUser: boolean('assistant_instructions_from_user').notNull().default(true),
 	systemPrompt: text('system_prompt').notNull().default(''),
+	temperature: real('temperature').notNull().default(0),
+	topP: real('max_p').notNull().default(0),
+	topK: integer('max_k').notNull().default(0),
+	maxTokens: integer('max_tokens').notNull().default(0),
 	images: boolean('images').notNull().default(false),
 	audio: boolean('audio').notNull().default(false),
 	video: boolean('video').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
+	googleSafetyThreshold: integer('google_safety',).default(0),
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

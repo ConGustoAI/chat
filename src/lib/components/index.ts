@@ -7,11 +7,13 @@ export { default as ChatHistory } from './ChatHistory.svelte';
 export { default as ChatTitle } from './ChatTitle.svelte';
 export { default as ChatMessage } from './ChatMessage.svelte';
 export { default as ChatInput } from './ChatInput.svelte';
-export { default as Assistant } from './Assistant.svelte';
 export { default as MarkdownMessage } from './MarkdownMessage.svelte';
 export { default as GrowInput } from './GrowInput.svelte';
 export { default as DeleteButton } from './DeleteButton.svelte';
 export { default as Login } from './Login.svelte';
+
+export { default as Assistant } from './Assistant.svelte';
+export { default as AssistantDetails } from './AssistantDetails.svelte';
 
 export { default as AssistantGrid } from './AssistantGrid.svelte';
 export { default as ProvidersGrid } from './ProvidersGrid.svelte';

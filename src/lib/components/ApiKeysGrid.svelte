@@ -56,7 +56,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-4">
-	<div class="grid grid-cols-[15rem,auto,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+	<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
 		<span class="label-text">Key label</span>
 		<span class="label-text">Key</span>
 		<span />

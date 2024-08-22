@@ -28,6 +28,10 @@
 			userID: newItemUserID,
 			name: 'New assistant',
 			aboutUserFromUser: true,
+			temperature: 0,
+			maxTokens: 0,
+			topK: 0,
+			topP: 0,
 			assistantInstructionsFromUser: true
 		});
 		assistants.update((current) => {
@@ -86,7 +90,7 @@
 
 		{#each Object.entries($assistants) as [i, assistant]}
 			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
-				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding}  />
+				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding} />
 			{/if}
 		{/each}
 		{#if edit}

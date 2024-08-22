@@ -71,3 +71,17 @@ export function censorKey(dbUser: UserInterface | undefined, key: ApiKeyInterfac
 	if (dbUser?.admin || key.userID === dbUser?.id) return key;
 	return { ...key, key: `${key.key.slice(0, 5)}...${key.key.slice(-2)}` };
 }
+
+export function fixNumberInput(e: Event, min: number = 0, max: number = 1) {
+	const target = e.target as HTMLInputElement;
+	const value: number = Number(target.value);
+
+	if (isNaN(value)) {
+		target.value = min.toString();
+	} else if (value > max) {
+		target.value = max.toString();
+	} else if (value < min) {
+		target.value = min.toString();
+	}
+	target.dispatchEvent(new Event('input', { bubbles: true }));
+}

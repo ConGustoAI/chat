@@ -6,7 +6,6 @@ import { usersTable } from './users';
 
 export const modelsTable = pgTable('models', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	hidden: boolean('hidden').default(false),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
@@ -23,6 +22,8 @@ export const modelsTable = pgTable('models', {
 	maxVideo: integer('max_video'),
 	videoTokens: real('video_tokens'), // tokens per second
 	inputContext: integer('input_context').notNull().default(8192),
+	outputContext: integer('output_context').notNull().default(4096),
+	maxTemp: real('max_temp').notNull().default(2.0),
 	providerID: uuid('provider')
 		.notNull()
 		.references(() => providersTable.id, { onDelete: 'cascade' }),
