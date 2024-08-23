@@ -14,6 +14,7 @@ export const conversationsTable = pgTable('conversations', {
 	like: boolean('like').default(false),
 	deleted: boolean('deleted').default(false),
 	order: serial('order').notNull(),
+	public: boolean('public').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

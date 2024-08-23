@@ -2,6 +2,19 @@ import dbg from 'debug';
 
 const debug = dbg('app:lib:api:conversation');
 
+
+export async function APIfetchPublicConversation(id: string) {
+	debug('fetchPublicConversation %o', { id });
+
+	const res = await fetch(`/api/public/${id}`);
+
+	if (!res.ok) throw new Error(`Failed to fetch public conversation: ${await res.text()}`);
+	const data = (await res.json()) as ConversationInterface;
+	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
+	debug('fetchPublicConversation -> %o', data);
+	return data;
+}
+
 // We seed in some default conversations to show a new user some examples of what they can do.
 export async function APIfetchDefaultConversations() {
 	debug('fetchDefaultConversations');

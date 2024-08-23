@@ -31,6 +31,18 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 	return conversation;
 }
 
+export function dbGetPublicConversation({ id }: { id: string }) {
+	return db.query.conversationsTable.findFirst({
+		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.public, true)),
+		with: {
+			messages: {
+				where: (table, { eq, not }) => not(eq(table.deleted, true)),
+				orderBy: (table, { asc }) => [asc(table.order)]
+			}
+		}
+	});
+}
+
 export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	const conversations = await db.query.conversationsTable.findMany({

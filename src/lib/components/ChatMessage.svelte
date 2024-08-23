@@ -7,6 +7,7 @@
 	export let conversation: ConversationInterface | undefined;
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
+	export let isPublic = false;
 
 	let chatError: string | undefined;
 	let markdown: boolean = true;
@@ -100,16 +101,11 @@
 			<Computer size="24" />
 		{/if}
 	</div>
-	{#if message.deleted}
-		<div class="absolute left-0 top-0 flex h-full w-full items-center justify-center bg-error bg-opacity-50">
-			<span class="text-error">This message has been deleted</span>
-		</div>
-	{/if}
 	<div class="mr-16 flex grow flex-col pt-2">
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 		<!-- <div class=""> -->
-		{#if editingMessage}
+		{#if editingMessage && !isPublic}
 			<div class="w-full">
 				<GrowInput
 					maxLines={999}
@@ -128,13 +124,13 @@
 		<!-- </div> -->
 
 		{#if !editingMessage}
-			<div class="absolute right-0 top-0 mr-2 flex gap-1">
+			<div class="absolute right-0 top-2 mr-2 flex gap-2">
 				<!-- {message.order} -->
-				{#if message.role == 'assistant'}
+				{#if message.role == 'assistant' && !isPublic}
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
 				{/if}
 
-				{#if message.role !== 'assistant' || !$dbUser || $dbUser.hacker}
+				{#if (message.role !== 'assistant' || !$dbUser || $dbUser.hacker) && !isPublic}
 					<button
 						class="btn btn-ghost btn-xs rounded-md p-0 px-1"
 						on:click={() => {
@@ -149,17 +145,14 @@
 					on:click={() => {
 						navigator.clipboard.writeText(message.text);
 					}}><Copy size={15} /></button>
-				<DeleteButton
-					class="dropdown-end"
-					btnClass="btn-ghost btn-xs rounded-md p-0 px-1"
-					deleteAction={deleteMessage}
-					size={15} />
-				<!-- <button
-					class="btn btn-ghost btn-xs rounded-md p-0 px-1"
-					on:click={() => {
-						deleteMessage();
-					}}><Trash2 size={15} /></button> -->
-				{#if !$dbUser || $dbUser.hacker}
+				{#if !isPublic}
+					<DeleteButton
+						class="dropdown-end"
+						btnClass="btn-ghost btn-xs rounded-md p-1"
+						deleteAction={deleteMessage}
+						size={15} />
+				{/if}
+				{#if !$dbUser || $dbUser.hacker || isPublic}
 					<button
 						class="btn btn-outline btn-xs rounded-md p-0 px-1"
 						on:click={() => {

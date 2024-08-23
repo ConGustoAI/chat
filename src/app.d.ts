@@ -129,6 +129,7 @@ declare global {
 		summary?: string;
 		like?: boolean;
 		deleted?: boolean;
+		public?: boolean;
 		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;
