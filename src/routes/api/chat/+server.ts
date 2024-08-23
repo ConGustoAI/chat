@@ -105,7 +105,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 		const aiModel = createGoogleGenerativeAI(clientSettings);
 		// @ts-expect-error - google added more categories, waiting for Vercel AI to catcup up.
-		client = aiModel(assistantData.model.name, { safetySettings });
+		client = aiModel('models/' + assistantData.model.name, { safetySettings });
 	} else {
 		error(500, 'Unsupported provider, this is a bug');
 	}

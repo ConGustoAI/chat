@@ -62,7 +62,7 @@
 
 <div class="flex w-full flex-col gap-4">
 	<div
-		class="grid grid-cols-[15rem,auto,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+		class="grid grid-cols-[15rem,auto,min-content,min-content,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 		<div class="label-text">Display name</div>
 		<div class="label-text">Model name</div>
 		<div class="label-text w-full">Input</div>
