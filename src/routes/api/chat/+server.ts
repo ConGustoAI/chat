@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { defaultsUUID, messagesTable } from '$lib/db/schema';
-import { DBupsertConversation, DBupsertMessages } from '$lib/db/utils';
+import { DBupsertConversation, DBupsertMessage, DBupsertMessages } from '$lib/db/utils';
 import { undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
@@ -140,10 +140,13 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 			debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
 
-			const [[iUM, iAM], DMs] = await Promise.all([
-				DBupsertMessages({
+			// insert the user messages first to avoid inserting them out of order.
+			const iUM = await DBupsertMessage({ dbUser, message: UM });
+
+			const [iAM, DMs] = await Promise.all([
+				DBupsertMessage({
 					dbUser,
-					messages: [UM, AM]
+					message: AM
 				}),
 
 				db
