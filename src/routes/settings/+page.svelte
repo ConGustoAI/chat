@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
 	import { APIfetchAssistants, APIupdateUser } from '$lib/api';
+	import GrowInput from '$lib/components/GrowInput.svelte';
 	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { dbUser } from '$lib/stores/appstate';
 
-	export let data;
-	let { dbUser } = data;
 	let assistants: AssistantInterface[] = [];
 
 	let status: string | null = null;
@@ -36,7 +36,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				APIupdateUser(dbUser!)
+				APIupdateUser($dbUser!)
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -56,12 +56,12 @@
 	}
 </script>
 
-{#if dbUser}
+{#if $dbUser}
 	<section class="flex max-w-screen-md flex-col gap-2">
 		<div class="flex items-end gap-4">
 			<div class="flex flex-row items-end gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
-				<p>{dbUser.email}</p>
+				<p>{$dbUser.email}</p>
 			</div>
 			<div class="relative self-start">
 				<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
@@ -75,19 +75,19 @@
 		</div>
 
 		<div class="flex gap-4">
-			<label class="flex flex-col">
-				<span class="label label-text">Name</span>
+			<div class="flex flex-col">
+				<span class="text-sm">Name</span>
 				<input
 					type="text"
 					class="input input-bordered w-full"
-					bind:value={dbUser.name}
+					bind:value={$dbUser.name}
 					on:input={statusChanged}
 					spellcheck="false" />
-			</label>
+			</div>
 
 			<label class="flex flex-col">
-				<span class="label label-text">Default Assistant</span>
-				<select class="select select-bordered w-full" bind:value={dbUser.assistant} on:change={statusChanged}>
+				<span class="text-sm">Default Assistant</span>
+				<select class="select select-bordered w-full" bind:value={$dbUser.assistant} on:change={statusChanged}>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}
@@ -96,23 +96,20 @@
 		</div>
 
 		<div class="divider w-full">Information for the Assistant</div>
-		<label class="flex flex-col">
-			<span class="label label-text">About you</span>
-			<textarea
-				class="textarea textarea-bordered h-24 w-full"
-				bind:value={dbUser.aboutUser}
-				on:input={statusChanged}
-				spellcheck="false"></textarea>
-		</label>
+		<div class="flex flex-col">
+			<span class="text-sm">About you</span>
+			<GrowInput
+				class="textarea-bordered whitespace-pre-wrap text-wrap"
+				bind:value={$dbUser.aboutUser}
+				on:input={statusChanged} />
+		</div>
 
-		<label class="flex flex-col">
-			<span class="label label-text">Instructions</span>
-			<textarea
-				class="textarea textarea-bordered h-24 w-full"
-				bind:value={dbUser.assistantInstructions}
-				on:input={statusChanged}
-				spellcheck="false"></textarea>
-		</label>
+		<div class="flex flex-col">
+			<span class="text-sm">Instructions</span>
+			<GrowInput
+				class="textarea-bordered whitespace-pre-wrap text-wrap"
+				bind:value={$dbUser.assistantInstructions}
+				on:input={statusChanged} />
+		</div>
 	</section>
 {/if}
-<!-- <pre>{JSON.stringify(data, null, 2)}</pre> -->

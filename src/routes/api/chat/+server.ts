@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { defaultsUUID, messagesTable } from '$lib/db/schema';
-import { DBupsertConversation, DBupsertMessage, DBupsertMessages } from '$lib/db/utils';
+import { DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
 import { undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
@@ -62,6 +62,16 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	if (assistantData.model.userID !== defaultsUUID && assistantData.model.userID !== dbUser.id)
 		error(403, "Assistant's model does not belong to the user?");
+
+	const userProfile = (assistantData.aboutUserFromUser ? dbUser.aboutUser : assistantData.aboutUser) ?? '';
+	const assistantInstrictions =
+		(assistantData.assistantInstructionsFromUser
+			? dbUser.assistantInstructions
+			: assistantData.assistantInstructions) ?? '';
+
+	const systemPrompt = (assistantData.systemPrompt ?? '')
+		.replace(/{{about}}/g, userProfile)
+		.replace(/{{instructions}}/g, assistantInstrictions);
 
 	const key = keys.find((k) => k.providerID && k.providerID === assistantData.model?.provider.id);
 	if (!key)
@@ -186,7 +196,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		const result = await streamText({
 			model: client,
 			messages: inputMessages,
-			system: assistantData.systemPrompt,
+			system: systemPrompt,
 			temperature: assistantData.temperature,
 			topP: assistantData.topP,
 			topK: assistantData.topK,

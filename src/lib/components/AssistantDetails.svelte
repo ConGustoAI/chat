@@ -11,7 +11,7 @@
 
 <div
 	class="grid w-full grid-cols-[min-content,max-content,max-content,max-content,min-content,min-content,min-content,min-content,auto] items-center gap-x-4 gap-y-2">
-	<div class="label-text flex items-center gap-2">
+	<div class="flex items-center gap-2 text-sm">
 		<div class="">Temperature</div>
 		<input
 			type="text"
@@ -20,9 +20,10 @@
 			on:change={(e) => {
 				fixNumberInput(e, 0, model?.maxTemp ?? 2);
 				statusChanged();
-			}} />
+			}}
+			disabled={!edit} />
 	</div>
-	<div class="label-text flex w-fit items-center gap-2">
+	<div class="flex w-fit items-center gap-2 text-sm">
 		<div class="w-fit">Top P</div>
 		<input
 			type="text"
@@ -31,10 +32,10 @@
 			on:change={(e) => {
 				fixNumberInput(e, 0, 1);
 				statusChanged();
-			}} />
+			}}
+			disabled={!edit} />
 	</div>
-	<!-- <div class="label-text align-text-bottom">Top P [0...1]</div> -->
-	<div class="label-text flex w-fit items-center gap-2">
+	<div class="flex w-fit items-center gap-2 text-sm">
 		<div class="w-fit">Top K</div>
 		<input
 			type="text"
@@ -43,10 +44,11 @@
 			on:change={(e) => {
 				fixNumberInput(e, 0, 1000);
 				statusChanged();
-			}} />
+			}}
+			disabled={!edit} />
 	</div>
 
-	<div class="label-text flex w-fit items-center gap-2 pr-5">
+	<div class="flex w-fit items-center gap-2 pr-5 text-sm">
 		<div class="w-fit">Out tokens</div>
 		<input
 			type="text"
@@ -55,7 +57,8 @@
 			on:change={(e) => {
 				fixNumberInput(e, 0, model?.maxTokens ?? 4096);
 				statusChanged();
-			}} />
+			}}
+			disabled={!edit} />
 	</div>
 
 	<div class="label-test text-xl" title="Images">🎨</div>
@@ -76,7 +79,7 @@
 		step={0.05}
 		min={0}
 		max={model?.maxTemp}
-		disabled={!model?.images || !edit}
+		disabled={!edit}
 		on:change={(e) => {
 			fixNumberInput(e, 0, model?.maxTemp ?? 2);
 			statusChanged();
@@ -90,14 +93,13 @@
 		min={0}
 		max={1}
 		step={0.01}
-		disabled={!model?.images || !edit}
+		disabled={!edit}
 		on:change={(e) => {
 			fixNumberInput(e, 0, 1);
 			statusChanged();
 		}} />
 
 	<div />
-	
 
 	<input
 		type="range"
@@ -107,7 +109,7 @@
 		min={0}
 		max={model?.maxTokens ?? 4096}
 		step={1}
-		disabled={!model?.images || !edit}
+		disabled={!edit}
 		on:change={(e) => {
 			fixNumberInput(e, 0, model?.maxTokens ?? 4096);
 			statusChanged();

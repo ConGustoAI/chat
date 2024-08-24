@@ -4,6 +4,9 @@
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 	import { dbUser } from '$lib/stores/appstate';
 
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:ChatMessage');
+
 	export let conversation: ConversationInterface | undefined;
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
@@ -17,9 +20,10 @@
 
 	let originalMessage: string;
 	let editingMessage = false;
+	let savingMessage = false;
 
 	async function sendEditedMessage() {
-		console.log('sendEditedMessage', { conversation, message });
+		debug('sendEditedMessage', { conversation, message });
 		editingMessage = false;
 
 		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
@@ -43,13 +47,23 @@
 		} catch (e) {
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}
+	}
 
-		// Reset editing state
-		// Add logic here to send the edited message
+	async function updateMessage() {
+		debug('updateMessage', { conversation, message });
+
+		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
+
+		savingMessage = true;
+		const currentIndex = conversation.messages?.findIndex((m) => m === message);
+		if (currentIndex === -1) return;
+
+		await APIupsertMessage(message);
+		savingMessage = false;
 	}
 
 	async function deleteMessage() {
-		console.log('deleteMessage', { conversation, message });
+		debug('deleteMessage', { conversation, message });
 
 		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
 
@@ -64,7 +78,7 @@
 	}
 
 	async function reGenerate() {
-		console.log('reGenerate', { conversation, message });
+		debug('reGenerate', { conversation, message });
 
 		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
 
@@ -87,9 +101,19 @@
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}
 
-		// Reset editing state
 		editingMessage = false;
-		// Add logic here to send the edited message
+	}
+
+	async function inputKeyboardHandler(event: any) {
+		if (editingMessage && conversation && event instanceof KeyboardEvent) {
+			if (event.key === 'Enter' && event.ctrlKey) {
+				event.preventDefault();
+				await sendEditedMessage();
+			} else if (event.key === 'Escape') {
+				message.text = originalMessage;
+				editingMessage = false;
+			}
+		}
 	}
 </script>
 
@@ -102,19 +126,37 @@
 		{/if}
 	</div>
 	<div class="mr-16 flex grow flex-col pt-2">
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-		<!-- <div class=""> -->
 		{#if editingMessage && !isPublic}
-			<div class="w-full">
-				<GrowInput
-					maxLines={999}
-					bind:value={message.text}
-					submit={sendEditedMessage}
-					cancel={() => {
-						message.text = originalMessage;
-						editingMessage = false;
-					}} />
+			<div class="my-4 flex w-full flex-col items-start">
+				<GrowInput bind:value={message.text} on:keydown={inputKeyboardHandler} />
+				<div class="mt-2 flex w-full items-start justify-start gap-2">
+					<button class="btn btn-outline btn-sm" on:click={sendEditedMessage}> Save & Send </button>
+					<button
+						class="btn btn-outline btn-sm"
+						disabled={savingMessage}
+						on:click={async () => {
+							savingMessage = true;
+							await updateMessage();
+							savingMessage = false;
+							editingMessage = false;
+						}}>
+						{#if savingMessage}
+							<div class="loading" />
+						{:else}
+							Save
+						{/if}
+					</button>
+					<button
+						class="btn btn-outline btn-sm"
+						on:click={() => {
+							message.text = originalMessage;
+							editingMessage = false;
+						}}>
+						Cancel
+					</button>
+
+					<div class=" text-sm ml-auto">Ctrl/⌘ + Enter ⇒ Save & Send</div>
+				</div>
 			</div>
 		{:else if markdown}
 			<MarkdownMessage {message} />

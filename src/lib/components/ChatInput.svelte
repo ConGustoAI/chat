@@ -2,8 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
 	import GrowInput from './GrowInput.svelte';
+	import dbg from 'debug';
 
-	export let conversation: ConversationInterface | undefined;
+	const debug = dbg('app:ui:components:ChatInput');
+
+	export let conversation: ConversationInterface | undefined = undefined;
 	export let submitConversation: (toDelete?: string[]) => Promise<void>;
 
 	let input: string;
@@ -40,6 +43,13 @@
 			chatLoading = false;
 		}
 	}
+
+	function inputKeyboardHandler(event: any) {
+		if (!chatLoading && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			onSubmit();
+		}
+	}
 </script>
 
 <div class="flex w-full flex-col">
@@ -48,24 +58,30 @@
 	{/if}
 
 	<div class="relative w-full">
-		<GrowInput bind:value={input} submit={onSubmit} class="px-12" />
-		<div class="absolute bottom-3 left-2">
-			<label for="file-upload" class="btn btn-circle btn-sm">
+		<GrowInput
+			bind:value={input}
+			on:keydown={inputKeyboardHandler}
+			disabled={chatLoading}
+			class="textarea-bordered whitespace-pre-wrap text-wrap px-12" />
+		<div class="absolute bottom-0.5 left-2">
+			<button class="btn btn-circle btn-sm" disabled={true}>
 				<Upload style="disabled" />
-			</label>
+			</button>
 		</div>
-		<div class="absolute bottom-3 right-2">
+		<div class="absolute bottom-0.5 right-2">
 			{#if chatLoading}
 				<div class="relative">
-					<div class="loading absolute inset-0 flex items-center justify-center">
-						<span class="loading loading-spinner loading-md"></span>
-					</div>
 					<button class="btn btn-sm">
-						<StopCircle />
+						<div class="relative">
+							<StopCircle />
+							<span class="absolute inset-0 flex items-center justify-center">
+								<span class="loading loading-spinner loading-md"></span>
+							</span>
+						</div>
 					</button>
 				</div>
 			{:else}
-				<button class="btn btn-sm rounded-md" on:click={onSubmit}>
+				<button class="btn btn-sm rounded-md" disabled={chatLoading} on:click={onSubmit}>
 					<Send size={20} />
 				</button>
 			{/if}

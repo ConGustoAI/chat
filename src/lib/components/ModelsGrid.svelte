@@ -63,15 +63,15 @@
 <div class="flex w-full flex-col gap-4">
 	<div
 		class="grid grid-cols-[15rem,auto,min-content,min-content,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
-		<div class="label-text">Display name</div>
-		<div class="label-text">Model name</div>
-		<div class="label-text w-full">Input</div>
-		<div class="label-text w-full">Output</div>
-		<div class="label-text">Max t&deg;</div>
-		<div class="label-text text-xl" title="Images">🎨</div>
-		<div class="label-text text-xl" title="Audio">🔉</div>
-		<div class="label-text text-xl" title="Video">📺</div>
-		<div class="label-text">Prefill</div>
+		<div class="font-bold">Display name</div>
+		<div class="font-bold">Model name</div>
+		<div class="font-bold">Input</div>
+		<div class="font-bold">Output</div>
+		<div class="font-bold">Max t&deg;</div>
+		<div class="text-xl font-bold" title="Images">🎨</div>
+		<div class="text-xl font-bold" title="Audio">🔉</div>
+		<div class="text-xl font-bold" title="Video">📺</div>
+		<div class="font-bold">Prefill</div>
 		<div class="font-bold">Hide</div>
 		<div class="font-bold">Delete</div>
 		<div />

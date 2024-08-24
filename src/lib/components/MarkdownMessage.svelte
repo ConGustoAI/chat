@@ -63,7 +63,6 @@ this.childNodes.forEach((node) => {
 		return function (tree: Root) {
 			visit(tree, 'element', function (node) {
 				if (node.tagName === 'code') {
-					console.log('node', node);
 					if (
 						node.properties.className &&
 						Array.isArray(node.properties.className) &&

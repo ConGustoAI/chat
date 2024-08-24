@@ -1,48 +1,34 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
+	import { createEventDispatcher } from 'svelte';
+	import dbg from 'debug';
 
-	export let maxLines = 10;
+	const debug = dbg('app:ui:components:GrowInput');
 	export let value = '';
-	export let submit;
-	export let cancel = () => {};
 	let className = ''; // Keep this as a local variable
 	export { className as class }; // Export it as 'class'
+	export let disabled = false;
+	export let spellcheck = false;
 
-	let el: HTMLTextAreaElement;
-	let lineHeight = 0;
+	// const dispatch = createEventDispatcher();
 
-	function adjustHeight() {
-		if (el) {
-			lineHeight = parseInt(getComputedStyle(el).lineHeight);
-			const paddingTop = parseInt(getComputedStyle(el).paddingTop);
-			const paddingBottom = parseInt(getComputedStyle(el).paddingBottom);
-			const totalPadding = paddingTop + paddingBottom;
-
-			el.style.height = '0';
-			const newHeight = Math.min(el.scrollHeight + 1, lineHeight * maxLines + totalPadding);
-			el.style.height = `${Math.max(newHeight, lineHeight + totalPadding)}px`;
-		}
-		return {};
-	}
-
-	adjustHeight();
-	$: {
-		el;
-		adjustHeight();
-	}
+	// $: if (value && !disabled) {
+	// 	dispatch('change', value);
+	// }
 </script>
 
-<textarea
-	bind:value
-	bind:this={el}
-	on:input={adjustHeight}
-	on:keydown={(event) => {
-		if (event.key === 'Enter' && !event.shiftKey) {
-			event.preventDefault();
-			submit();
-		}
-		if (event.key === 'Escape') {
-			cancel();
-		}
-	}}
-	class={cn('input input-bordered w-full resize-none overflow-auto py-3', className)} />
+{#if disabled}
+	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-1', className)}>{value}</div>
+{:else}
+	<div
+		tabindex={0}
+		role="textbox"
+		contenteditable
+		{spellcheck}
+		bind:textContent={value}
+		on:keydown
+		on:change
+		on:input
+		class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-1', className)}>
+	</div>
+{/if}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
 	import { APIhideItem, APIunhideItem, APIupsertAssistant } from '$lib/api';
-	import { DeleteButton } from '$lib/components';
+	import { DeleteButton, GrowInput } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { apiKeys, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 	import { toLogin } from '$lib/stores/loginModal';
@@ -67,6 +67,7 @@
 	}
 
 	function statusChanged() {
+		debug('statusChanged');
 		if (assistant.images && assistant.model && !$models[assistant.model].images) {
 			assistant.images = false;
 		}
@@ -256,12 +257,14 @@
 
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
-				<div class="label">
-					<span class="label-text"
-						>About user. Include into system prompt with <code class="font-bold">{@html `{about}`}</code></span>
-				</div>
+				<span class=" px-1 py-2 text-sm"
+					>About user. Include into system prompt with <code class="font-bold">{@html `{about}`}</code></span>
+
 				<div class="flex items-center gap-2">
-					<label for="aboutUserFromUser" class="cursor-pointer text-sm">From user's profile</label>
+					{#if assistant.aboutUserFromUser}
+						<a href="/settings" class="link text-sm">Edit your profile</a>
+					{/if}
+					<label for="aboutUserFromUser" class="cursor-pointer text-sm">From my profile</label>
 					<input
 						type="checkbox"
 						class="checkbox checkbox-xs"
@@ -273,28 +276,28 @@
 			</div>
 
 			{#if assistant.aboutUserFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={$dbUser?.aboutUser} />
-			{:else}
-				<textarea
-					class="textarea textarea-bordered w-full"
-					rows="3"
-					bind:value={assistant.aboutUser}
+				<GrowInput
+					class="textarea-bordered w-full"
+					value={$dbUser?.aboutUser ?? ''}
 					on:change={statusChanged}
-					disabled={!edit} />
+					disabled={true} />
+			{:else}
+				<GrowInput class="textarea-bordered w-full" bind:value={assistant.aboutUser} on:change={statusChanged} />
 			{/if}
 		</div>
 
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
-				<div class="label">
-					<span class="label-text"
-						>Assistant instructions. Include into system prompt with <code class="font-bold"
-							>{@html `{instructions}`}</code
-						></span>
-				</div>
-				<div class="flex items-center gap-2">
-					<label for="instructionsFromUser" class="cursor-pointer text-sm">From user's profile</label>
+				<span class="px-1 py-2 text-sm"
+					>Assistant instructions. Include into system prompt with <code class="font-bold"
+						>{@html `{instructions}`}</code
+					></span>
 
+				<div class="flex items-center gap-2">
+					{#if assistant.assistantInstructionsFromUser}
+						<a href="/settings" class="link text-sm">Edit your profile</a>
+					{/if}
+					<label for="instructionsFromUser" class="cursor-pointer text-sm">From my profile</label>
 					<input
 						type="checkbox"
 						class="checkbox checkbox-xs"
@@ -306,29 +309,29 @@
 			</div>
 
 			{#if assistant.assistantInstructionsFromUser}
-				<textarea class="textarea textarea-bordered w-full" rows="3" disabled value={$dbUser?.assistantInstructions} />
+				<GrowInput
+					class="textarea-bordered w-full"
+					value={$dbUser?.assistantInstructions ?? ''}
+					on:input={statusChanged}
+					disabled={true} />
 			{:else}
-				<textarea
-					class="textarea textarea-bordered w-full"
-					rows="3"
+				<GrowInput
+					class="textarea-bordered w-full"
 					bind:value={assistant.assistantInstructions}
-					on:change={statusChanged}
+					on:input={statusChanged}
 					disabled={!edit} />
 			{/if}
 		</div>
 
 		<div class="col-span-full flex flex-col">
 			<div class="flex w-full items-center justify-between">
-				<div class="label">
-					<span class="label-text">System Prompt</span>
-				</div>
+				<span class="px-1 py-2 text-sm">System Prompt</span>
 			</div>
 
-			<textarea
-				class="textarea textarea-bordered w-full"
-				rows="3"
+			<GrowInput
+				class="textarea-bordered whitespace-pre-wrap text-wrap"
 				bind:value={assistant.systemPrompt}
-				on:change={statusChanged}
+				on:input={statusChanged}
 				disabled={!edit} />
 		</div>
 	</div>
