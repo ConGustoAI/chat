@@ -10,27 +10,28 @@
 
 	export let disabled = false;
 	let deleting = false;
-	let details: HTMLElement;
+	let button: HTMLButtonElement;
 </script>
 
 <div class={cn('dropdown', className)}>
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<div tabindex={0} class={cn('inline-flex', disabled ? 'btn-disabled' : '', btnClass)}>
+	<div tabindex={0} class={cn(disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
-			<div class="loading loading-sm inline" />
+			<div class="loading loading-sm" />
 		{:else}
 			<Trash2 {size} />
 		{/if}
 	</div>
 
-	<ul bind:this={details} class="menu dropdown-content z-20 w-fit p-2">
+	<ul class="dropdown-content w-fit p-2">
 		<li>
 			<button
-				class="btn  btn-sm text-nowrap rounded-md"
+				bind:this={button}
+				class="btn btn-sm text-nowrap rounded-md"
 				on:click={async () => {
 					disabled = true;
 					deleting = true;
-					details.style.visibility = 'hidden';
+					button.blur();
 					await deleteAction();
 					disabled = false;
 					deleting = false;
