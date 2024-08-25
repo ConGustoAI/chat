@@ -60,7 +60,7 @@
 	}
 </script>
 
-<div class="flex w-full flex-col gap-4">
+<div class="flex w-full flex-col gap-4" id="#{provider.id}/models">
 	<div
 		class="grid grid-cols-[15rem,auto,min-content,min-content,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 		<div class="font-bold">Display name</div>

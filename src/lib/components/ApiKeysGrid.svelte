@@ -55,7 +55,7 @@
 	}
 </script>
 
-<div class="flex w-full flex-col gap-4">
+<div class="flex w-full flex-col gap-4" id="#{provider.id}/keys">
 	<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
 		<span class="text-sm">Key label</span>
 		<span class="text-sm">Key</span>

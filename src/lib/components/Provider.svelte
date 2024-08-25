@@ -9,6 +9,7 @@
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
 
 	import dbg from 'debug';
+	import { page } from '$app/stores';
 	const debug = dbg('app:ui:components:Provider');
 
 	export let provider: ProviderInterface;
@@ -24,7 +25,6 @@
 
 	export let newChildUserID: string | undefined;
 	export let newProviderUserID: string | undefined;
-
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -162,9 +162,13 @@
 
 	let showApiKeys = false;
 	let showModels = false;
+	debug(provider, $page.url.hash);
+	$: if ($page.url.hash == `#${provider.id}/keys`) showApiKeys = true;
+	$: if ($page.url.hash == `#${provider.id}/models`) showModels = true;
 </script>
 
 <button
+	id="#{provider.id}"
 	class="btn btn-outline"
 	on:click={async () => {
 		status = 'copying';
@@ -247,7 +251,13 @@
 	<div class="col-span-full col-start-2 mb-6 flex w-full flex-col items-center gap-4">
 		{#if showCustomChildren}
 			<div class="divider col-span-full w-full">{provider.name}: Your models</div>
-			<ModelsGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} {allowHiding}/>
+			<ModelsGrid
+				{provider}
+				edit={editCustomChildren}
+				showCustom={true}
+				showDefault={false}
+				{newChildUserID}
+				{allowHiding} />
 		{/if}
 
 		{#if showDefaultChildren}
@@ -262,7 +272,13 @@
 				</div>
 			{/if}
 
-			<ModelsGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} {allowHiding}/>
+			<ModelsGrid
+				{provider}
+				edit={editDefaultChildren}
+				showCustom={false}
+				showDefault={true}
+				{newChildUserID}
+				{allowHiding} />
 		{/if}
 		<div class="divider col-span-full w-full" />
 	</div>

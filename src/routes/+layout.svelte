@@ -4,8 +4,8 @@
 	import { Login } from '$lib/components';
 	import { loginModal } from '$lib/stores/loginModal';
 	import { ModeWatcher, mode } from 'mode-watcher';
-	import { toIdMap } from '$lib/utils';
-	import { dbUser, assistants, hiddenItems } from '$lib/stores/appstate';
+	import { toIdMap, censorKey } from '$lib/utils';
+	import { dbUser, assistants, hiddenItems, providers, models, apiKeys } from '$lib/stores/appstate';
 	import { onMount } from 'svelte';
 
 	$: {
@@ -17,17 +17,40 @@
 	}
 
 	import dbg from 'debug';
+	import { APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
 	const debug = dbg('app:ui:settings:layout');
 
 	export let data;
 	export let form;
 
+	let loading = false;
 	onMount(async () => {
 		debug('onMount');
+		loading = true;
+
 		$dbUser = data.dbUser;
-		$assistants = toIdMap(data.assistants);
 		$hiddenItems = data.hiddenItems;
-		debug('onMount', { $dbUser });
+
+		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
+			APIfetchProviders(),
+			APIfetchModels(),
+			APIfetchKeys()
+		]);
+
+		$assistants = toIdMap(data.assistants);
+
+		providers.set(toIdMap(fetchedProviders));
+		models.set(toIdMap(fetchedModels));
+		apiKeys.set(toIdMap(fetchedApiKeys));
+		loading = false;
+
+		debug('onMount', {
+			assistants: $assistants,
+			providers: $providers,
+			models: $models,
+			dbUser: $dbUser,
+			apiKeys: Object.keys($apiKeys)
+		});
 	});
 </script>
 

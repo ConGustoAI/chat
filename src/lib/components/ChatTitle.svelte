@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { APIupdateUser, APIupsertConversation } from '$lib/api';
-	import { assistants, dbUser, hiddenItems } from '$lib/stores/appstate';
+	import { apiKeys, assistants, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 	import { loginModal } from '$lib/stores/loginModal';
 	import { ArrowLeftCircle, Info, Link, Star, UserCircle } from 'lucide-svelte';
+	import dbg from 'debug';
+	import { defaultsUUID } from '$lib/db/schema';
+	const debug = dbg('app:ui:conponents:ChatTitle');
 
 	export let conversation: ConversationInterface | undefined;
 	export let updatingLike: boolean;
@@ -48,7 +51,7 @@
 </script>
 
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-200">
-	<div class="navbar-start mr-5 w-fit grow-0">
+	<div class="navbar-start mr-5 flex w-fit grow-0 gap-4">
 		{#if isPublic}
 			<a class="link flex w-fit gap-2 text-nowrap" href="/chat">
 				<ArrowLeftCircle />Congusto Chat
@@ -79,6 +82,32 @@
 					<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
 					<div class="swap-off"><Star color="var(--star)" /></div>
 				</label>
+			{/if}
+			{#if conversation.assistant}
+				{@const assistant = $assistants[conversation?.assistant ?? 'empty']}
+				{@const model = $models[assistant?.model ?? 'empty']}
+				{@const provider = $providers[model?.providerID ?? 'empty']}
+				{@const providerKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === provider?.id)}
+				{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === assistant.apiKey)}
+
+				{#if assistant}
+					{#if !model}
+						<div class="flex flex-col text-sm">
+							<span class="text-error">Assistant has no model</span>
+							<a href="/settings/assistants/#{conversation.assistant}" class="link">Edit assistant</a>
+						</div>
+					{:else if !providerKey}
+						<div class="flex flex-col text-sm">
+							<div class="text-error">Provider '{provider?.name}' has no API key</div>
+							<a href="/settings/providers/#{provider.id}/keys" class="link">Edit provider</a>
+						</div>
+					{:else if !assistantKey && assistant.apiKey !== defaultsUUID}
+						<div class="flex flex-col text-sm">
+							<span class="text-error">Assistant has no API key</span>
+							<a href="/settings/assistants/#{conversation.assistant}" class="link">Edit assistant</a>
+						</div>
+					{/if}
+				{/if}
 			{/if}
 		{/if}
 	</div>

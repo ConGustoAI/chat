@@ -84,7 +84,7 @@
 		status = 'changed';
 	}
 
-	let detailsToggled = true;
+	let detailsToggled = false;
 
 	async function toggleHidden() {
 		if (!$dbUser) {

@@ -9,23 +9,6 @@
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:layout');
 
-	let loading = false;
-	onMount(async () => {
-		debug('onMount');
-		loading = true;
-		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
-			APIfetchProviders(),
-			APIfetchModels(),
-			APIfetchKeys()
-		]);
-
-		$providers = toIdMap(fetchedProviders);
-		$models = toIdMap(fetchedModels);
-		$apiKeys = toIdMap(fetchedApiKeys);
-		loading = false;
-		debug('onMount', { assistants: $assistants, providers: $providers, models: $models });
-	});
-
 	const sidebarNavItems = [
 		{
 			title: 'Profile',
@@ -69,11 +52,7 @@
 
 	<SidebarNav items={sidebarNavItems} adminItems={$dbUser?.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
-			{#if loading}
-				<div class="loading loading-lg" />
-			{:else}
-				<slot />
-			{/if}
+			<slot />
 		</div>
 	</SidebarNav>
 </div>
