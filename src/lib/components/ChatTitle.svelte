@@ -47,7 +47,7 @@
 	let editingSummary = false;
 </script>
 
-<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-primary-content">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-200">
 	<div class="navbar-start mr-5 w-fit grow-0">
 		{#if isPublic}
 			<a class="link flex w-fit gap-2 text-nowrap" href="/chat">
@@ -76,8 +76,8 @@
 							await updateConversation(e);
 							updatingLike = false;
 						}} />
-					<div class="swap-on"><Star color="yellow" fill="yellow" /></div>
-					<div class="swap-off"><Star color="yellow" /></div>
+					<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
+					<div class="swap-off"><Star color="var(--star)" /></div>
 				</label>
 			{/if}
 		{/if}
@@ -115,7 +115,7 @@
 		{#if conversation && !isPublic}
 			<div class="mr-5 flex items-center justify-end gap-4">
 				{#if conversation.public}
-					<a href={'/public/' + conversation.id} class="btn btn-primary btn-sm rounded-md"><Link size={18} /></a>
+					<a href={'/public/' + conversation.id} class="btn btn-sm rounded-md bg-base-300"><Link size={18} /></a>
 				{/if}
 				<label for="public" class="text-sm">Share</label>
 				{#if updatingPublic}
@@ -154,7 +154,7 @@
 					{/if}
 				</div>
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<ul tabindex="0" class="menu dropdown-content z-[1] rounded-md bg-primary p-2">
+				<ul tabindex="0" class="menu dropdown-content z-[1] bg-base-200 p-2">
 					<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={gotoSettings}>Settings</button>
 
 					{#if $dbUser}

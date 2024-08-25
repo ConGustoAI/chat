@@ -26,7 +26,7 @@
 	<ul bind:this={details} class="menu dropdown-content z-20 w-fit p-2">
 		<li>
 			<button
-				class="btn btn-primary btn-sm text-nowrap rounded-md"
+				class="btn  btn-sm text-nowrap rounded-md"
 				on:click={async () => {
 					disabled = true;
 					deleting = true;

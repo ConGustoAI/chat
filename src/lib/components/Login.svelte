@@ -26,7 +26,7 @@
 	<div class="flex gap-4">
 		<form method="POST" action="/api/login?/signout">
 			<button
-				class="btn btn-primary"
+				class="btn btn-outline"
 				on:click={() => {
 					logoutSpinning = true;
 				}}>
@@ -38,7 +38,7 @@
 		</form>
 		<form method="POST" action="/api/login?/signoutAll">
 			<button
-				class="btn btn-primary"
+				class="btn btn-outline"
 				on:click={() => {
 					logoutAllSpinning = true;
 				}}>
@@ -57,20 +57,25 @@
 				<label class="label" for="email">
 					<span class="label-text">Email</span>
 				</label>
-				<input id="email" name="email" type="email" placeholder="email@example.com" class="input input-bordered" />
+				<input
+					id="email"
+					name="email"
+					type="email"
+					placeholder="email@example.com"
+					class="input input-bordered input-primary" />
 				{#if form?.emailmissing}<p class="text-error">The email field is required</p>{/if}
 			</div>
 			<div class="form-control mt-4">
 				<label class="label" for="password">
 					<span class="label-text">Password</span>
 				</label>
-				<input id="password" name="password" type="password" placeholder="••••••••" class="input input-bordered" />
+				<input id="password" name="password" type="password" placeholder="••••••••" class="bg-base-300 input input-bordered" />
 				{#if form?.incorrect}<p class="text-error">Invalid credentials!</p>{/if}
 				{#if form?.pwmissing}<p class="text-error">The password field is required</p>{/if}
 			</div>
 			<div class="form-control mt-6">
 				<button
-					class="btn btn-primary"
+					class="btn btn-outline"
 					on:click={() => {
 						isLogin ? (loginSpinning = true) : (signupSpinning = true);
 					}}>

@@ -1,6 +1,12 @@
 <script lang="ts">
-	import 'highlight.js/styles/github-dark.min.css';
-	import 'katex/dist/katex.min.css';
+	import { mode } from 'mode-watcher';
+	$: {
+		if ($mode === 'dark') {
+			import('highlight.js/styles/github-dark.min.css');
+		} else {
+			import('highlight.js/styles/github.min.css');
+		}
+	}
 
 	import rehypeHighlight from 'rehype-highlight';
 	import rehypeKatex from 'rehype-katex';
@@ -144,14 +150,14 @@ if (preElement) {
 						]
 					);
 
-					const header = h('div', { class: 'flex justify-between items-center bg-secondary-content' }, [
+					const header = h('div', { class: 'flex justify-between items-center' }, [
 						s('span', { class: 'text-sm text-gray-500' }, language),
 						copyButton
 					]);
 
 					// There may be a more elegant way to implement this!
 
-					const newNode = h('pre .relative copy-button', { onclick: 'console.log("click")' });
+					const newNode = h('pre .relative .copy-button p-1 bg-base-300 mb-2');
 					newNode.children = [header, ...node.children];
 
 					Object.assign(node, newNode);
@@ -178,6 +184,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="prose grow overflow-x-auto whitespace-normal pt-2">
+<div class="grow overflow-x-auto whitespace-normal pt-2">
 	{@html parseMarkdown(message.text)}
 </div>

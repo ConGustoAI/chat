@@ -117,8 +117,8 @@
 	}
 </script>
 
-<div class="relative flex items-start" class:bg-secondary-content={message.role == 'user'}>
-	<div class="div items-start px-3 py-3">
+<div class="text-message relative flex items-start" class:bg-base-usermessage={message.role == 'user'}>
+	<div class="div items-start px-3 py-3 text-base-content">
 		{#if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
@@ -155,7 +155,7 @@
 						Cancel
 					</button>
 
-					<div class=" text-sm ml-auto">Ctrl/⌘ + Enter ⇒ Save & Send</div>
+					<div class=" ml-auto text-sm">Ctrl/⌘ + Enter ⇒ Save & Send</div>
 				</div>
 			</div>
 		{:else if markdown}
@@ -166,7 +166,7 @@
 		<!-- </div> -->
 
 		{#if !editingMessage}
-			<div class="absolute right-0 top-2 mr-2 flex gap-2">
+			<div class="absolute right-0 top-2 mr-2 flex gap-2 text-base-content">
 				<!-- {message.order} -->
 				{#if message.role == 'assistant' && !isPublic}
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
@@ -190,13 +190,13 @@
 				{#if !isPublic}
 					<DeleteButton
 						class="dropdown-end"
-						btnClass="btn-ghost btn-xs rounded-md p-1"
+						btnClass="btn-xs btn-ghost rounded-md p-1"
 						deleteAction={deleteMessage}
 						size={15} />
 				{/if}
 				{#if !$dbUser || $dbUser.hacker || isPublic}
 					<button
-						class="btn btn-outline btn-xs rounded-md p-0 px-1"
+						class="btn btn-ghost btn-outline btn-xs rounded-md p-0 px-1"
 						on:click={() => {
 							markdown = !markdown;
 						}}>{markdown ? 'md' : 'raw'}</button>

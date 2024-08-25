@@ -8,21 +8,21 @@
 	export let deleteConversation;
 </script>
 
-<ul class="rtl no-scrollbar menu max-w-full flex-nowrap overflow-y-auto p-0">
+<ul class="base-200 no-scrollbar menu max-w-full flex-nowrap overflow-y-auto p-0">
 	{#each conversationOrder as c}
-		<li class="tooltip relative p-0" title={conversation?.summary} class:bg-primary-content={conversation?.id == c}>
+		<li class="tooltip relative p-0" title={conversation?.summary} class:bg-base-300={conversation?.id == c}>
 			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
 			<a href={'/chat/' + c} class="relative pr-6">
 				{#if conversations[c].like}
 					<span class="">
-						<Star size={15} color="yellow" fill="yellow" />
+						<Star size={15} color="var(--star)" fill="var(--star)" />
 					</span>
 				{/if}
 				<span class="truncate">{conversations[c].summary ?? 'New Chat'}</span>
 			</a>
 
 			<DeleteButton
-				class="absolute right-0 top-0.5 m-0 p-0 dropdown-left"
+				class="dropdown-left absolute right-0 top-0.5 m-0 p-0"
 				btnClass="btn btn-ghost btn-sm m-0 rounded-md p-0 px-1"
 				deleteAction={async () => {
 					await deleteConversation(conversations[c]);

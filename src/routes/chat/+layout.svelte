@@ -198,26 +198,36 @@
 		delete conversations[conversation.id!];
 		conversationOrder = conversationOrder.filter((c) => c !== conversation.id);
 	}
+	let seachValue: string | undefined;
+	$: filteredConversations = conversationOrder.filter(
+		(c) => !seachValue || conversations[c].summary?.includes(seachValue)
+	);
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full">
-	<div class="m-2 flex w-56 shrink-0 flex-col gap-4" class:hidden={!drawer_open}>
-		<div class="flex w-full">
-			<button class="btn btn-primary grow" on:click={() => NewChat($dbUser?.assistant)}>New chat</button>
-			<details class="dropdown dropdown-end my-0 h-full" bind:this={dropdownElement}>
-				<summary class="btn btn-primary mx-1 border border-l-2 p-1"><ChevronUp class="rotate-180" /></summary>
-				<ul class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
+	<div class="flex w-56 shrink-0 flex-col gap-2 bg-base-200 p-2" class:hidden={!drawer_open}>
+		<div class="join flex w-full">
+			<button class="border- btn btn-outline join-item h-full grow" on:click={() => NewChat($dbUser?.assistant)}
+				>New chat</button>
+			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
+				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
+				<ul class="menu dropdown-content z-[1] w-52 bg-base-300 p-2 shadow">
 					{#each Object.entries($assistants) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
-							<button class="btn btn-primary w-full" on:click={() => NewChat(assistant.id)}>{assistant.name}</button>
+							<button class="btn-base-300 btn btn-outline w-full" on:click={() => NewChat(assistant.id)}
+								>{assistant.name}</button>
 						{/if}
 					{/each}
 				</ul>
 			</details>
 		</div>
 
-		<input type="text" placeholder="Search chats..." class="input input-bordered w-full" />
-		<ChatHistory {conversation} {conversations} {conversationOrder} {deleteConversation} />
+		<input
+			type="text"
+			placeholder="Search chats..."
+			class="input input-bordered min-h-12 w-full"
+			bind:value={seachValue} />
+		<ChatHistory {conversation} {conversations} conversationOrder={filteredConversations} {deleteConversation} />
 	</div>
 
 	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
