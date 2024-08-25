@@ -117,7 +117,7 @@
 	}
 </script>
 
-<div class="text-message relative flex items-start" class:bg-base-usermessage={message.role == 'user'}>
+<div class="text-message relative flex items-start pb-2" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
 		{#if message.role == 'user'}
 			<Smile size="24" />

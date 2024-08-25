@@ -1,12 +1,5 @@
 <script lang="ts">
-	import { mode } from 'mode-watcher';
-	$: {
-		if ($mode === 'dark') {
-			import('highlight.js/styles/github-dark.min.css');
-		} else {
-			import('highlight.js/styles/github.min.css');
-		}
-	}
+
 
 	import rehypeHighlight from 'rehype-highlight';
 	import rehypeKatex from 'rehype-katex';

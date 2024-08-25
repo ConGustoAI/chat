@@ -57,19 +57,19 @@
 				<label class="label" for="email">
 					<span class="label-text">Email</span>
 				</label>
-				<input
-					id="email"
-					name="email"
-					type="email"
-					placeholder="email@example.com"
-					class="input input-bordered input-primary" />
+				<input id="email" name="email" type="email" placeholder="email@example.com" class="input input-bordered" />
 				{#if form?.emailmissing}<p class="text-error">The email field is required</p>{/if}
 			</div>
 			<div class="form-control mt-4">
 				<label class="label" for="password">
 					<span class="label-text">Password</span>
 				</label>
-				<input id="password" name="password" type="password" placeholder="••••••••" class="bg-base-300 input input-bordered" />
+				<input
+					id="password"
+					name="password"
+					type="password"
+					placeholder="••••••••"
+					class="input input-bordered bg-base-300" />
 				{#if form?.incorrect}<p class="text-error">Invalid credentials!</p>{/if}
 				{#if form?.pwmissing}<p class="text-error">The password field is required</p>{/if}
 			</div>
