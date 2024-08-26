@@ -1,34 +1,41 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { createEventDispatcher } from 'svelte';
-	import dbg from 'debug';
 
+	import dbg from 'debug';
 	const debug = dbg('app:ui:components:GrowInput');
+
 	export let value = '';
 	let className = ''; // Keep this as a local variable
 	export { className as class }; // Export it as 'class'
 	export let disabled = false;
 	export let spellcheck = false;
 
-	// const dispatch = createEventDispatcher();
+	let textBox: HTMLPreElement | null = null;
 
-	// $: if (value && !disabled) {
-	// 	dispatch('change', value);
-	// }
+	function handlePaste(event: ClipboardEvent) {
+		event.preventDefault();
+		const text = event.clipboardData?.getData('text/plain');
+		if (!textBox || !text) return;
+		textBox.innerText = text;
+		value = text;
+	}
 </script>
 
 {#if disabled}
-	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-1', className)}>{value}</div>
+	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-2 text-base', className)}>{value}</div>
 {:else}
-	<div
+	<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
+	<pre
 		tabindex={0}
 		role="textbox"
 		contenteditable
 		{spellcheck}
-		bind:textContent={value}
+		bind:this={textBox}
+		bind:innerText={value}
 		on:keydown
 		on:change
 		on:input
-		class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-1', className)}>
-	</div>
+		on:paste={handlePaste}
+		class={cn('textarea min-h-10 w-full overflow-y-auto py-2 text-base', className)}>
+	</pre>
 {/if}

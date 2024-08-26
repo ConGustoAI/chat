@@ -10,7 +10,7 @@
 
 <ul class="base-200 no-scrollbar menu max-w-full flex-nowrap overflow-y-auto p-0">
 	{#each conversationOrder as c}
-		<li class="tooltip relative p-0" title={conversation?.summary} class:bg-base-300={conversation?.id == c}>
+		<li class="tooltip relative p-0 min-h-8" title={conversation?.summary} class:bg-base-300={conversation?.id == c}>
 			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
 			<a href={'/chat/' + c} class="relative pr-6">
 				{#if conversations[c].like}
@@ -18,7 +18,7 @@
 						<Star size={15} color="var(--star)" fill="var(--star)" />
 					</span>
 				{/if}
-				<span class="truncate">{conversations[c].summary ?? 'New Chat'}</span>
+				<span class="truncate">{(conversations[c].summary ?? 'New Chat').trim()}</span>
 			</a>
 
 			<DeleteButton

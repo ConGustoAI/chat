@@ -252,13 +252,13 @@
 		</div>
 		<div class="divider w-full" />
 
-		<div class="navbar m-2 grow-0 py-0">
+		<div class="navbar m-2 h-fit grow-0 shrink-0 py-0">
 			<div class="navbar-start max-w-fit">
 				{#if !drawer_open}
 					<div class="btn btn-circle" style="visibility: hidden;"></div>
 				{/if}
 			</div>
-			<div class="navbar-center mx-auto max-w-[95%] grow p-0">
+			<div class="navbar-center mx-auto h-fit max-w-[95%] grow p-0">
 				<ChatInput bind:conversation {submitConversation} />
 			</div>
 			<div class="navbar-end max-w-fit"></div>

@@ -50,7 +50,7 @@
 	let editingSummary = false;
 </script>
 
-<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-200">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-100">
 	<div class="navbar-start mr-5 flex w-fit grow-0 gap-4">
 		{#if isPublic}
 			<a class="link flex w-fit gap-2 text-nowrap" href="/chat">

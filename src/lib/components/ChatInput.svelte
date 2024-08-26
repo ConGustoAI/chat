@@ -10,10 +10,11 @@
 	export let submitConversation: (toDelete?: string[]) => Promise<void>;
 
 	let input: string;
-	let chatLoading: boolean;
+	let chatLoading: boolean = false;
 	let chatError: string | undefined;
 
 	async function onSubmit() {
+		debug('onSubmit', { input, conversation });
 		if (!input) return;
 		if (!conversation) return;
 		if (!conversation.summary) conversation.summary = input;
@@ -23,6 +24,10 @@
 			{ userID: conversation.userID, role: 'user', text: input },
 			{ userID: conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
+
+		let savedInput = input;
+		input = '';
+
 		chatLoading = true;
 
 		try {
@@ -39,30 +44,32 @@
 			} else {
 				chatError = 'An unknown error occurred';
 			}
+			input = savedInput;
 		} finally {
 			chatLoading = false;
 		}
 	}
 
-	function inputKeyboardHandler(event: any) {
+	async function inputKeyboardHandler(event: any) {
+		debug('inputKeyboardHandler', { event, chatLoading });
 		if (!chatLoading && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
-			onSubmit();
+			await onSubmit();
 		}
 	}
 </script>
 
-<div class="flex w-full flex-col">
+<div class="flex h-fit w-full flex-col">
 	{#if chatError}
 		<div class="text-error">{chatError}</div>
 	{/if}
 
-	<div class="relative w-full">
+	<div class="relative h-fit w-full">
 		<GrowInput
 			bind:value={input}
 			on:keydown={inputKeyboardHandler}
 			disabled={chatLoading}
-			class="textarea-bordered whitespace-pre-wrap text-wrap px-12" />
+			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
 		<div class="absolute bottom-0.5 left-2">
 			<button class="btn btn-circle btn-sm" disabled={true}>
 				<Upload style="disabled" />

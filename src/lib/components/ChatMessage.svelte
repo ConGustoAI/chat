@@ -3,6 +3,8 @@
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 	import { dbUser } from '$lib/stores/appstate';
+	import { APIupsertMessage } from '$lib/api';
+	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ChatMessage');
@@ -13,10 +15,7 @@
 	export let isPublic = false;
 
 	let chatError: string | undefined;
-	let markdown: boolean = true;
-
-	import { APIupsertMessage } from '$lib/api';
-	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
+	$: markdown = message.role === 'assistant';
 
 	let originalMessage: string;
 	let editingMessage = false;
@@ -161,7 +160,7 @@
 		{:else if markdown}
 			<MarkdownMessage {message} />
 		{:else}
-			<pre class="whitespace-pre-wrap">{message.text}</pre>
+			<pre class="whitespace-pre-wrap py-2">{message.text}</pre>
 		{/if}
 		<!-- </div> -->
 

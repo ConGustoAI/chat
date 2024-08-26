@@ -31,3 +31,35 @@
 	height: 100%;
 }
 
+.prose {
+	blockquote,
+	dl,
+	dd,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	hr,
+	figure,
+	p,
+	li,
+	ul,
+	ol {
+		margin: 0;
+		border-radius: 0.25rem;
+	}
+}
+
+.prose {
+	max-width: inherit;
+}
+
+.prose pre {
+	border-radius: 0.2rem;
+	margin: 0 0 0.5rem 0;
+
+	padding: 0;
+	width: 90%;
+}

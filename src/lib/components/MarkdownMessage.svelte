@@ -1,10 +1,8 @@
 <script lang="ts">
-
-
 	import rehypeHighlight from 'rehype-highlight';
 	import rehypeKatex from 'rehype-katex';
 	import rehypeStringify from 'rehype-stringify';
-	import remarkBreaks from 'remark-breaks';
+	// import remarkBreaks from 'remark-breaks';
 	import remarkGfm from 'remark-gfm';
 	import remarkMath from 'remark-math';
 	import remarkParse from 'remark-parse';
@@ -162,7 +160,7 @@ if (preElement) {
 	function parseMarkdown(text: string) {
 		const res = unified()
 			.use(remarkParse)
-			.use(remarkBreaks)
+			// .use(remarkBreaks)
 			.use(remarkGfm)
 			.use(remarkMath)
 			.use(remarkRehype, { allowDangerousHtml: true })
@@ -177,6 +175,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="grow overflow-x-auto whitespace-normal pt-2">
+<div class="text-message prose grow overflow-x-auto pt-2">
 	{@html parseMarkdown(message.text)}
 </div>

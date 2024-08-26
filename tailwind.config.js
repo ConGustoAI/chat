@@ -28,14 +28,15 @@ const config = {
 					primary: '#212121',
 					'base-100': '#212121', // Default background color
 					'base-200': '#171717', // Default slightly darker background color
+					'base-300': '#0d0d0d', // Default slightly darker background color
 
 					info: '#8be9fd',
-					success: '#50fa7b',
+				success: '#50fa7b',
 					warning: '#f1fa8c',
 					error: '#ff5555',
 
 					'--star': '#ffff00',
-					'--base-usermessage': '#2f2f2f',
+					'--base-usermessage': '#171717',
 					'--message': '#ececec',
 
 					'--rounded-btn': '0'
