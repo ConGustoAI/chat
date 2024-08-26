@@ -1,6 +1,6 @@
 import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
-import { and, eq, not } from 'drizzle-orm';
+import { and, eq, not, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
 
@@ -47,7 +47,7 @@ export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface })
 	if (!dbUser) error(401, 'Unauthorized');
 	const conversations = await db.query.conversationsTable.findMany({
 		where: (table, { eq }) => and(eq(table.userID, dbUser.id), not(eq(table.deleted, true))),
-		orderBy: (table, { desc }) => [desc(table.order)]
+		orderBy: (table, { desc }) => [desc(table.order)],
 	});
 
 	if (!conversations) error(500, 'Failed to fetch conversations');
@@ -62,7 +62,8 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		with: {
 			messages: {
 				where: (table, { eq, not }) => not(eq(table.deleted, true)),
-				orderBy: (table, { asc }) => [asc(table.order)]
+				orderBy: (table, { asc }) => [asc(table.order)],
+				with: { prompt: true }
 			}
 		}
 	});
@@ -70,6 +71,35 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 	if (!conversation) error(404, 'Conversation not found or does not belong to the user');
 
 	return conversation;
+}
+
+export async function DBConversationUpdateTokens({
+	dbUser,
+	conversationID,
+	tokensIn,
+	tokensOut
+}: {
+	dbUser?: UserInterface;
+	conversationID: string;
+	tokensIn: number;
+	tokensOut: number;
+}) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!conversationID) error(400, 'Conversation ID is required');
+	const update = await db
+		.update(conversationsTable)
+		.set({
+			tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn}`,
+			tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut}`
+		})
+		.where(and(eq(conversationsTable.id, conversationID), eq(conversationsTable.userID, dbUser.id)))
+		.returning();
+
+	if (!update.length) {
+		error(403, 'Tried to update a conversation that does not exist or does not belong to the user');
+	}
+
+	return update[0];
 }
 
 export async function DBupsertConversation({

@@ -1,9 +1,11 @@
-import { boolean, integer, pgEnum, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { relations } from 'drizzle-orm';
 import { messageMediaTable } from './media';
 import { usersTable } from './users';
+import { modelsTable } from './models';
+import { promptsTable } from './prompts';
 
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 export const messagesTable = pgTable('messages', {
@@ -15,11 +17,18 @@ export const messagesTable = pgTable('messages', {
 	conversationId: uuid('conversation_id')
 		.references(() => conversationsTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	assistant: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
+	assistantID: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
+	assistantName: text('assistant_name'),
+	model: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
+	modelName: text('model_name'),
+	promptID: varchar('prompt', { length: 16 }).references(() => promptsTable.id, { onDelete: 'set null' }),
+	temperature: real('temperature'),
+	topP: real('top_p'),
+	topK: integer('top_k'),
 	role: messageRoleEnum('role').notNull(),
 	text: text('text').notNull(),
-	usageIn: integer('usage_in').default(0),
-	usageOut: integer('usage_out').default(0),
+	tokensIn: integer('tokens_in').default(0),
+	tokensOut: integer('tokens_out').default(0),
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),
@@ -40,4 +49,16 @@ export const messageTableRelations = relations(messagesTable, ({ one, many }) =>
 		fields: [messagesTable.userID],
 		references: [usersTable.id]
 	}),
+	assistant: one(assistantsTable, {
+		fields: [messagesTable.assistantID],
+		references: [assistantsTable.id]
+	}),
+	model: one(modelsTable, {
+		fields: [messagesTable.model],
+		references: [modelsTable.id]
+	}),
+	prompt: one(promptsTable, {
+		fields: [messagesTable.promptID],
+		references: [promptsTable.id]
+	})
 }));

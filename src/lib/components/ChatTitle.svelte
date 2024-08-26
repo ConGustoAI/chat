@@ -6,6 +6,7 @@
 	import { ArrowLeftCircle, Info, Link, Star, UserCircle } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { defaultsUUID } from '$lib/db/schema';
+	import { ConversationInfo } from '$lib/components'
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
 	export let conversation: ConversationInterface | undefined;
@@ -167,9 +168,17 @@
 				{/if}
 			</div>
 		{/if}
-		<Info />
+
+		<details class="dropdown-botton dropdown dropdown-end">
+			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+			<summary class="mt-auto block text-center" tabindex={0}><Info /></summary>
+			<div class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">
+				<ConversationInfo {conversation} />
+			</div>
+		</details>
+
 		{#if !isPublic}
-			<div class="dropdown dropdown-end">
+			<div class="dropdown dropdown-left">
 				<div tabindex="0" role="button">
 					{#if $dbUser?.avatar}
 						<div class="p-auto avatar m-auto align-middle">

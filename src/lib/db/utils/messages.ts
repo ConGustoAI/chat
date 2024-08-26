@@ -8,7 +8,8 @@ export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id:
 	if (!dbUser) error(401, 'Unauthorized');
 	const message = await db.query.messagesTable.findFirst({
 		where: (table, { eq, and, or }) =>
-			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))),
+		with: { prompt: true }
 	});
 
 	if (!message) error(404, 'Message not found');

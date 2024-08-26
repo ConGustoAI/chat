@@ -111,14 +111,31 @@ declare global {
 		userID: string;
 		order?: number;
 		conversationId?: string;
+		assistantID?: string;
+		assistantName?: string;
+		model?: string;
+		modelName?: string;
+		promptID?: string;
 		role: 'user' | 'assistant';
 		text: string;
-		usageIn?: number;
-		usageOut?: number;
+		tokensIn?: number;
+		tokensOut?: number;
+		requestID?: string;
 		finishReason?: string;
+		temperature?: number;
+		topP?: number;
+		topK?: number;
 		deleted?: boolean;
+		prompt?: PromptInterface;
 		updatedAt?: Date;
 		createdAt?: Date;
+	}
+
+	interface PromptInterface {
+		id: string;
+		text: string;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 
 	interface ConversationInterface {
@@ -130,6 +147,8 @@ declare global {
 		like?: boolean;
 		deleted?: boolean;
 		public?: boolean;
+		tokensIn?: number;
+		tokensOut?: number;
 		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;

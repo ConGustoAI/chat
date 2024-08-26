@@ -5,6 +5,7 @@ export { default as SidebarNav } from './SidebarNav.svelte';
 export { default as DrawerButton } from './DrawerButton.svelte';
 export { default as ChatHistory } from './ChatHistory.svelte';
 export { default as ChatTitle } from './ChatTitle.svelte';
+export { default as ConversationInfo } from './ConversationInfo.svelte';
 export { default as ChatMessage } from './ChatMessage.svelte';
 export { default as ChatInput } from './ChatInput.svelte';
 export { default as MarkdownMessage } from './MarkdownMessage.svelte';

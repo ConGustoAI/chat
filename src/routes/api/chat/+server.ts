@@ -3,13 +3,13 @@ import { db } from '$lib/db';
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { defaultsUUID, messagesTable } from '$lib/db/schema';
-import { DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
-import { undefineExtras } from '$lib/utils';
+import { defaultsUUID, messagesTable, promptsTable } from '$lib/db/schema';
+import { DBConversationUpdateTokens, DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
+import { promptHash, undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
-import { StreamData, streamText, type CoreAssistantMessage, type CoreUserMessage } from 'ai';
+import { StreamData, streamText, type CoreAssistantMessage, type CoreUserMessage, type JSONValue } from 'ai';
 import dbg from 'debug';
 import { inArray } from 'drizzle-orm';
 
@@ -70,8 +70,11 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			: assistantData.assistantInstructions) ?? '';
 
 	const systemPrompt = (assistantData.systemPrompt ?? '')
-		.replace(/{{about}}/g, userProfile)
-		.replace(/{{instructions}}/g, assistantInstrictions);
+		.replace('{profile}', userProfile)
+		.replace('{instructions}', assistantInstrictions);
+
+	const systemPromptHash = await promptHash(systemPrompt);
+
 
 	const key = keys.find((k) => k.providerID && k.providerID === assistantData.model?.provider.id);
 	if (!key)
@@ -134,8 +137,6 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	UM.conversationId = AM.conversationId = conversation.id;
 	UM.userID = AM.userID = dbUser.id;
 
-	d.append({ conversationId: conversation.id });
-
 	async function onFinish(
 		// I don't always love TypeScript
 		result: NonNullable<Parameters<NonNullable<Parameters<typeof streamText>[0]['onFinish']>>>[0]
@@ -143,17 +144,32 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		debug('streamText result:', result);
 
 		try {
+			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
 			AM.finishReason = result.finishReason;
-			AM.usageIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
-			AM.usageOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
+			AM.tokensIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
+			AM.tokensOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
 			AM.text += result.text;
+			AM.assistantID = assistantData.id;
+			AM.assistantName = assistantData.name;
+			AM.model = assistantData.model?.id;
+			AM.modelName = assistantData.model?.name;
+			AM.temperature = assistantData.temperature;
+			AM.topP = assistantData.topP;
+			AM.topK = assistantData.topK;
+			AM.promptID = systemPromptHash;
+
 
 			debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
 
 			// insert the user messages first to avoid inserting them out of order.
-			const iUM = await DBupsertMessage({ dbUser, message: UM });
+			// The system prompt should be inserted before the assistant message.
+			const [iUM, iP] = await Promise.all([
+				DBupsertMessage({ dbUser, message: UM }),
+				db.insert(promptsTable).values({ id: systemPromptHash, text: systemPrompt }).onConflictDoNothing().returning()
+			]);
 
-			const [iAM, DMs] = await Promise.all([
+			// Insert/update the rest in parallel
+			const [iAM, iDMs, iC] = await Promise.all([
 				DBupsertMessage({
 					dbUser,
 					message: AM
@@ -168,21 +184,34 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 						deleted: messagesTable.deleted,
 						updatedAt: messagesTable.updatedAt,
 						createdAt: messagesTable.createdAt
-					})
-			]);
+					}),
+				DBConversationUpdateTokens({
+					dbUser,
+					conversationID: conversation.id!,
+					tokensIn: AM.tokensIn,
+					tokensOut: AM.tokensOut
+				})
+			]) as [MessageInterface, MessageInterface[], ConversationInterface];
 
-			debug('After updating the DB: %o', { userMessage: iUM, assistantMessage: iAM, deletedMessages: DMs });
+			iAM.prompt = { id: systemPromptHash, text: systemPrompt };
+			debug('After updating the DB: %o', {
+				userMessage: iUM,
+				assistantMessage: iAM,
+				deletedMessages: iDMs,
+				conversation: iC,
+				prompt: iP
+			});
 			if (!iUM.id || !iAM.id) error(500, 'Failed to update messages');
-			if (DMs.length != (toDelete?.length ?? 0)) error(500, 'Failed to delete messages');
+			if (iDMs.length != (toDelete?.length ?? 0)) error(500, 'Failed to delete messages');
 
 			// d.append() can't handle the native Date object, so we need to convert it to a string
-			const [cUM, cAM, cDMs] = [iUM, iAM, ...DMs].map((m) => ({
+			const [cUM, cAM, cC, cDMs] = [iUM, iAM, iC, ...iDMs].map((m) => ({
 				...m,
 				updatedAt: m.updatedAt?.toISOString(),
 				createdAt: m.createdAt?.toISOString()
-			}));
+			})) as [unknown, unknown, unknown, unknown] as [JSONValue, JSONValue, JSONValue, JSONValue[]];
 
-			d.append({ userMessage: cUM, assistantMessage: cAM, deletedMessages: cDMs });
+			d.append({ userMessage: cUM, assistantMessage: cAM, deletedMessages: cDMs, conversation: cC });
 			if (result.warnings) d.append({ warnings: result.warnings });
 		} catch (e: unknown) {
 			debug('Error in onFinish:', e);

@@ -1,4 +1,4 @@
-import { boolean, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
@@ -15,6 +15,8 @@ export const conversationsTable = pgTable('conversations', {
 	deleted: boolean('deleted').default(false),
 	order: serial('order').notNull(),
 	public: boolean('public').default(false),
+	tokensIn: integer('tokens_in').default(0),
+	tokensOut: integer('tokens_out').default(0),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

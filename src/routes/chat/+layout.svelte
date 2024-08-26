@@ -145,19 +145,23 @@
 
 				for (const dataPart of value) {
 					if (typeof dataPart === 'object' && dataPart !== null) {
-						if ('conversationId' in dataPart) {
-							if (typeof dataPart.conversationId !== 'string') throw new Error('The conversation ID is not a string.');
-							if (conversation.id && conversation.id != dataPart.conversationId)
+						if ('conversation' in dataPart) {
+							const dataConversation = dataPart.conversation as unknown as ConversationInterface;
+							// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
+							if (conversation.id && conversation.id != dataConversation.id)
 								throw new Error('The conversation ID does not match.');
 
-							conversation.id = dataPart.conversationId;
+							conversation = { ...conversation, ...dataConversation };
+							if (!conversation.id) throw new Error('The conversation ID is missing.');
+
 							if (!conversations[conversation.id]) {
 								// New conversation is not yet in the conversations dictionary.
 								conversations[conversation.id] = conversation;
-								conversationOrder = [conversation.id, ...conversationOrder];
+								conversationOrder = [conversation.id!, ...conversationOrder];
 							}
 						}
 						if ('userMessage' in dataPart) {
+							if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
 							// TS is being silly a bit
 							Object.assign(
 								conversation.messages[conversation.messages.length - 2],
@@ -165,6 +169,7 @@
 							);
 						}
 						if ('assistantMessage' in dataPart) {
+							if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
 							// TS is being silly a bit
 							Object.assign(
 								conversation.messages[conversation.messages.length - 1],
@@ -252,7 +257,7 @@
 		</div>
 		<div class="divider w-full" />
 
-		<div class="navbar m-2 h-fit grow-0 shrink-0 py-0">
+		<div class="navbar m-2 h-fit shrink-0 grow-0 py-0">
 			<div class="navbar-start max-w-fit">
 				{#if !drawer_open}
 					<div class="btn btn-circle" style="visibility: hidden;"></div>
