@@ -47,7 +47,7 @@ export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface })
 	if (!dbUser) error(401, 'Unauthorized');
 	const conversations = await db.query.conversationsTable.findMany({
 		where: (table, { eq }) => and(eq(table.userID, dbUser.id), not(eq(table.deleted, true))),
-		orderBy: (table, { desc }) => [desc(table.order)],
+		orderBy: (table, { desc }) => [desc(table.order)]
 	});
 
 	if (!conversations) error(500, 'Failed to fetch conversations');
@@ -104,10 +104,14 @@ export async function DBConversationUpdateTokens({
 
 export async function DBupsertConversation({
 	dbUser,
-	conversation
+	conversation,
+	tokensIn,
+	tokensOut
 }: {
 	dbUser?: UserInterface;
 	conversation: ConversationInterface;
+	tokensIn?: number;
+	tokensOut?: number;
 }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
@@ -118,7 +122,11 @@ export async function DBupsertConversation({
 	if (conversation.id) {
 		const update = await db
 			.update(conversationsTable)
-			.set(conversation)
+			.set({
+				...conversation,
+				tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn ?? 0}`,
+				tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut ?? 0}`
+			})
 			.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
 			.returning();
 
@@ -129,7 +137,15 @@ export async function DBupsertConversation({
 		return update[0];
 	}
 
-	const insert = await db.insert(conversationsTable).values(conversation).onConflictDoNothing().returning();
+	const insert = await db
+		.insert(conversationsTable)
+		.values({
+			...conversation,
+			tokensIn: (conversation.tokensIn ?? 0) + (tokensIn ?? 0),
+			tokensOut: (conversation.tokensOut ?? 0) + (tokensOut ?? 0)
+		})
+		.onConflictDoNothing()
+		.returning();
 
 	if (!insert || !insert.length) error(500, 'Failed to update conversation');
 

@@ -35,8 +35,6 @@
 	onMount(async () => {
 		debug('onMount');
 		chatLoading = true;
-		let convosPromise;
-		let convoPromise;
 
 		const [gotConvos, cgotConvo] = await Promise.all([
 			APIfetchConversations().catch((e) => {

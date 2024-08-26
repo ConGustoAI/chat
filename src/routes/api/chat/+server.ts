@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { defaultsUUID, messagesTable, promptsTable } from '$lib/db/schema';
-import { DBConversationUpdateTokens, DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
+import { DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
 import { promptHash, undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
@@ -75,7 +75,6 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	const systemPromptHash = await promptHash(systemPrompt);
 
-
 	const key = keys.find((k) => k.providerID && k.providerID === assistantData.model?.provider.id);
 	if (!key)
 		error(
@@ -132,6 +131,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	const d = new StreamData();
 
+	// We end up inserting the conversation twice, because we need the conversation ID to insert the messages,
+	// and I want to insert the messages and update the final conversation in parallel.
 	if (!conversation.id) conversation = (await DBupsertConversation({ dbUser, conversation })) as ConversationInterface;
 	if (!conversation.id) error(500, 'Failed to create conversation');
 	UM.conversationId = AM.conversationId = conversation.id;
@@ -157,7 +158,6 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			AM.topP = assistantData.topP;
 			AM.topK = assistantData.topK;
 			AM.promptID = systemPromptHash;
-
 
 			debug('Messages after processing: %o', { userMessage: UM, assistantMessage: AM });
 
@@ -185,9 +185,9 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 						updatedAt: messagesTable.updatedAt,
 						createdAt: messagesTable.createdAt
 					}),
-				DBConversationUpdateTokens({
+				DBupsertConversation({
 					dbUser,
-					conversationID: conversation.id!,
+					conversation,
 					tokensIn: AM.tokensIn,
 					tokensOut: AM.tokensOut
 				})
