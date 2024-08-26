@@ -6,7 +6,7 @@
 	import { ArrowLeftCircle, Info, Link, Star, UserCircle } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { ConversationInfo } from '$lib/components'
+	import { ConversationInfo } from '$lib/components';
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
 	export let conversation: ConversationInterface | undefined;
@@ -60,7 +60,7 @@
 		{/if}
 
 		{#if conversation && !isPublic}
-			{#if !conversation.id}
+			{#if !conversation.id || $dbUser?.hacker}
 				<select class="select select-bordered select-sm" bind:value={conversation.assistant}>
 					{#each Object.entries($assistants) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
