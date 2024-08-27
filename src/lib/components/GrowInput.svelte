@@ -10,7 +10,7 @@
 	export let disabled = false;
 	export let spellcheck = false;
 
-	let textBox: HTMLPreElement | null = null;
+	let textBox: HTMLDivElement | null = null;
 
 	function handlePaste(event: ClipboardEvent) {
 		event.preventDefault();
@@ -25,7 +25,7 @@
 	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-2 text-base', className)}>{value}</div>
 {:else}
 	<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
-	<pre
+	<div
 		tabindex={0}
 		role="textbox"
 		contenteditable
@@ -36,6 +36,6 @@
 		on:change
 		on:input
 		on:paste={handlePaste}
-		class={cn('textarea min-h-10 w-full overflow-y-auto py-2 text-base', className)}>
-	</pre>
+		class={cn('textarea min-h-10 overflow-y-auto py-2 text-base whitespace-pre-wrap', className)}>
+	</div>
 {/if}

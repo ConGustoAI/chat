@@ -45,7 +45,7 @@
 	];
 </script>
 
-<div class="flex max-h-screen flex-col p-5 pb-16">
+<div class="max-w-screen h-screen overflow-auto flex flex-col p-5 pb-16">
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat
 	</a>

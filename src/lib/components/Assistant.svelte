@@ -149,7 +149,6 @@
 	{#if Object.keys(yourProviders).length}
 		<option disabled class="text-lg font-bold">Your providers</option>
 		{#each Object.entries(yourProviders) as [pidx, provider]}
-			<!-- <option disabled class="text-lg font-bold">{provider.name}</option> -->
 			{#each Object.entries($models) as [midx, model]}
 				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
@@ -161,7 +160,6 @@
 	{#if Object.keys(defaultProviders).length}
 		<option disabled class="text-lg font-bold">Default providers</option>
 		{#each Object.entries(defaultProviders) as [pidx, provider]}
-			<!-- <option disabled class="text-lg font-bold">{provider.name}</option> -->
 			{#each Object.entries($models) as [midx, model]}
 				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
@@ -282,7 +280,7 @@
 					on:change={statusChanged}
 					disabled={true} />
 			{:else}
-				<GrowInput class="textarea-bordered w-full" bind:value={assistant.aboutUser} on:change={statusChanged} />
+				<GrowInput class="textarea-bordered" bind:value={assistant.aboutUser} on:change={statusChanged} />
 			{/if}
 		</div>
 
@@ -329,7 +327,7 @@
 			</div>
 
 			<GrowInput
-				class="textarea-bordered whitespace-pre-wrap text-wrap"
+				class="textarea-bordered"
 				bind:value={assistant.systemPrompt}
 				on:input={statusChanged}
 				disabled={!edit} />

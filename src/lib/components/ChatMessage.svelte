@@ -127,7 +127,7 @@
 	<div class="mr-16 flex grow flex-col pt-2">
 		{#if editingMessage && !isPublic}
 			<div class="my-4 flex w-full flex-col items-start">
-				<GrowInput bind:value={message.text} on:keydown={inputKeyboardHandler} />
+				<GrowInput class="textarea-bordered w-full" bind:value={message.text} on:keydown={inputKeyboardHandler} />
 				<div class="mt-2 flex w-full items-start justify-start gap-2">
 					<button class="btn btn-outline btn-sm" on:click={sendEditedMessage}> Save & Send </button>
 					<button
@@ -160,7 +160,7 @@
 		{:else if markdown}
 			<MarkdownMessage {message} />
 		{:else}
-			<pre class="whitespace-pre-wrap py-2">{message.text}</pre>
+			<div class="whitespace-pre-wrap py-2">{message.text}</div>
 		{/if}
 
 		{#if message.finishReason === 'content-filter'}
