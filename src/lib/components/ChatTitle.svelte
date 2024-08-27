@@ -62,7 +62,14 @@
 		{#if conversation && !isPublic}
 			{#if !conversation.id || $dbUser?.hacker}
 				<select class="select select-bordered select-sm" bind:value={conversation.assistant}>
-					{#each Object.entries($assistants) as [id, assistant]}
+					<option disabled>Your assistants</option>
+					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+							<option value={id}>{assistant.name}</option>
+						{/if}
+					{/each}
+					<option disabled>Default assistants</option>
+					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
 							<option value={id}>{assistant.name}</option>
 						{/if}

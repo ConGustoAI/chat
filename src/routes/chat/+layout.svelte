@@ -14,6 +14,7 @@
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { defaultsUUID } from '$lib/db/schema';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:chat');
@@ -215,7 +216,15 @@
 			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
 				<ul class="menu dropdown-content z-[1] w-52 bg-base-300 p-2 shadow">
-					{#each Object.entries($assistants) as [id, assistant]}
+					<div class="divider w-full py-2">Your assistants</div>
+					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+							<button class="btn-base-300 btn btn-outline w-full" on:click={() => NewChat(assistant.id)}
+								>{assistant.name}</button>
+						{/if}
+					{/each}
+					<div class="divider w-full py-2">Default assistants</div>
+					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
 							<button class="btn-base-300 btn btn-outline w-full" on:click={() => NewChat(assistant.id)}
 								>{assistant.name}</button>

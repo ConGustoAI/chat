@@ -162,6 +162,12 @@
 		{:else}
 			<pre class="whitespace-pre-wrap py-2">{message.text}</pre>
 		{/if}
+
+		{#if message.finishReason === 'content-filter'}
+			<div class="text-warning">Content filtered by the provider</div>
+		{:else if message.finishReason === 'error'}
+			<div class="text-error">Request finished with an error</div>
+		{/if}
 		<!-- </div> -->
 
 		{#if !editingMessage}
