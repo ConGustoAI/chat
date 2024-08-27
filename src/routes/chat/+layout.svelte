@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { onNavigate } from '$app/navigation';
 	import {
 		APIdeleteConversation,
 		APIfetchConversation,
 		APIfetchConversations,
 		APIfetchDefaultConversation
 	} from '$lib/api';
-	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, DrawerButton } from '$lib/components';
-	import { assistants, dbUser, hiddenItems } from '$lib/stores/appstate';
+	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
+	import { assistants, dbUser, hiddenItems, sidebarOpen } from '$lib/stores/appstate';
 	import { loginModal } from '$lib/stores/loginModal';
 	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
@@ -24,7 +25,6 @@
 
 	let conversation: ConversationInterface | undefined;
 	let updatingLike = false;
-	let drawer_open = true;
 	let chatLoading = false;
 
 	let chatError: string | undefined;
@@ -63,6 +63,11 @@
 
 	function updateConversation(convId: string) {
 		debug('updateConversation', convId);
+		// Closed by default on small screens
+		if (window.innerWidth < 768) {
+			$sidebarOpen = false; // Open drawer on larger screens
+		}
+
 		if (convId) {
 			// If the message is already loaded, use it.
 			if (conversations[convId]) conversation = conversations[convId];
@@ -86,6 +91,8 @@
 						chatLoading = false;
 					});
 			}
+		} else {
+			conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
 		}
 	}
 	$: {
@@ -190,7 +197,6 @@
 
 	function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
-		conversation = newConversation($dbUser?.id ?? 'anon', assistantId);
 		goto('/chat');
 	}
 
@@ -208,8 +214,8 @@
 	);
 </script>
 
-<main class="relative m-0 flex h-full max-h-full w-full">
-	<div class="flex w-56 shrink-0 flex-col gap-2 bg-base-200 p-2" class:hidden={!drawer_open}>
+<main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
+	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56" class:hidden={!$sidebarOpen}>
 		<div class="join flex w-full">
 			<button class="border- btn btn-outline join-item h-full grow" on:click={() => NewChat($dbUser?.assistant)}
 				>New chat</button>
@@ -242,7 +248,7 @@
 		<ChatHistory {conversation} {conversations} conversationOrder={filteredConversations} {deleteConversation} />
 	</div>
 
-	<div class="divider divider-horizontal w-1" class:hidden={!drawer_open} />
+	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen} />
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle {chatLoading} bind:conversation bind:updatingLike />
@@ -252,13 +258,13 @@
 				{#each conversation.messages as m}
 					<ChatMessage bind:conversation bind:message={m} {submitConversation} />
 				{/each}
-				<div class=" mb-20 w-full" />
+				<div class="mb-20 w-full" />
 			{:else}
 				<div
-					class="pointer-events-none m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale"
+					class="pointer-events-none m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale md:w-1/3"
 					style="opacity:0.05">
-					<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
-					<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
+					<img class="w-[50%] max-w-[200px]" src="/favicon.png" alt="Congusto" />
+					<p class="w-fit text-nowrap text-[5vw] md:text-[3vw]">Congusto Chat</p>
 				</div>
 			{/if}
 		</div>
@@ -266,18 +272,18 @@
 
 		<div class="navbar m-2 h-fit shrink-0 grow-0 py-0">
 			<div class="navbar-start max-w-fit">
-				{#if !drawer_open}
-					<div class="btn btn-circle" style="visibility: hidden;"></div>
+				{#if !$sidebarOpen}
+					<div class="btn btn-circle md:hidden" style="visibility: hidden;"></div>
 				{/if}
 			</div>
-			<div class="navbar-center mx-auto h-fit max-w-[95%] grow p-0">
+			<div class="navbar-center mx-auto h-fit max-w-full grow p-0 md:max-w-[95%]">
 				<ChatInput bind:conversation {submitConversation} />
 			</div>
 			<div class="navbar-end max-w-fit"></div>
 		</div>
 	</div>
-	<div class="absolute bottom-5 left-3">
-		<DrawerButton bind:drawer_open />
+	<div class="absolute bottom-4 left-2">
+		<SidebarButton />
 	</div>
 </main>
 

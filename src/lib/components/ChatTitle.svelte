@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { APIupdateUser, APIupsertConversation } from '$lib/api';
-	import { apiKeys, assistants, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
+	import { apiKeys, assistants, dbUser, hiddenItems, models, providers, sidebarOpen } from '$lib/stores/appstate';
 	import { loginModal } from '$lib/stores/loginModal';
-	import { ArrowLeftCircle, Info, Link, Star, UserCircle } from 'lucide-svelte';
+	import { ArrowLeftCircle, Edit, Info, Link, Star, UserCircle } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { ConversationInfo } from '$lib/components';
@@ -59,9 +59,13 @@
 			</a>
 		{/if}
 
+		{#if conversation?.id && !$sidebarOpen}
+			<a href={'/chat/'} class="link"><Edit /></a>
+		{/if}
+
 		{#if conversation && !isPublic}
 			{#if !conversation.id || $dbUser?.hacker}
-				<select class="select select-bordered select-sm" bind:value={conversation.assistant}>
+				<select class="mb:block select select-bordered select-sm" bind:value={conversation.assistant}>
 					<option disabled>Your assistants</option>
 					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
@@ -120,7 +124,7 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="navbar-center max-w-[70%]">
+	<div class="navbar-center hidden max-w-[70%] md:block">
 		<div class="w-full text-center text-xl font-bold">
 			{#if !chatLoading}
 				{#if conversation}
@@ -150,7 +154,7 @@
 
 	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
 		{#if conversation && !isPublic}
-			<div class="mr-5 flex items-center justify-end gap-4">
+			<div class="mr-5 hidden items-center justify-end gap-4 md:flex">
 				{#if conversation.public}
 					<a href={'/public/' + conversation.id} class="btn btn-sm rounded-md bg-base-300"><Link size={18} /></a>
 				{/if}
@@ -176,7 +180,7 @@
 			</div>
 		{/if}
 
-		<details class="dropdown-botton dropdown dropdown-end">
+		<details class="dropdown-botton dropdown dropdown-end hidden md:block">
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<summary class="mt-auto block text-center" tabindex={0}><Info /></summary>
 			<div class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">

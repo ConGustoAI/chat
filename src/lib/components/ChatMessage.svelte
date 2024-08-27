@@ -171,7 +171,7 @@
 		<!-- </div> -->
 
 		{#if !editingMessage}
-			<div class="absolute right-0 top-2 mr-2 flex gap-2 text-base-content">
+			<div class="absolute right-0 top-0 mr-2 flex gap-2 text-base-content">
 				<!-- {message.order} -->
 				{#if message.role == 'assistant' && !isPublic}
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>

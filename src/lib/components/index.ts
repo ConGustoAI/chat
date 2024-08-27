@@ -2,7 +2,7 @@ export { default as Provider } from './Provider.svelte';
 export { default as ApiKey } from './ApiKey.svelte';
 export { default as Model } from './Model.svelte';
 export { default as SidebarNav } from './SidebarNav.svelte';
-export { default as DrawerButton } from './DrawerButton.svelte';
+export { default as SidebarButton } from './SidebarButton.svelte';
 export { default as ChatHistory } from './ChatHistory.svelte';
 export { default as ChatTitle } from './ChatTitle.svelte';
 export { default as ConversationInfo } from './ConversationInfo.svelte';

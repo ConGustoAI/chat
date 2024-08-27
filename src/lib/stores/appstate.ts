@@ -11,3 +11,5 @@ export const providers = writable<{ [key: string]: ProviderInterface }>({});
 export const models = writable<{ [key: string]: ModelInterface }>({});
 export const apiKeys = writable<{ [key: string]: ApiKeyInterface }>({});
 export const hiddenItems = writable<Set<string>>(new Set());
+
+export const sidebarOpen = writable(true);
