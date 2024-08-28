@@ -7,7 +7,8 @@ import { defaultsUUID, modelsTable } from '../schema';
 export async function DBgetModels({ dbUser }: { dbUser?: UserInterface }) {
 	// Note: If the user is not authorized, we only return the default models.
 	const models = await db.query.modelsTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
+		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return models;

@@ -7,7 +7,8 @@ import { error } from '@sveltejs/kit';
 export async function DBgetProviders({ dbUser }: { dbUser?: UserInterface }) {
 	// Note: If the user is not authorized, we only return the default providers.
 	const providers = await db.query.providersTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser!.id) : undefined, eq(table.userID, defaultsUUID))
+		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser!.id) : undefined, eq(table.userID, defaultsUUID)),
+		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return providers;

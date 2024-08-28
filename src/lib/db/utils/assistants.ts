@@ -8,7 +8,7 @@ export async function DBgetAssistants({ dbUser }: { dbUser?: UserInterface }) {
 	// Note: If the user is not authorized, we only return the default assistants.
 	const assistants = await db.query.assistantsTable.findMany({
 		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
-		orderBy: (table, { asc }) => asc(table.updatedAt)
+		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return assistants;

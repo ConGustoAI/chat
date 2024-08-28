@@ -104,6 +104,13 @@
 	bind:value={model.inputContext}
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="number"
+	class="input input-bordered w-16"
+	bind:value={model.inputCost}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
 	class="input input-bordered w-28"
@@ -111,6 +118,12 @@
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
 
+<input
+	type="number"
+	class="input input-bordered w-16"
+	bind:value={model.outputCost}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
 	class="input input-bordered w-14"

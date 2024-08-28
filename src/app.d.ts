@@ -68,6 +68,8 @@ declare global {
 		prefill?: boolean;
 		inputContext: number;
 		outputContext: number;
+		inputCost?: number; // Cost in dollars per 1,000,000 tokens
+		outputCost?: number;
 		maxTemp: number;
 		providerID: string;
 		createdAt?: Date;

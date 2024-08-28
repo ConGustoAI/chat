@@ -8,7 +8,7 @@
 <div class="flex max-w-screen-xl flex-col gap-4">
 	<h2 class="text-xl font-bold">Assistants</h2>
 
-	<div class="w-full overflow-y-auto">
+	<div class="w-full">
 		<div class="divider w-full">Your assistants</div>
 		<AssistantGrid edit={true} newItemUserID={$dbUser?.id} />
 

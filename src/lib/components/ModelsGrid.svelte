@@ -62,11 +62,13 @@
 
 <div class="flex w-full flex-col gap-4" id="#{provider.id}/models">
 	<div
-		class="grid grid-cols-[15rem,auto,min-content,min-content,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+		class="grid grid-cols-[15rem,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
 		<div class="font-bold">Display name</div>
 		<div class="font-bold">Model name</div>
 		<div class="font-bold">Input</div>
+		<div class="font-bold" title="Input cost $ for 1M tokesn">$/1M</div>
 		<div class="font-bold">Output</div>
+		<div class="font-bold" title="OPutput cost $ per 1M tokens">$/1M</div>
 		<div class="font-bold">Max t&deg;</div>
 		<div class="text-xl font-bold" title="Images">🎨</div>
 		<div class="text-xl font-bold" title="Audio">🔉</div>
