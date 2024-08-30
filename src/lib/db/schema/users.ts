@@ -1,15 +1,15 @@
 import { relations } from 'drizzle-orm';
-import { boolean, pgSchema, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { providersTable } from './providers';
+import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
-import { mediaTable } from './media';
 import { hiddenItems } from './hide';
+import { mediaTable } from './media';
+import { providersTable } from './providers';
 
-const authSchema = pgSchema('auth');
-export const AuthUsersTable = authSchema.table('users', {
-	id: uuid('id').primaryKey()
-});
+// const authSchema = pgSchema('auth');
+// export const AuthUsersTable = authSchema.table('users', {
+// 	id: uuid('id').primaryKey()
+// });
 
 export const defaultsUUID = '00000000-0000-0000-0000-000000000000';
 

@@ -8,3 +8,5 @@ export * from './models';
 export * from './users';
 export * from './hide';
 export * from './prompts';
+
+export * from './seed';

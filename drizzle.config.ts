@@ -6,7 +6,7 @@ config({ path: '.env' });
 export default defineConfig({
 	schema: './src/lib/db/schema/',
 	schemaFilter: ['public'],
-	out: './supabase/migrations',
+	out: './migrations',
 	dialect: 'postgresql',
 	dbCredentials: {
 		url: process.env.DATABASE_URL!

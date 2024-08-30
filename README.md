@@ -6,7 +6,7 @@ To build the best AI Chat application for developers and power users.
 Features:
 
 - [x] Any model from any API provider
-- [ ] Multi-modal
+- [~] Multi-modal
   - [x] Text
   - [ ] Images
   - [ ] Audio
@@ -15,7 +15,10 @@ Features:
 - [ ] Code Interpreter
   - [ ] One-off calculation
   - [ ] Jupyter notebook session
-- [ ] Deploy locally and in the cloud
+- [~] Esay deployment
+  - [x] Supabase auth + Vercel (or any other host with node support)
+  - [ ] Local deployment with SQLite an no auth.
+
 
 Milestones:
 
@@ -68,7 +71,7 @@ We suggest at least starting with a hosted Supabase instance, as deploying your 
     - Under `Data API Settings`, disable the Data API access.
     - This is important to disable Data API access as we don't use Supabase Row Level Security, and your data will be accessibly by anyone with the Anon key, which may be shared with the users.
 
-  - Go to https://supabase.com/dashboard/project/[your project]/settings/database
+  - Go to `https://supabase.com/dashboard/project/[your project]/settings/database`
     - Select [x] Display connection pooler: Mode: Session and copy the **Database URL**.
 
 ### Local development
@@ -99,11 +102,9 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
 - Install the dependencies
   `bun i`
 
-- Run the migrations - this will populate the database with the required tables.
-  `bun db:migrate`
-
 - Start the dev server
   `bun dev`
+
 
 - Open the browser at http://localhost:5173 and sign up as a new user.
 
@@ -115,6 +116,21 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
   - `https://supabase.com/dashboard/project/[your project]/editor`
   - Make yourself an Admin by setting `admin` to `true` for your user.
 
+
+> **Note:** When the server starts, it will populate the database with the required tables and default data. For development, it's better to skip this step by setting the following environment variables in the `.env` file:
+```
+SKIP_MIGRATIONS=true
+SKIP_SEED=true
+```
+
+> **Note:** to do migrations, you can run the following commands:
+- `bun db:generate` to update the migrations.
+- `bun db:migrate` to apply the migrations. This will sync the database schema with the code.
+
+If you update the default providers/models/assistants, don't forget to reflect this in `seed.ts`.
+
 ## Deploy to Vercel
 
-...
+- Deploy as usual, and don't forget to set the environment variables in the Vercel dashboard.
+- Set the domain name to your domain, and make sure the auth redirect URL in supabase matches the domain.
+
