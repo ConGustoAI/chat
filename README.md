@@ -61,18 +61,18 @@ We suggest at least starting with a hosted Supabase instance, as deploying your 
 
 - Go to `https://supabase.com/dashboard/project/[your-project]/auth/url-configuration`
 
-  - Set the Sute URL to your domain, e.g., `https://chat.congusto.ai` , or `http://localhost:5173` for local-only.
+  - Set the Site URL to your domain, e.g., `https://chat.congusto.ai` , or `http://localhost:5173` for local-only.
   - For local development, add `http://localhost:5173/**` to the allowed redirect URLs.
 
 - Copy the required keys/urls:
 
-  - Go to `https://supabase.com/dashboard/project/[your project]/settings/api` and copy the **Anon key**. and the **Project URL**.
-
+  - Go to `https://supabase.com/dashboard/project/[your project]/settings/api` and copy the **Anon key**. and the **Project URL**. We don't need the SEcret key.
     - Under `Data API Settings`, disable the Data API access.
-    - This is important to disable Data API access as we don't use Supabase Row Level Security, and your data will be accessibly by anyone with the Anon key, which may be shared with the users.
+
+> **Note**  It is important to disable Data API access as we don't use Supabase Row Level Security, and your data will be accessibly by anyone with the Anon key, which may be shared with the users. IDK why supabase has it on by default.
 
   - Go to `https://supabase.com/dashboard/project/[your project]/settings/database`
-    - Select [x] Display connection pooler: Mode: Session and copy the **Database URL**.
+    - Select `[x] Display connection pooler: Mode: Session` and copy the **Database URL**.
 
 ### Local development
 
@@ -86,7 +86,7 @@ PUBLIC_SUPABASE_URL=https://[your-project].supabase.co
 PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-You can disable the login methods in the UI by setting the following environment variables:
+You can disable the unused login methods in the UI by setting the following environment variables:
 
 ```
 PUBLIC_DISABLE_GOOGLE_LOGIN=true
@@ -105,29 +105,30 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
 - Start the dev server
   `bun dev`
 
-
 - Open the browser at http://localhost:5173 and sign up as a new user.
 
 - Go to the Supabase dashboard and check the user is created:
 
   - `https://supabase.com/dashboard/project/[your project]/auth/users`
 
+> **Note:** You can also create the users through the Supabase Dashboard `https://supabase.com/dashboard/project/[your project]/auth/users`
+
 - Go to the Supabase Table Editor, select the `public` schema and the `users` table.
   - `https://supabase.com/dashboard/project/[your project]/editor`
-  - Make yourself an Admin by setting `admin` to `true` for your user.
+  - Make yourself an Admin by setting `admin` to `true` for your user. This allows you to edit the settings globally.
 
 
-> **Note:** When the server starts, it will populate the database with the required tables and default data. For development, it's better to skip this step by setting the following environment variables in the `.env` file:
+> **Note:** When the server starts, it will populate the database with the required tables and data. For development, skip this step by setting the following environment variables in the `.env` file:
 ```
 SKIP_MIGRATIONS=true
 SKIP_SEED=true
 ```
 
-> **Note:** to do migrations, you can run the following commands:
+> **Note:** to run migrations when you make changes to the schema:
 - `bun db:generate` to update the migrations.
 - `bun db:migrate` to apply the migrations. This will sync the database schema with the code.
 
-If you update the default providers/models/assistants, don't forget to reflect this in `seed.ts`.
+If you update the default providers/models/assistants, don't forget to reflect this in `seed.ts.
 
 ## Deploy to Vercel
 
