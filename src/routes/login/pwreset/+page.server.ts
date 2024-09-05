@@ -1,23 +1,8 @@
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import dbg from 'debug';
 import type { Actions } from './$types';
 
 const debug = dbg('app:login:pwreset');
-
-// export const load = async ({ url, locals }) => {
-// 	const code = url.searchParams.get('code');
-// 	debug('load <- code: %s', code);
-
-// 	if (code) {
-// 		const authResponse = await locals.supabase.auth.exchangeCodeForSession(code);
-// 		if (authResponse.error) {
-// 			debug('Error exchanging code for session: %o', authResponse.error);
-// 			throw error(400, 'Error exchanging code for session');
-// 		} else {
-// 			debug('Successfully exchanged code for session %o', authResponse.data);
-// 		}
-// 	}
-// };
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
@@ -44,6 +29,5 @@ export const actions: Actions = {
 		locals.user = locals.session = locals.dbUser = undefined;
 
 		redirect(303, '/login');
-		// return { success: true };
 	}
 };
