@@ -102,6 +102,10 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
 - Install the dependencies
   `bun i`
 
+- Run migrations (populated the table structure) and seed the database with default data.
+  `bun db:migrate`
+  `bun db:seed`
+
 - Start the dev server
   `bun dev`
 
@@ -118,17 +122,16 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
   - Make yourself an Admin by setting `admin` to `true` for your user. This allows you to edit the settings globally.
 
 
-> **Note:** When the server starts, it will populate the database with the required tables and data. For development, skip this step by setting the following environment variables in the `.env` file:
-```
-SKIP_MIGRATIONS=true
-SKIP_SEED=true
-```
-
 > **Note:** to run migrations when you make changes to the schema:
 - `bun db:generate` to update the migrations.
 - `bun db:migrate` to apply the migrations. This will sync the database schema with the code.
 
 If you update the default providers/models/assistants, don't forget to reflect this in `seed.ts.
+
+> **Note:** To see the database with the default data:
+- `bun db:seed`
+
+
 
 ## Deploy to Vercel
 
