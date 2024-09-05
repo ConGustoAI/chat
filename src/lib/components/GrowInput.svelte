@@ -12,13 +12,13 @@
 
 	let textBox: HTMLDivElement | null = null;
 
-	function handlePaste(event: ClipboardEvent) {
-		event.preventDefault();
-		const text = event.clipboardData?.getData('text/plain');
-		if (!textBox || !text) return;
-		textBox.innerText = text;
-		value = text;
-	}
+	// function handlePaste(event: ClipboardEvent) {
+	// 	event.preventDefault();
+	// 	const text = event.clipboardData?.getData('text/plain');
+	// 	if (!textBox || !text) return;
+	// 	textBox.innerText = text;
+	// 	value = text;
+	// }
 </script>
 
 {#if disabled}
@@ -35,7 +35,6 @@
 		on:keydown
 		on:change
 		on:input
-		on:paste={handlePaste}
 		class={cn('textarea min-h-10 overflow-y-auto py-2 text-base whitespace-pre-wrap', className)}>
 	</div>
 {/if}
