@@ -10,10 +10,9 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:conversation');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, url }) => {
-	const defaults = url.searchParams.get('default') === 'true';
+export const GET: RequestHandler = async ({ locals: { dbUser }}) => {
 	let conversations;
-	if (defaults) {
+	if (!dbUser) {
 		conversations = await DBgetDefaultConversations();
 	} else {
 		conversations = await DBgetConversations({ dbUser });

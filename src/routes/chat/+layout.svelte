@@ -1,21 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { onNavigate } from '$app/navigation';
 	import {
 		APIdeleteConversation,
 		APIfetchConversation,
-		APIfetchConversations,
-		APIfetchDefaultConversation
+		APIfetchConversations
 	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
+	import { defaultsUUID } from '$lib/db/schema';
 	import { assistants, dbUser, hiddenItems, sidebarOpen } from '$lib/stores/appstate';
 	import { loginModal } from '$lib/stores/loginModal';
 	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-	import { defaultsUUID } from '$lib/db/schema';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:chat');
@@ -33,8 +30,8 @@
 
 	$: convId = $page.params.chat;
 
-	onMount(async () => {
-		debug('onMount');
+	dbUser.subscribe(async () => {
+		debug('dbUser changed, fetching data');
 		chatLoading = true;
 
 		const [gotConvos, cgotConvo] = await Promise.all([
@@ -58,7 +55,7 @@
 
 		conversationOrder = Object.keys(conversations);
 		chatLoading = false;
-		debug('onMount', { conversation, conversations, conversationOrder });
+		debug('done fetching data', { conversation, conversations, conversationOrder });
 	});
 
 	function updateConversation(convId: string) {
@@ -75,8 +72,7 @@
 			if (!conversation?.messages) {
 				chatLoading = true;
 				let promise;
-				if (dbUser) promise = APIfetchConversation(convId);
-				else promise = APIfetchDefaultConversation(convId);
+				promise = APIfetchConversation(convId);
 
 				promise
 					.then((data) => {

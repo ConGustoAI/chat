@@ -59,9 +59,10 @@
 {#if $dbUser}
 	<section class="flex max-w-screen-md flex-col gap-2">
 		<div class="flex items-end gap-4">
-			<div class="flex flex-row items-end gap-4">
+			<div class="flex flex-col gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
 				<p>{$dbUser.email}</p>
+				<a class="btn btn-outline" href="/login/pwreset" data-sveltekit-reload>Change Password</a>
 			</div>
 			<div class="relative self-start">
 				<div class="loading absolute top-1" class:hidden={status !== 'saving'} />

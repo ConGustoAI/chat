@@ -40,7 +40,7 @@
 		if ($loginModal) {
 			($loginModal as HTMLDialogElement).showModal();
 		} else {
-			goto('/login');
+			goto('/login', {invalidateAll: true});
 		}
 	}
 
@@ -152,6 +152,7 @@
 		</div>
 	</div>
 
+	<!-- navbar-end -->
 	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
 		{#if conversation && !isPublic}
 			<div class="mr-5 hidden items-center justify-end gap-4 md:flex">
@@ -213,9 +214,9 @@
 						</div>
 					{/if}
 
-					<button class="btn btn-primary btn-sm justify-start text-nowrap" on:click={() => TriggerLoginModal()}>
+					<a class="btn btn-primary btn-sm justify-start text-nowrap" href={$dbUser ? '/login/logout' : '/login'}>
 						{#if $dbUser}Log out{:else}Log in{/if}
-					</button>
+					</a>
 				</ul>
 			</div>
 		{/if}

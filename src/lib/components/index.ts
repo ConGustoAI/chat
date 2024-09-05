@@ -20,3 +20,5 @@ export { default as AssistantGrid } from './AssistantGrid.svelte';
 export { default as ProvidersGrid } from './ProvidersGrid.svelte';
 export { default as ModelsGrid } from './ModelsGrid.svelte';
 export { default as ApiKeysGrid } from './ApiKeysGrid.svelte';
+
+export { default as Notification } from './Notification.svelte';

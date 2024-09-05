@@ -1,11 +1,9 @@
-<script>
+<script lang="ts">
 	import '../app.css';
 
-	import { Login } from '$lib/components';
-	import { loginModal } from '$lib/stores/loginModal';
+	import { apiKeys, assistants, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
+	import { toIdMap } from '$lib/utils';
 	import { ModeWatcher, mode } from 'mode-watcher';
-	import { toIdMap, censorKey } from '$lib/utils';
-	import { dbUser, assistants, hiddenItems, providers, models, apiKeys } from '$lib/stores/appstate';
 	import { onMount } from 'svelte';
 
 	$: {
@@ -16,21 +14,22 @@
 		}
 	}
 
-	import dbg from 'debug';
 	import { APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
+	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:layout');
 
 	export let data;
 	export let form;
+	$: console.log({ form });
 
 	let loading = false;
-	onMount(async () => {
-		debug('onMount');
+
+	$: $dbUser = data.dbUser;
+	$: $hiddenItems = data.hiddenItems;
+
+	dbUser.subscribe(async () => {
+		debug('dbUser changed, fetching data');
 		loading = true;
-
-		$dbUser = data.dbUser;
-		$hiddenItems = data.hiddenItems;
-
 		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
 			APIfetchProviders(),
 			APIfetchModels(),
@@ -38,13 +37,12 @@
 		]);
 
 		$assistants = toIdMap(data.assistants);
-
-		providers.set(toIdMap(fetchedProviders));
-		models.set(toIdMap(fetchedModels));
-		apiKeys.set(toIdMap(fetchedApiKeys));
+		$providers = toIdMap(fetchedProviders);
+		$models = toIdMap(fetchedModels);
+		$apiKeys = toIdMap(fetchedApiKeys);
 		loading = false;
 
-		debug('onMount', {
+		debug('Done fetching', {
 			assistants: $assistants,
 			providers: $providers,
 			models: $models,
@@ -58,12 +56,4 @@
 
 <slot />
 
-<dialog bind:this={$loginModal} id="loginModal" class="modal modal-middle">
-	<div class="modal-box h-fit w-fit">
-		<Login {form} />
-	</div>
-
-	<form method="dialog" class="modal-backdrop">
-		<button>close</button>
-	</form>
-</dialog>
+<!-- <pre>{JSON.stringify($dbUser , null, 2)}</pre> -->

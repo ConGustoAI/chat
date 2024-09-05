@@ -6,50 +6,59 @@ import type { Actions } from './$types';
 const debug = dbg('app:login');
 
 export const actions: Actions = {
-	signup: async ({ request, locals: { supabase } }) => {
+	signup: async ({ request, locals: { supabase }, url }) => {
+		debug('signup');
 		const formData = await request.formData();
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 
-		const { error: err } = await supabase.auth.signUp({ email, password });
-		if (err) {
-			return fail(400, { error: err.message });
+		const ret = await supabase.auth.signUp({
+			email,
+			password,
+			options: { emailRedirectTo: url.origin + '/login' }
+		});
+		debug('signup', ret);
+		if (ret.error) {
+			return fail(400, { emailError: ret.error.message });
 		} else {
-			redirect(303, '/login');
+			if (ret.data?.session) redirect(303, '/chat');
+			else redirect(303, '/login/verify?email=' + encodeURIComponent(email));
 		}
 	},
 
-	login: async ({ request, locals, url }) => {
-		const provider = url.searchParams.get('provider') as Provider;
+	loginEmail: async ({ request, locals }) => {
 		const formData = await request.formData();
-
-		if (provider) {
-			const { data, error: err } = await locals.supabase.auth.signInWithOAuth({
-				provider,
-				options: { redirectTo: url.origin + '/login/code' }
-			});
-			if (err) {
-				debug(err);
-				return fail(400, { providererror: err.message });
-			} else {
-				redirect(303, data.url);
-			}
-		}
-
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 
-		if (!email) return fail(400, { email, emailmissing: true });
-		if (!password) return fail(400, { password, pwmissing: true });
+		if (!email) return fail(400, { email, emailMissing: 'Email is required' });
+		if (!password) return fail(400, { password, pwmissing: 'Password is required' });
 
 		const authReponse = await locals.supabase.auth.signInWithPassword({ email, password });
 		if (authReponse.error) {
 			debug(authReponse.error);
-			return fail(400, { email, incorrect: true });
+			return fail(400, { email, emailError: authReponse.error.message, password: '' });
 		} else {
 			locals.session = authReponse.data.session;
 			locals.user = authReponse.data.user;
 			redirect(303, '/chat');
+		}
+	},
+
+	loginProvider: async ({ locals, url }) => {
+		const provider = url.searchParams.get('provider') as Provider;
+
+		if (provider) {
+			const { data, error: err } = await locals.supabase.auth.signInWithOAuth({
+				provider,
+				options: { redirectTo: url.origin + '/login' }
+			});
+			if (err) {
+				debug(err);
+				return fail(400, { providerError: err.message });
+			} else {
+				redirect(303, data.url);
+			}
 		}
 	},
 
@@ -59,26 +68,12 @@ export const actions: Actions = {
 		if (!email) return fail(400, { email, emailmissing: true });
 
 		debug('recover', email);
-		const res = await supabase.auth.resetPasswordForEmail(email, { redirectTo: url.origin + '/login/code' });
+		const res = await supabase.auth.resetPasswordForEmail(email, { redirectTo: url.origin + '/login/pwreset' });
 		if (res.error) {
 			debug('error', res.error);
-			return fail(400, { error: res.error.message });
+			return fail(400, { pwresetError: res.error.message });
 		}
 		debug('recover', res);
-		return { success: 'Recovery email sent' };
-	},
-
-	signout: async ({ locals }) => {
-		const { error } = await locals.supabase.auth.signOut({ scope: 'local' });
-		if (error) debug(error);
-
-		locals.supabase.auth.signOut();
-		redirect(303, '/login');
-	},
-
-	signoutAll: async ({ locals }) => {
-		const { error } = await locals.supabase.auth.signOut({ scope: 'global' });
-		if (error) debug(error);
-		redirect(303, '/login');
+		return { pwresetSent: "Password reset email sent if the user exists" };
 	}
 };

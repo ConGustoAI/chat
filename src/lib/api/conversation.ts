@@ -15,30 +15,6 @@ export async function APIfetchPublicConversation(id: string) {
 	return data;
 }
 
-// We seed in some default conversations to show a new user some examples of what they can do.
-export async function APIfetchDefaultConversations() {
-	debug('fetchDefaultConversations');
-
-	const res = await fetch('/api/conversation/?default=true');
-
-	if (!res.ok) throw new Error(`Failed to fetch default conversations: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface[];
-	debug('fetchDefaultConversations -> %o', data);
-	return data;
-}
-
-export async function APIfetchDefaultConversation(id?: string) {
-	debug('fetchDefaultConversation %o', { id });
-
-	if (!id) return { userID: '' } as ConversationInterface;
-	const res = await fetch(`/api/conversation/${id}?default=true`);
-
-	if (!res.ok) throw new Error(`Failed to fetch default conversation: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface;
-	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
-	debug('fetchDefaultConversation -> %o', data);
-	return data;
-}
 
 export async function APIfetchConversations() {
 	debug('fetchConversations %o');

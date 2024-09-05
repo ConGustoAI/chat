@@ -1,7 +1,12 @@
-import { db } from '$lib/db';
 import { assistantsTable, modelsTable, providersTable, usersTable, seedTable, defaultsUUID } from './schema';
 import dbg from 'debug';
 const debug = dbg('app:db:seed');
+
+import { config } from 'dotenv';
+import { DefaultLogger, type LogWriter } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
 
 // Provider IDs
 export const anthropicProviderID = '8040ae6a-03cf-41b2-b1c7-c50b5fc3f54f';
@@ -43,16 +48,16 @@ export const seed = async () => {
 		const select = await tx.query.seedTable.findFirst({ orderBy: (table, { desc }) => desc(table.seed) });
 		debug(select);
 
-		if (select?.seed ?? 0 < 1) {
+		if ((select?.seed ?? 0) < 1) {
 			await seedDefaultUser(tx);
 			await seedProviders(tx);
 			await seedModels(tx);
 			await seedAssistants(tx);
-			await tx.insert(seedTable)
+			await tx
+				.insert(seedTable)
 				.values([{ seed: 1 }])
 				.onConflictDoNothing();
 		}
-
 	});
 };
 
@@ -453,3 +458,25 @@ const seedDefaultUser = async (tx: typeof db) => {
 		.values([{ id: defaultsUUID, name: 'Default User' }])
 		.onConflictDoNothing();
 };
+
+config({ path: '.env' });
+
+class MyLogWriter implements LogWriter {
+	write(message: string) {
+		debug(message);
+	}
+}
+const logger = new DefaultLogger({ writer: new MyLogWriter() });
+
+if (!process.env.DATABASE_URL) {
+	throw new Error('DATABASE_URL is not set');
+}
+
+debug('Connecting to database...');
+const client = postgres(process.env.DATABASE_URL, { max: 5 });
+export const db = drizzle(client, { schema, logger });
+
+debug('Seeding the database...');
+await seed();
+debug('Seeding complete');
+process.exit(0);

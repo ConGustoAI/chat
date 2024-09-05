@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"deploy": "vite build && bun run db:migrate && bun run db:seed",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -12,13 +13,10 @@
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun db:generate && bun drizzle-kit migrate",
-		"db:squash": "rm -rf supabase/migrations/* && bun db:generate && bun db:migrate",
-		"db:studio": "drizzle-kit studio --config drizzle.config.ts",
-		"db:drop": "drizzle-kit drop"
+		"db:seed": "bun ./src/lib/db/seed.ts",
+		"db:squash": "rm -rf migrations/* && bun db:generate && bun db:migrate"
 	},
 	"devDependencies": {
-		"@supabase/auth-ui-shared": "^0.1.8",
-		"@supabase/auth-ui-svelte": "^0.2.9",
 		"@supabase/ssr": "^0.1.0",
 		"@supabase/supabase-js": "^2.45.1",
 		"@sveltejs/adapter-auto": "^3.2.4",
