@@ -35,10 +35,6 @@
 		}
 	}
 
-	async function TriggerLoginModal() {
-		await goto('/login', {invalidateAll: true});
-	}
-
 	async function gotoSettings() {
 		await goto('/settings');
 	}
@@ -149,7 +145,7 @@
 
 	<!-- navbar-end -->
 	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
-		{#if conversation && !isPublic}
+		{#if conversation?.id && !isPublic }
 			<div class="mr-5 hidden items-center justify-end gap-4 md:flex">
 				{#if conversation.public}
 					<a href={'/public/' + conversation.id} class="btn btn-sm rounded-md bg-base-300"><Link size={18} /></a>
