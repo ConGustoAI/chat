@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { cubicInOut } from 'svelte/easing';
-	import { crossfade } from 'svelte/transition';
 	import { page } from '$app/stores';
 
 	export let items: { href: string; title: string }[];

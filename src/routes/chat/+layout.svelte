@@ -9,7 +9,6 @@
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { assistants, dbUser, hiddenItems, sidebarOpen } from '$lib/stores/appstate';
-	import { loginModal } from '$lib/stores/loginModal';
 	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
@@ -25,11 +24,10 @@
 	let chatLoading = false;
 
 	let chatError: string | undefined;
-	// export let data;
-	// This will fetch the data eventually, but we are ok with the initial empty data.
 
 	$: convId = $page.params.chat;
 
+	// This will fetch the data eventually, but we are ok with the initial empty data.
 	dbUser.subscribe(async () => {
 		debug('dbUser changed, fetching data');
 		chatLoading = true;
@@ -98,14 +96,9 @@
 	async function submitConversation(toDelete?: string[]) {
 		debug('submitConversation', conversation, toDelete);
 
-		if (!dbUser) {
+		if (!$dbUser) {
 			debug('submitConversation', 'not logged in, redirecting to login');
-			if ($loginModal) {
-				($loginModal as HTMLDialogElement).showModal();
-			} else {
-				await goto('/login');
-			}
-			return;
+			await goto('/login');
 		}
 
 		if (!conversation) throw new Error('The conversation is missing.');

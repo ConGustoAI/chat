@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { APIupdateUser, APIupsertConversation } from '$lib/api';
 	import { apiKeys, assistants, dbUser, hiddenItems, models, providers, sidebarOpen } from '$lib/stores/appstate';
-	import { loginModal } from '$lib/stores/loginModal';
 	import { ArrowLeftCircle, Edit, Info, Link, Star, UserCircle } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { defaultsUUID } from '$lib/db/schema';
@@ -37,15 +36,11 @@
 	}
 
 	async function TriggerLoginModal() {
-		if ($loginModal) {
-			($loginModal as HTMLDialogElement).showModal();
-		} else {
-			goto('/login', {invalidateAll: true});
-		}
+		await goto('/login', {invalidateAll: true});
 	}
 
 	async function gotoSettings() {
-		goto('/settings');
+		await goto('/settings');
 	}
 
 	let editingSummary = false;

@@ -7,8 +7,5 @@
 	goto('/chat');
 </script>
 
-<!-- <form method="POST" action="auth/?/logout">
-	<button>Log out</button>
-</form> -->
 
-<pre>{JSON.stringify(data, null, 2)}</pre>
+<!-- <pre>{JSON.stringify(data, null, 2)}</pre> -->

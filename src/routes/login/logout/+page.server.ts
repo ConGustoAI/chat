@@ -10,7 +10,6 @@ export const actions: Actions = {
 		const { error } = await locals.supabase.auth.signOut({ scope: 'local' });
 		if (error) debug(error);
 
-		// locals.supabase.auth.signOut();
 		debug('signout done');
 		redirect(303, '/login');
 	},

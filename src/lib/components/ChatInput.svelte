@@ -31,12 +31,11 @@
 		chatLoading = true;
 
 		try {
-			// This mosifieds the messages and sets the conversaion id if it was not set.
+			// This modifieds the messages and sets the conversaion id if it was not set.
 			await submitConversation();
 			input = '';
 			chatError = undefined;
-			goto(`/chat/${conversation.id}`);
-			// pushState(`/chat/${conversation.id}`, { replaceState: false });
+			await goto(`/chat/${conversation.id}`);
 		} catch (e: unknown) {
 			conversation.messages = conversation.messages.slice(0, -2);
 			if (e instanceof Error) {
@@ -70,12 +69,12 @@
 			on:keydown={inputKeyboardHandler}
 			disabled={chatLoading}
 			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
-		<div class="absolute bottom-0.5 left-2">
+		<div class="absolute bottom-1 left-2">
 			<button class="btn btn-circle btn-sm" disabled={true}>
-				<Upload style="disabled" />
+				<Upload style="disabled" size={20}/>
 			</button>
 		</div>
-		<div class="absolute bottom-0.5 right-2">
+		<div class="absolute bottom-1 right-2">
 			{#if chatLoading}
 				<div class="relative">
 					<button class="btn btn-sm">

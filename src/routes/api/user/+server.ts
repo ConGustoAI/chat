@@ -22,17 +22,5 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	const userData = await DBgetUser({ id: user.id });
 	debug('GET -> %o', userData);
 
-	// If there is no user in the database, but the user is logged in, create a new user!
-	// if (!userData) {
-	// 	userData = await DBupdateUser({
-	// 		id: user.id,
-	// 		email: user.email,
-	// 		name: user.user_metadata.name,
-	// 		avatar: user.user_metadata.avatar_url
-	// 	});
-	// }
-
-	// if (user.user_metadata.avatar_url) userData.avatar = user.user_metadata.avatar_url;
-
 	return json(userData);
 };

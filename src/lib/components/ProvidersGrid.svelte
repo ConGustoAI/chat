@@ -3,10 +3,10 @@
 	import { Provider } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { dbUser, providers } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { Plus } from 'lucide-svelte';
 
 	import dbg from 'debug';
+	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:ProviderGrid');
 
 	export let edit = false;
@@ -20,16 +20,15 @@
 	export let editCustomChildren: boolean;
 
 	// When adding a new provider, it can be assigned to a user or be a default provider.
-	export let newProviderUserID: string | undefined;
+	export let newProviderUserID: string;
 	// Same for the children (models/api keys) of the provider.
-	export let newChildUserID: string | undefined;
+	export let newChildUserID: string;
 
 	let addingProvider = false;
 	async function addProvider() {
 		debug('add provider');
 		if (!$dbUser || !newProviderUserID) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 
 		addingProvider = true;

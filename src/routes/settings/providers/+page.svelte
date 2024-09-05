@@ -4,7 +4,6 @@
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:assistants');
-
 </script>
 
 <div class="flex max-w-screen-xl flex-col gap-4">
@@ -20,8 +19,8 @@
 			edit={true}
 			editDefaultChildren={false}
 			editCustomChildren={true}
-			newProviderUserID={$dbUser?.id}
-			newChildUserID={$dbUser?.id} />
+			newProviderUserID={$dbUser?.id ?? 'anon'}
+			newChildUserID={$dbUser?.id ?? 'anon'} />
 
 		<div class="divider w-full">Default providers</div>
 		<ProvidersGrid
@@ -32,7 +31,7 @@
 			editDefaultChildren={false}
 			editCustomChildren={true}
 			edit={false}
-			newProviderUserID={$dbUser?.id}
-			newChildUserID={$dbUser?.id} />
+			newProviderUserID={$dbUser?.id ?? 'anon'}
+			newChildUserID={$dbUser?.id ?? 'anon'} />
 	</div>
 </div>

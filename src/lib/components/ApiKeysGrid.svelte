@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { APIdeleteKey, APIupsertKey } from '$lib/api';
 	import { ApiKey } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { apiKeys, dbUser } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import dbg from 'debug';
 	import { Plus } from 'lucide-svelte';
 
@@ -15,14 +15,13 @@
 	export let showDefault: boolean;
 	export let showCustom: boolean;
 
-	export let newChildUserID: string | undefined;
+	export let newChildUserID: string;
 
 	let addingKey = false;
 	async function addKey() {
 		debug('add key');
 		if (!$dbUser || !newChildUserID) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 		addingKey = true;
 		const apiKey = await APIupsertKey({
@@ -42,8 +41,7 @@
 	async function deleteKey(apiKey: ApiKeyInterface) {
 		debug('delete key', apiKey);
 		if (!$dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 
 		const del = await APIdeleteKey(apiKey);

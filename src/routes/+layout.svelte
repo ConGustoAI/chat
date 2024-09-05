@@ -4,7 +4,6 @@
 	import { apiKeys, assistants, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 	import { toIdMap } from '$lib/utils';
 	import { ModeWatcher, mode } from 'mode-watcher';
-	import { onMount } from 'svelte';
 
 	$: {
 		if ($mode === 'light') {
@@ -19,8 +18,6 @@
 	const debug = dbg('app:ui:settings:layout');
 
 	export let data;
-	export let form;
-	$: console.log({ form });
 
 	let loading = false;
 

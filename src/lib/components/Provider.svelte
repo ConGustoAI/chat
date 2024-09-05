@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIdeleteProvider, APIhideItem, APIunhideItem, APIupsertModel, APIupsertProvider } from '$lib/api';
 	import { defaultsUUID, providerTypes } from '$lib/db/schema';
 	import { apiKeys, dbUser, providers, models, hiddenItems } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { assert, capitalize } from '$lib/utils';
 	import { Check, Copy, Eye, EyeOff, Trash2 } from 'lucide-svelte';
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
@@ -23,8 +22,8 @@
 	export let editDefaultChildren: boolean;
 	export let editCustomChildren: boolean;
 
-	export let newChildUserID: string | undefined;
-	export let newProviderUserID: string | undefined;
+	export let newChildUserID: string;
+	export let newProviderUserID: string;
 
 	let status: string | null = null;
 	let statusMessage: string | null = null;
@@ -55,8 +54,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				if (!$dbUser) {
-					toLogin();
-					return;
+					goto('/login', { invalidateAll: true });
 				}
 				status = 'saving';
 				APIupsertProvider(provider)
@@ -80,8 +78,7 @@
 	async function copyProvider(provider: ProviderInterface) {
 		debug('copy provider', provider);
 		if (!$dbUser || !newProviderUserID || !newChildUserID) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 
 		const newProvider = await APIupsertProvider({
@@ -98,7 +95,7 @@
 		// If the new provider is a user provider, copy both default and user models.
 		Object.entries($models).forEach(([modelId, model]) => {
 			if (model.providerID === provider.id) {
-				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === $dbUser.id)) {
+				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === $dbUser?.id)) {
 					newModels.push({
 						...model,
 						id: undefined,
@@ -126,8 +123,7 @@
 	async function deleteProvider(provider: ProviderInterface) {
 		debug('delete provider', provider);
 		if (!$dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 
 		const del = await APIdeleteProvider(provider);
@@ -140,7 +136,7 @@
 
 	async function toggleHidden() {
 		if (!$dbUser) {
-			toLogin();
+			await goto('/login', { invalidateAll: true });
 			return;
 		}
 

@@ -3,10 +3,10 @@
 	import { Assistant } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { assistants, dbUser } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { Plus } from 'lucide-svelte';
 
 	import dbg from 'debug';
+	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:AssistantGrid');
 
 	export let edit = false;
@@ -20,8 +20,7 @@
 	async function addAssistant() {
 		debug('add assistant');
 		if (!dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 		addingAssistant = true;
 		const newAssistant = await APIupsertAssistant({
@@ -45,8 +44,7 @@
 	async function copyAssistant(assistant: AssistantInterface) {
 		debug('copy assistant', assistant);
 		if (!dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 		const newAssistant = await APIupsertAssistant({
 			...assistant,
@@ -64,8 +62,7 @@
 	async function deleteAssistant(assistant: AssistantInterface) {
 		debug('delete assistant', assistant);
 		if (!dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 		const del = await APIdeleteAssistant(assistant);
 		assistants.update((current) => {
@@ -76,8 +73,8 @@
 	}
 </script>
 
-<div class="mb-10 flex flex-col gap-4 w-full">
-	<div class="grid grid-cols-[min-content,10rem,15rem,12rem,auto,6rem,4rem,4rem,0] gap-4 gap-y-2 w-full">
+<div class="mb-10 flex w-full flex-col gap-4">
+	<div class="grid w-full grid-cols-[min-content,10rem,15rem,12rem,auto,6rem,4rem,4rem,0] gap-4 gap-y-2">
 		<div />
 		<div class="font-bold">Name</div>
 		<div class="font-bold">Model</div>

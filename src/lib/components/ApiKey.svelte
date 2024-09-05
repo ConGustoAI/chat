@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
-	import { APIhideItem, APIunhideItem, APIupsertKey } from '$lib/api';
-	import { dbUser, hiddenItems } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
-	import { assert } from '$lib/utils';
-	import { Check, Eye, EyeOff } from 'lucide-svelte';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import { APIupsertKey } from '$lib/api';
 	import { DeleteButton } from '$lib/components';
+	import { dbUser } from '$lib/stores/appstate';
+	import { assert } from '$lib/utils';
+	import { Check } from 'lucide-svelte';
 
 	export let apiKey: ApiKeyInterface;
 	export let edit: boolean = false;
@@ -30,8 +29,7 @@
 			updateTimer = setTimeout(() => {
 				status = 'saving';
 				if (!$dbUser) {
-					toLogin();
-					return;
+					goto('/login', { invalidateAll: true });
 				}
 				APIupsertKey(apiKey)
 					.then((res) => {

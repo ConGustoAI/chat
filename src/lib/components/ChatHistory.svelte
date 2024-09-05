@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Star } from 'lucide-svelte';
 	import { DeleteButton } from '$lib/components';
-	import { sidebarOpen } from '$lib/stores/appstate';
+	import { Star } from 'lucide-svelte';
 
 	export let conversations: Record<string, ConversationInterface>;
 	export let conversation: ConversationInterface | undefined;

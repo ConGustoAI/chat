@@ -2,10 +2,10 @@
 	import { APIdeleteModel, APIupsertModel } from '$lib/api';
 	import { Model } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { models, dbUser } from '$lib/stores/appstate';
 	import { Plus } from 'lucide-svelte';
 	import dbg from 'debug';
+	import { goto } from '$app/navigation';
 
 	const debug = dbg('app:ui:components:ModelsGrid');
 
@@ -15,14 +15,13 @@
 	export let showCustom: boolean;
 	export let allowHiding = true;
 
-	export let newChildUserID: string | undefined;
+	export let newChildUserID: string;
 
 	let addingModel = false;
 	async function addModel() {
 		debug('add model');
 		if (!$dbUser || !newChildUserID) {
-			toLogin();
-			return;
+			await goto('/login', {invalidateAll: true});
 		}
 		addingModel = true;
 		const newModel = await APIupsertModel({
@@ -48,8 +47,7 @@
 		debug('delete model', model);
 		const user = $dbUser;
 		if (!user) {
-			toLogin();
-			return;
+			await goto('/login', {invalidateAll: true});
 		}
 		const del = await APIdeleteModel(model);
 		models.update((current) => {

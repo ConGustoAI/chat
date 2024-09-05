@@ -1,4 +1,3 @@
-// import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { usersTable } from './users';
 
@@ -14,10 +13,3 @@ export const hiddenItems = pgTable('hidden_items', {
 		.defaultNow()
 		.$onUpdate(() => new Date())
 });
-
-// export const userHiddenItemsRelations = relations(hiddenItems, ({ one }) => ({
-// 	user: one(usersTable, {
-// 		fields: [hiddenItems.userId],
-// 		references: [usersTable.id]
-// 	}),
-// }));

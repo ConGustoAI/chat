@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIhideItem, APIunhideItem } from '$lib/api';
 	import { APIupsertModel } from '$lib/api/model';
 	import { DeleteButton } from '$lib/components';
 	import { dbUser, hiddenItems } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
-	import { all } from 'lowlight';
 	import { Check, Eye, EyeOff } from 'lucide-svelte';
 
 	export let model: ModelInterface;
@@ -33,8 +31,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				if (!$dbUser) {
-					toLogin();
-					return;
+					goto('/login', { invalidateAll: true });
 				}
 
 				status = 'saving';
@@ -57,8 +54,7 @@
 
 	async function toggleHidden() {
 		if (!$dbUser) {
-			toLogin();
-			return;
+			await goto('/login', { invalidateAll: true });
 		}
 
 		if (model.id) {

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { dbUser } from '$lib/stores/appstate';
 	import { goto } from '$app/navigation';
-	import { enhance } from '$app/forms';
+	import { dbUser } from '$lib/stores/appstate';
 	let logoutSpinning = false;
 	let logoutAllSpinning = false;
 

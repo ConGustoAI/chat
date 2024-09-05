@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIhideItem, APIunhideItem, APIupsertAssistant } from '$lib/api';
 	import { DeleteButton, GrowInput } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { apiKeys, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
-	import { toLogin } from '$lib/stores/loginModal';
 	import { assert } from '$lib/utils';
 	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 	import dbg from 'debug';
@@ -38,13 +37,12 @@
 		assistant = assistant;
 	}
 
-	function debounceAssistantUpdate() {
+	async function debounceAssistantUpdate() {
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				if (!$dbUser) {
-					toLogin();
-					return;
+					goto('/login', { invalidateAll: true });
 				}
 				status = 'saving';
 				APIupsertAssistant(assistant)
@@ -88,7 +86,7 @@
 
 	async function toggleHidden() {
 		if (!$dbUser) {
-			toLogin();
+			await goto('/login', { invalidateAll: true });
 			return;
 		}
 

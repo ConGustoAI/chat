@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
-	// import type { ActionData } from './$types';
 
 	export let form;
 
@@ -50,12 +48,6 @@
 		</div>
 		{#if form?.error}
 			<div class="mt-4 text-error">{form.error}</div>
-		{/if}
-		{#if form?.success}
-			<div class="mt-4 text-center text-success">
-				<p>Password reset successfully.</p>
-				You can now <a href="/login" class="link link-success" data-sveltekit-reload>log in</a> with your new password.
-			</div>
 		{/if}
 	</form>
 </div>
