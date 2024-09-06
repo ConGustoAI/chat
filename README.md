@@ -102,7 +102,7 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
 - Install the dependencies
   `bun i`
 
-- Run migrations (populated the table structure) and seed the database with default data.
+- Run migrations (populate the table structure) and seed the database with default data.
   `bun db:migrate`
   `bun db:seed`
 
@@ -134,7 +134,22 @@ If you update the default providers/models/assistants, don't forget to reflect t
 
 
 ## Deploy to Vercel
+- In settings, use the following commands:
+  - Build command: `bun run deploy` - this will build the app and run migrations/seed if needed.
+  - Install command: `bun i`
+  - Development command: `bun dev`
 
-- Deploy as usual, and don't forget to set the environment variables in the Vercel dashboard.
+- Set the environment variables
+- Node version: 20
 - Set the domain name to your domain, and make sure the auth redirect URL in supabase matches the domain.
+
+
+## Development
+
+We use `debug.js` for logs.
+For backend logs, set `DEBUG=app:*` to see all logs. You can also set it a subset of the logs, e.g., `DEBUG=app:db*` to see only the database logs.
+For frontend logs, set `debug=* in the local storage.
+
+
+
 

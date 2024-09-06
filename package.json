@@ -14,7 +14,6 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun db:generate && bun drizzle-kit migrate",
 		"db:seed": "bun ./src/lib/db/seed.ts",
-		"db:squash": "rm -rf migrations/* && bun db:generate && bun db:migrate"
 	},
 	"devDependencies": {
 		"@supabase/ssr": "^0.1.0",
