@@ -17,7 +17,6 @@
 		event.preventDefault();
 		const text = event.clipboardData?.getData('text/plain');
 		if (!textBox || !text) return;
-		document.execCommand('insertText', false, text);
 		value = textBox.innerText;
 	}
 
@@ -34,7 +33,7 @@
 </script>
 
 {#if disabled}
-	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-2 text-base', className)}>{value}</div>
+	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-2 text-base whitespace-pre-wrap', className)}>{value}</div>
 {:else}
 	<div
 		tabindex={0}
