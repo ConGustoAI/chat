@@ -9,4 +9,6 @@ export * from './users';
 export * from './hide';
 export * from './prompts';
 
+export * from './auth';
+
 export * from './seed';

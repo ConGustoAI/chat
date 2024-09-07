@@ -1,6 +1,8 @@
 import { DATABASE_URL } from '$env/static/private';
 import { DefaultLogger, type LogWriter } from 'drizzle-orm/logger';
 import { drizzle } from 'drizzle-orm/postgres-js';
+
+
 import postgres from 'postgres';
 import * as schema from './schema';
 

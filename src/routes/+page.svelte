@@ -4,8 +4,8 @@
 	export let data;
 
 	console.log('page data', data);
-	goto('/chat');
+	// goto('/chat');
 </script>
 
 
-<!-- <pre>{JSON.stringify(data, null, 2)}</pre> -->
+<pre>{JSON.stringify(data, null, 2)}</pre>

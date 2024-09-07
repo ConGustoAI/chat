@@ -1,5 +1,5 @@
 import type { ProviderType } from '@prisma/client';
-import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
+import {  User, Session} from 'lucia'
 
 declare global {
 	namespace App {
@@ -7,8 +7,8 @@ declare global {
 		interface Locals {
 			supabase: SupabaseClient;
 			safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
-			session: Session | undefined;
-			user: User | undefined;
+			user: User | null;
+			session: Session | null;
 			dbUser: UserInterface | undefined;
 			assistants: AssistantInterface[];
 			hiddenItems: Set<string>;

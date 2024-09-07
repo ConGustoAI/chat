@@ -67,7 +67,7 @@
 				class="input input-bordered"
 				type="password"
 				autocomplete={isLogin ? 'current-password' : 'new-password'} />
-			{#if form?.providerError}
+			{#if form?.pwresetError}
 				<Notification messageType="error" bind:message={form.pwresetError} />
 			{/if}
 		</div>
@@ -116,7 +116,7 @@
 		<div class="flex flex-col gap-2">
 			{#if !env.PUBLIC_DISABLE_GOOGLE_LOGIN}
 				<button
-					formaction="?/loginProvider&provider=google"
+					formaction="?/google"
 					class="btn btn-outline"
 					on:click={() => {
 						loginGoogleSpinning = true;
@@ -131,7 +131,7 @@
 			{/if}
 			{#if !env.PUBLIC_DISABLE_GITHUB_LOGIN}
 				<button
-					formaction="?/loginProvider&provider=github"
+					formaction="?/github"
 					class="btn btn-outline"
 					on:click={() => {
 						loginGithubSpinning = true;
@@ -152,8 +152,5 @@
 				</div>
 			{/if}
 		</div>
-		{#if form?.providerError}
-			<Notification messageType="error" bind:message={form.providerError} />
-		{/if}
 	</form>
 {/if}

@@ -13,7 +13,7 @@
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun db:generate && bun drizzle-kit migrate",
-		"db:seed": "bun ./src/lib/db/seed.ts",
+		"db:seed": "bun ./src/lib/db/seed.ts"
 	},
 	"devDependencies": {
 		"@supabase/ssr": "^0.1.0",
@@ -32,6 +32,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.43.0",
 		"globals": "^15.9.0",
+		"lucia": "^3.2.0",
 		"postcss": "^8.4.41",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
@@ -53,8 +54,10 @@
 		"@ai-sdk/provider": "^0.0.18",
 		"@aws-sdk/client-s3": "^3.635.0",
 		"@aws-sdk/lib-storage": "^3.635.0",
+		"@lucia-auth/adapter-drizzle": "^1.1.0",
 		"@types/hast": "^3.0.4",
 		"ai": "^3.3.14",
+		"arctic": "^1.9.2",
 		"clsx": "^2.1.1",
 		"daisyui": "^4.12.10",
 		"dotenv": "^16.4.5",

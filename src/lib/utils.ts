@@ -58,7 +58,8 @@ type MappableInterface =
 	| UserInterface
 	| ConversationInterface;
 
-export function toIdMap<T extends MappableInterface>(array: Array<T>) {
+export function toIdMap<T extends MappableInterface>(array: Array<T>|null|undefined)  {
+	if (!array) return {};
 	// [ {id:a, ...}, {id:b, ...} ] => {a: {id:a, ...}, b: {id:b, ...}}
 	return array.reduce<{ [key: string]: T }>((acc, cur) => {
 		if (!cur.id) throw new Error('Missing ID: ' + cur);

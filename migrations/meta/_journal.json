@@ -8,6 +8,34 @@
       "when": 1724829664319,
       "tag": "0000_pale_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1725638835160,
+      "tag": "0001_bitter_namora",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1725661190382,
+      "tag": "0002_nasty_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1725661551755,
+      "tag": "0003_vengeful_shadowcat",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1725670508142,
+      "tag": "0004_nosy_warbound",
+      "breakpoints": true
     }
   ]
 }
