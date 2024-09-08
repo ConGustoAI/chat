@@ -2,7 +2,7 @@
 	import { fixNumberInput } from '$lib/utils';
 
 	export let assistant: AssistantInterface;
-	export let model;
+	export let model: ModelInterface|undefined;
 	export let provider: ProviderInterface;
 
 	export let edit;
@@ -55,7 +55,7 @@
 			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
 			bind:value={assistant.maxTokens}
 			on:change={(e) => {
-				fixNumberInput(e, 0, model?.maxTokens ?? 4096);
+				fixNumberInput(e, 0, model?.outputContext ?? 4096);
 				statusChanged();
 			}}
 			disabled={!edit} />
@@ -107,11 +107,11 @@
 		class="range range-sm w-full pr-5"
 		bind:value={assistant.maxTokens}
 		min={0}
-		max={model?.maxTokens ?? 4096}
+		max={model?.outputContext ?? 4096}
 		step={1}
 		disabled={!edit}
 		on:change={(e) => {
-			fixNumberInput(e, 0, model?.maxTokens ?? 4096);
+			fixNumberInput(e, 0, model?.outputContext ?? 4096);
 			statusChanged();
 		}} />
 
