@@ -57,7 +57,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	if (!primaryEmail?.verified) error(400, 'Primary email address not verified');
 
 	const existingUser = await db.query.authUsersTable.findFirst({
-		where: (table, { eq }) => eq(table.github_id, githubUser.id.toString())
+		where: (table, { eq }) => eq(table.email, primaryEmail.email)
 	});
 
 	if (existingUser) {
