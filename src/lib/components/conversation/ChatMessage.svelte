@@ -2,14 +2,13 @@
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
-	import { dbUser } from '$lib/stores/appstate';
+	import { dbUser, conversation } from '$lib/stores/appstate';
 	import { APIupsertMessage } from '$lib/api';
 	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ChatMessage');
 
-	export let conversation: ConversationInterface | undefined;
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
 	export let isPublic = false;
@@ -23,23 +22,23 @@
 	let savingMessage = false;
 
 	async function sendEditedMessage() {
-		debug('sendEditedMessage', { conversation, message });
+		debug('sendEditedMessage', { $conversation, message });
 		editingMessage = false;
 
-		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
+		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
 
-		const currentIndex = conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
 		// Mark the rest as deleted.
-		const toDelete = conversation.messages
+		const toDelete = $conversation.messages
 			.slice(currentIndex + 1)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
-		conversation.messages = conversation.messages.slice(0, currentIndex + 1);
+		$conversation.messages = $conversation.messages.slice(0, currentIndex + 1);
 		if (message.role === 'user')
-			conversation.messages.push({ userID: conversation.userID, role: 'assistant', text: '' });
+			$conversation.messages.push({ userID: $conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
@@ -50,12 +49,12 @@
 	}
 
 	async function updateMessage() {
-		debug('updateMessage', { conversation, message });
+		debug('updateMessage', { $conversation, message });
 
-		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
+		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
 
 		savingMessage = true;
-		const currentIndex = conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
 		await APIupsertMessage(message);
@@ -65,34 +64,34 @@
 	async function deleteMessage() {
 		debug('deleteMessage', { conversation, message });
 
-		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
+		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
 
-		const currentIndex = conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
 		APIupsertMessage({ ...message, deleted: true });
-		conversation.messages = [
-			...conversation.messages.slice(0, currentIndex),
-			...conversation.messages.slice(currentIndex + 1)
+		$conversation.messages = [
+			...$conversation.messages.slice(0, currentIndex),
+			...$conversation.messages.slice(currentIndex + 1)
 		];
 	}
 
 	async function reGenerate() {
-		debug('reGenerate', { conversation, message });
+		debug('reGenerate', { $conversation, message });
 
-		if (!conversation || !conversation.messages || !conversation.messages.length || !message) return;
+		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
 
-		const currentIndex = conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex < 1) return;
 
 		// Mark the rest as deleted.
-		const toDelete = conversation.messages
+		const toDelete = $conversation.messages
 			.slice(currentIndex)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
-		conversation.messages = conversation.messages.slice(0, currentIndex);
-		conversation.messages.push({ userID: conversation.userID, role: 'assistant', text: '' });
+		$conversation.messages = $conversation.messages.slice(0, currentIndex);
+		$conversation.messages.push({ userID: $conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation

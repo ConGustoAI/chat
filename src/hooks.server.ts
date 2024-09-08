@@ -1,7 +1,7 @@
 import { type Handle } from '@sveltejs/kit';
 
-import dbg from 'debug';
-const debug = dbg('app:hooks');
+// import dbg from 'debug';
+// const debug = dbg('app:hooks');
 
 export const sse = false;
 

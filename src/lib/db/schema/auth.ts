@@ -9,15 +9,6 @@ export const authUsersTable = pgTable('auth_user', {
 	avatar_url: text('avatar_url')
 });
 
-// export const authSessionsTable = pgTable('auth_session', {
-// 	id: text('id').primaryKey(),
-// 	userId: uuid('user_id')
-// 		.notNull()
-// 		.references(() => authUsersTable.id),
-// 	activeExpires: bigint('active_expires', { mode: 'number' }).notNull(),
-// 	idleExpires: bigint('idle_expires', { mode: 'number' }).notNull()
-// });
-
 export const authSessionsTable = pgTable("session", {
 	id: text("id").primaryKey(),
 	userId: uuid("user_id")
@@ -28,11 +19,3 @@ export const authSessionsTable = pgTable("session", {
 		mode: "date"
 	}).notNull()
 });
-
-// export const authKeystable = pgTable('auth_key', {
-// 	id: text('id').primaryKey(),
-// 	userId: uuid('user_id')
-// 		.notNull()
-// 		.references(() => authUsersTable.id),
-// 	hashedPassword: text('hashed_password')
-// });

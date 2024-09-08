@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIhideItem, APIunhideItem, APIupsertAssistant } from '$lib/api';
-	import { DeleteButton, GrowInput } from '$lib/components';
+	import { AssistantDetails, AssistantPrompt, DeleteButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { apiKeys, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 	import { assert } from '$lib/utils';
-	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 	import dbg from 'debug';
-	import AssistantDefails from './AssistantDetails.svelte';
+	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 	const debug = dbg('app:ui:components:Assistant');
 
 	export let assistant: AssistantInterface;
@@ -249,86 +248,7 @@
 			</div>
 		{/if}
 
-		<AssistantDefails bind:assistant {edit} {statusChanged} {model} {provider} />
-
-		<div class="col-span-full flex flex-col">
-			<div class="flex w-full items-center justify-between">
-				<span class=" px-1 py-2 text-sm"
-					>About user. Include into system prompt with <code class="font-bold">{@html `{about}`}</code></span>
-
-				<div class="flex items-center gap-2">
-					{#if assistant.aboutUserFromUser}
-						<a href="/settings" class="link text-sm">Edit your profile</a>
-					{/if}
-					<label for="aboutUserFromUser" class="cursor-pointer text-sm">From my profile</label>
-					<input
-						type="checkbox"
-						class="checkbox checkbox-xs"
-						bind:checked={assistant.aboutUserFromUser}
-						id="aboutUserFromUser"
-						on:change={statusChanged}
-						disabled={!edit} />
-				</div>
-			</div>
-
-			{#if assistant.aboutUserFromUser}
-				<GrowInput
-					class="textarea-bordered w-full"
-					value={$dbUser?.aboutUser ?? ''}
-					on:change={statusChanged}
-					disabled={true} />
-			{:else}
-				<GrowInput class="textarea-bordered" bind:value={assistant.aboutUser} on:change={statusChanged} />
-			{/if}
-		</div>
-
-		<div class="col-span-full flex flex-col">
-			<div class="flex w-full items-center justify-between">
-				<span class="px-1 py-2 text-sm"
-					>Assistant instructions. Include into system prompt with <code class="font-bold"
-						>{@html `{instructions}`}</code
-					></span>
-
-				<div class="flex items-center gap-2">
-					{#if assistant.assistantInstructionsFromUser}
-						<a href="/settings" class="link text-sm">Edit your profile</a>
-					{/if}
-					<label for="instructionsFromUser" class="cursor-pointer text-sm">From my profile</label>
-					<input
-						type="checkbox"
-						class="checkbox checkbox-xs"
-						bind:checked={assistant.assistantInstructionsFromUser}
-						id="instructionsFromUser"
-						on:change={statusChanged}
-						disabled={!edit} />
-				</div>
-			</div>
-
-			{#if assistant.assistantInstructionsFromUser}
-				<GrowInput
-					class="textarea-bordered w-full"
-					value={$dbUser?.assistantInstructions ?? ''}
-					on:input={statusChanged}
-					disabled={true} />
-			{:else}
-				<GrowInput
-					class="textarea-bordered w-full"
-					bind:value={assistant.assistantInstructions}
-					on:input={statusChanged}
-					disabled={!edit} />
-			{/if}
-		</div>
-
-		<div class="col-span-full flex flex-col">
-			<div class="flex w-full items-center justify-between">
-				<span class="px-1 py-2 text-sm">System Prompt</span>
-			</div>
-
-			<GrowInput
-				class="textarea-bordered"
-				bind:value={assistant.systemPrompt}
-				on:input={statusChanged}
-				disabled={!edit} />
-		</div>
+		<AssistantDetails bind:assistant {edit} {statusChanged} {model} {provider} />
+		<AssistantPrompt bind:assistant {edit} on:change={statusChanged} />
 	</div>
 {/if}

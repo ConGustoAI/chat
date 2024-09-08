@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
-	import GrowInput from './GrowInput.svelte';
+	import GrowInput from '../GrowInput.svelte';
 	import dbg from 'debug';
+	import { conversation } from '$lib/stores/appstate';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
-	export let conversation: ConversationInterface | undefined = undefined;
 	export let submitConversation: (toDelete?: string[]) => Promise<void>;
 
 	let input: string;
@@ -14,15 +14,15 @@
 	let chatError: string | undefined;
 
 	async function onSubmit() {
-		debug('onSubmit', { input, conversation });
+		debug('onSubmit', { input, $conversation });
 		if (!input) return;
-		if (!conversation) return;
-		if (!conversation.summary) conversation.summary = input;
+		if (!$conversation) return;
+		if (!$conversation.summary) $conversation.summary = input;
 
-		conversation.messages = [
-			...(conversation.messages ?? []),
-			{ userID: conversation.userID, role: 'user', text: input },
-			{ userID: conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
+		$conversation.messages = [
+			...($conversation.messages ?? []),
+			{ userID: $conversation.userID, role: 'user', text: input },
+			{ userID: $conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
 
 		let savedInput = input;
@@ -35,9 +35,9 @@
 			await submitConversation();
 			input = '';
 			chatError = undefined;
-			await goto(`/chat/${conversation.id}`);
+			await goto(`/chat/${$conversation.id}`);
 		} catch (e: unknown) {
-			conversation.messages = conversation.messages.slice(0, -2);
+			$conversation.messages = $conversation.messages.slice(0, -2);
 			if (e instanceof Error) {
 				chatError = e.message;
 			} else {

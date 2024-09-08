@@ -4,19 +4,13 @@
 	import { APIdeleteConversation, APIfetchConversation, APIfetchConversations } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { assistants, dbUser, hiddenItems, sidebarOpen, chatDataLoading, chatStreaming } from '$lib/stores/appstate';
+	import { assistants, dbUser, hiddenItems, sidebarOpen, chatDataLoading, chatStreaming, conversation, conversations, conversationOrder } from '$lib/stores/appstate';
 	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:chat');
-
-	let conversations: Record<string, ConversationInterface> = {};
-	let conversationOrder: string[] = [];
-
-	let conversation: ConversationInterface | undefined;
-	let updatingLike = false;
 
 	let chatError: string | undefined;
 
@@ -38,21 +32,23 @@
 			})
 		]);
 
-		conversations = toIdMap(gotConvos);
+		$conversations = toIdMap(gotConvos);
 		if (cgotConvo.id) {
-			conversations[cgotConvo.id] = cgotConvo;
-			conversation = conversations[cgotConvo.id];
+			$conversations[cgotConvo.id] = cgotConvo;
+			$conversation = $conversations[cgotConvo.id];
 		} else {
-			conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
+			$conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
 		}
 
-		conversationOrder = Object.keys(conversations);
+		$conversationOrder = Object.keys($conversations);
 		$chatDataLoading = false;
-		debug('done fetching data', { conversation, conversations, conversationOrder });
+		debug('done fetching data', { $conversation, $conversations, $conversationOrder });
 	});
 
+	// Fetches the conversation from the database and saves it to the store.
 	function updateConversation(convId: string) {
 		debug('updateConversation', convId);
+
 		// Closed by default on small screens
 		if (window.innerWidth < 768) {
 			$sidebarOpen = false; // Open drawer on larger screens
@@ -60,17 +56,17 @@
 
 		if (convId) {
 			// If the message is already loaded, use it.
-			if (conversations[convId]) conversation = conversations[convId];
+			if ($conversations[convId]) $conversation = $conversations[convId];
 			// If the conversation has no messages loaded, fetch them.
-			if (!conversation?.messages) {
+			if (!$conversation?.messages) {
 				$chatDataLoading = true;
 				let promise;
 				promise = APIfetchConversation(convId);
 
 				promise
 					.then((data) => {
-						conversations[data.id!] = { ...conversations[data.id!], ...data };
-						conversation = conversations[data.id!];
+						$conversations[data.id!] = { ...$conversations[data.id!], ...data };
+						$conversation = $conversations[data.id!];
 					})
 					.catch((e) => {
 						debug('Failed to fetch conversation:', e);
@@ -81,7 +77,7 @@
 					});
 			}
 		} else {
-			conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
+			$conversation = newConversation($dbUser?.id ?? 'anon', $dbUser?.assistant);
 		}
 	}
 	$: {
@@ -89,7 +85,7 @@
 	}
 
 	async function submitConversation(toDelete?: string[]) {
-		debug('submitConversation', conversation, toDelete);
+		debug('submitConversation', $conversation, toDelete);
 
 		if (!$dbUser) {
 			debug('submitConversation', 'not logged in, redirecting to login');
@@ -99,11 +95,11 @@
 		$chatStreaming = true;
 
 		try {
-			if (!conversation) throw new Error('The conversation is missing.');
-			if (!conversation.assistant) throw new Error('No assistant assigned.');
-			if (!conversation.messages) throw new Error('The conversation messages are missing.');
+			if (!$conversation) throw new Error('The conversation is missing.');
+			if (!$conversation.assistant) throw new Error('No assistant assigned.');
+			if (!$conversation.messages) throw new Error('The conversation messages are missing.');
 
-			const toSend = conversation.messages;
+			const toSend = $conversation.messages;
 
 			if (toSend.length < 2) throw new Error('The conversation should have at least 2 messages.');
 			if (toSend[toSend.length - 2].role !== 'user') throw new Error('The first message should be from the user.');
@@ -116,7 +112,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ conversation, toDelete })
+				body: JSON.stringify({ conversation: $conversation, toDelete })
 			});
 			debug('submitConversation POST: ', res);
 
@@ -128,57 +124,57 @@
 
 			for await (const { type, value } of readDataStream(reader)) {
 				debug('readDataStream', type, value);
-				if (!conversation.messages) throw new Error('The conversation messages are missing??');
+				if (!$conversation.messages) throw new Error('The conversation messages are missing??');
 				if (type === 'text') {
-					conversation.messages[conversation.messages.length - 1].text += value;
-					if (Date.now() - timestamp > 200) {
+					$conversation.messages[$conversation.messages.length - 1].text += value;
+					if (Date.now() - timestamp > 100) {
 						timestamp = Date.now();
-						conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
+						$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
 					}
 				}
 				if (type === 'finish_message') {
 				}
 				if (type === 'data') {
-					debug('readDataStream', { type, value });
+					// debug('readDataStream', { type, value });
 
 					for (const dataPart of value) {
 						if (typeof dataPart === 'object' && dataPart !== null) {
 							if ('conversation' in dataPart) {
 								const dataConversation = dataPart.conversation as unknown as ConversationInterface;
 								// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
-								if (conversation.id && conversation.id != dataConversation.id)
+								if ($conversation.id && $conversation.id != dataConversation.id)
 									throw new Error('The conversation ID does not match.');
 
-								conversation = { ...conversation, ...dataConversation };
-								if (!conversation.id) throw new Error('The conversation ID is missing.');
+								$conversation = { ...$conversation, ...dataConversation };
+								if (!$conversation.id) throw new Error('The conversation ID is missing.');
 
-								if (!conversations[conversation.id]) {
+								if (!$conversations[$conversation.id]) {
 									// New conversation is not yet in the conversations dictionary.
-									conversations[conversation.id] = conversation;
-									conversationOrder = [conversation.id!, ...conversationOrder];
+									$conversations[$conversation.id] = $conversation;
+									$conversationOrder = [$conversation.id!, ...$conversationOrder];
 								}
 							}
 							if ('userMessage' in dataPart) {
-								if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								if (!$conversation.messages?.length) throw new Error('The conversation messages are missing??');
 								// TS is being silly a bit
 								Object.assign(
-									conversation.messages[conversation.messages.length - 2],
+									$conversation.messages[$conversation.messages.length - 2],
 									dataPart.userMessage as unknown as MessageInterface
 								);
 							}
 							if ('assistantMessage' in dataPart) {
-								if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								if (!$conversation.messages?.length) throw new Error('The conversation messages are missing??');
 								// TS is being silly a bit
 								Object.assign(
-									conversation.messages[conversation.messages.length - 1],
+									$conversation.messages[$conversation.messages.length - 1],
 									dataPart.assistantMessage as unknown as MessageInterface
 								);
 							}
 						}
 					}
-					// conversation = conversation;
-					if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
-					conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
+
+					if (!$conversation.messages?.length) throw new Error('The conversation messages are missing??');
+					$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
 				}
 				if (type === 'error') {
 					debug('readDataStream error', value);
@@ -189,8 +185,8 @@
 			chatError = errorToMessage(e);
 			debug('submitConversation error', chatError);
 		} finally {
-			if (!conversation?.messages?.length) throw new Error('The conversation messages are missing??');
-			conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
+			if (!$conversation?.messages?.length) throw new Error('The conversation messages are missing??');
+			$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
 			// This will also trigger the conversation summary.
 			$chatStreaming = false;
 		}
@@ -208,12 +204,12 @@
 			const del = await APIdeleteConversation(conversation);
 			if (!del.id) throw new Error('Failed to delete the conversation.');
 		}
-		delete conversations[conversation.id!];
-		conversationOrder = conversationOrder.filter((c) => c !== conversation.id);
+		if ($conversation?.id) delete $conversations[$conversation.id!];
+		$conversationOrder = $conversationOrder.filter((c) => c !== conversation.id);
 	}
 	let seachValue: string | undefined;
-	$: filteredConversations = conversationOrder.filter(
-		(c) => !seachValue || conversations[c].summary?.includes(seachValue)
+	$: filteredConversations = $conversationOrder.filter(
+		(c) => !seachValue || $conversations[c].summary?.includes(seachValue)
 	);
 </script>
 
@@ -248,21 +244,20 @@
 			placeholder="Search chats..."
 			class="input input-bordered min-h-12 w-full"
 			bind:value={seachValue} />
-		<ChatHistory {conversation} {conversations} conversationOrder={filteredConversations} {deleteConversation} />
+		<ChatHistory conversationOrder={filteredConversations} {deleteConversation} />
 	</div>
 
 	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen} />
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
-		<ChatTitle bind:conversation bind:updatingLike />
+		<ChatTitle  />
 
 		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
-			{#if conversation?.messages}
-				{#each conversation.messages as m, i}
+			{#if $conversation?.messages}
+				{#each $conversation.messages as m, i}
 					<ChatMessage
-						bind:conversation
 						bind:message={m}
-						loading={i === conversation.messages.length - 1 && $chatStreaming}
+						loading={i === $conversation.messages.length - 1 && $chatStreaming}
 						{submitConversation} />
 				{/each}
 				<div class="mb-20 w-full" />
@@ -284,7 +279,7 @@
 				{/if}
 			</div>
 			<div class="navbar-center mx-auto h-fit max-w-full grow p-0 md:max-w-[95%]">
-				<ChatInput bind:conversation {submitConversation} />
+				<ChatInput {submitConversation} />
 			</div>
 			<div class="navbar-end max-w-fit"></div>
 		</div>

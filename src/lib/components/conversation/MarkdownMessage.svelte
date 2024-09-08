@@ -162,6 +162,7 @@ if (preElement) {
 	}
 
 	function getMarkdown(msg: MessageInterface) {
+		// The cache should be invalidated by the code that mosidies the text.
 		if (msg.markdownCache) return msg.markdownCache;
 		debug('parseMarkdown start')
 		const res = unified()
