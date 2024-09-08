@@ -16,9 +16,8 @@ Features:
   - [ ] One-off calculation
   - [ ] Jupyter notebook session
 - [~] Esay deployment
-  - [x] Supabase auth + Vercel (or any other host with node support)
+  - [x] Postgres + Vercel (or any other host with node support)
   - [ ] Local deployment with SQLite an no auth.
-
 
 Milestones:
 
@@ -30,7 +29,7 @@ Milestones:
 ## Hosted Version
 
 - Go to [Congusto Chat](https://chat.congusto.ai) and create an account.
-- Go to Settings/Providers, add your API Key to an existing provider, or configure a new provider and models.
+- Go to Settings/Providers, add your API Key to a default provider, or configure a new provider and models.
 - Go to Settings/Assistants, create a new assistant that combines the model, API Key, and your system prompt.
 - Start chatting.
 
@@ -38,64 +37,89 @@ Milestones:
 
 When deploying Congusto Chat, you will need:
 
-- Supabase, used for Authentication
-- Postgres, used for storing the data.
-  - Using the Postgres from Supabase is the easiest way to go, but you can also deploy your own - there is no dependency on Supabase.
+### Postgres database.
+
+Some options (not sponsored):
+- [Neon](https://neon.tech) - Free tier available. Has a nice UI for managing the database.
+- [Supabase](https://supabase.com) - Free tier available. Has a nice UI for managing the database.
+  - Make sure you get the "Session mode" connection string:
+  - Go to `https://supabase.com/dashboard/project/[your project]/settings/database`
+    - Select `[x] Display connection pooler: Mode: Session` and copy the **Database URL**.
+  - We only want the database, not the Auth/API functionality.
+- Deploy on [Railway](https://railway.app) - Free tier available. The UI is minimal, you might want to use pgAdmin or similar to manage the database.
+- Deploy on any vps - Digital Ocean, AWS, etc. - You will need to manage the database yourself.
+
+You will need the set the `DATABASE_URL` env variabled to the Postgres connection string, that should look like this:
+
+```
+DATABASE_URL=postgres://user:password@host:port/database
+```
 
 TODO: Local deployment with SQLite and no Auth.
 
-### Supabase
+### OAuth Authentication with Google and/or Github
 
-We suggest at least starting with a hosted Supabase instance, as deploying your own is not entirely trivial.
+#### Github
 
-- Register at [Supabase](https://supabase.com) and create a new project (free).
-- Got to `https://supabase.com/dashboard/project/[your project]/settings/auth`
+Github is the easiest to set up.
+- Go to [Github Developer Settings/OAuth Apps](https://github.com/settings/applications) and create a new OAuth App.
 
-  - Check the "Allow new users to sign up" option. You can allow sign-ups, or manage users manually through Supabase dashboard.
-  - If you want Email sign-ups, I suggest configuring an SMTP server (AWS SES, Sendgrid, etc.), as Supabase has very low limits for sending emails.
+  - Set the `Homepage URL` to your domain.
+  - Set the `Authorization callback URL` to `https://yourdomain.com/login/github`
 
-- Go to `https://supabase.com/dashboard/project/[your project]/settings/auth/providers` and enable the Auth providers you want to use.
+- Github does not allow multiple callback URLs, so if you want to both deploy publicly and do lovel development, you will need to create an extra OAuth App for local development.
+  - Set the `Authorization callback URL` to `http://localhost:5173/login/github`
 
-  - At the moment Congusto Chat supports Google, Github, and Email sign-ups.
-  - Setup for Google and other OAuth providers covered in https://www.youtube.com/watch?v=KfezTtt2GsA
-
-- Go to `https://supabase.com/dashboard/project/[your-project]/auth/url-configuration`
-
-  - Set the Site URL to your domain, e.g., `https://chat.congusto.ai` , or `http://localhost:5173` for local-only.
-  - For local development, add `http://localhost:5173/**` to the allowed redirect URLs.
-
-- Copy the required keys/urls:
-
-  - Go to `https://supabase.com/dashboard/project/[your project]/settings/api` and copy the **Anon key**. and the **Project URL**. We don't need the SEcret key.
-    - Under `Data API Settings`, disable the Data API access.
-
-> **Note**  It is important to disable Data API access as we don't use Supabase Row Level Security, and your data will be accessibly by anyone with the Anon key, which may be shared with the users. IDK why supabase has it on by default.
-
-  - Go to `https://supabase.com/dashboard/project/[your project]/settings/database`
-    - Select `[x] Display connection pooler: Mode: Session` and copy the **Database URL**.
-
-### Local development
-
-- Clone the repository
-  `git clone https://github.com/ConGustoAI/chat`
-- Fill in the `.env` file with the setting you got from Supabase:
+Set the following environment variables:
 
 ```
-DATABASE_URL=portgres://....
-PUBLIC_SUPABASE_URL=https://[your-project].supabase.co
-PUBLIC_SUPABASE_ANON_KEY=...
+GITHUB_CLIENT_ID=your client id
+GITHUB_CLIENT_SECRET=your client secret
 ```
 
-You can disable the unused login methods in the UI by setting the following environment variables:
+Make sure to set the correct one for prod/dev. The redirect will fail if the redirect URL does not match the one in the OAuth App.
+
+If you don't want Github auth, you can disable the login button in the UI by setting the following environment variable:
+
+```
+PUBLIC_DISABLE_GITHUB_LOGIN=true
+```
+
+#### Google
+
+To set up OAuth authentication with Google:
+
+- Go to the [Google Cloud Console](https://console.cloud.google.com/).
+- Create a new project or select an existing one.
+- Navigate to "APIs & Services" > "Credentials".
+- Click "Create Credentials" and select "OAuth client ID".
+- Choose "Web application" as the application type.
+- Set the "Authorized JavaScript origins" to your domain (e.g., `https://yourdomain.com`).
+- For local development:
+  - Set the "Authorized redirect URIs" to `https://yourdomain.com/login/google`.
+  - For local development, add `http://localhost:5173` as an authorized JavaScript origin and `http://localhost:5173/login/google` as a redirect URI.
+
+After creating the OAuth client, you'll receive a client ID and client secret. Set these as environment variables:
+
+```
+GOOGLE_CLIENT_ID=your client id
+GOOGLE_CLIENT_SECRET=your client secret
+```
+
+If you don't want Google auth, you can disable the login button in the UI by setting the following environment variable:
 
 ```
 PUBLIC_DISABLE_GOOGLE_LOGIN=true
-PUBLIC_DISABLE_GITHUB_LOGIN=true
-PUBLIC_DISABLE_EMAIL_LOGIN=true
 ```
 
-- Make sure you have NodeJS v20 and Bun installed.
+### Email login
+Coming soon.
 
+## Local development
+
+- Clone the repository: `git clone https://github.com/ConGustoAI/chat`
+- Copy `.env.example` to `.env` and set the environment variables.
+- Make sure you have NodeJS v20 and Bun installed.
   - Install NodeJS 20, platform-dependent.
   - `npm install -g bun`
 
@@ -110,46 +134,28 @@ PUBLIC_DISABLE_EMAIL_LOGIN=true
   `bun dev`
 
 - Open the browser at http://localhost:5173 and sign up as a new user.
+- In your database, the `public.users` table should have a new user.
+  - Set the `is_admin` field to `true` to make the user an admin.
 
-- Go to the Supabase dashboard and check the user is created:
-
-  - `https://supabase.com/dashboard/project/[your project]/auth/users`
-
-> **Note:** You can also create the users through the Supabase Dashboard `https://supabase.com/dashboard/project/[your project]/auth/users`
-
-- Go to the Supabase Table Editor, select the `public` schema and the `users` table.
-  - `https://supabase.com/dashboard/project/[your project]/editor`
-  - Make yourself an Admin by setting `admin` to `true` for your user. This allows you to edit the settings globally.
-
-
-> **Note:** to run migrations when you make changes to the schema:
+> **Note:** Run migrations when you make changes to the database schema (src/lib/db/schema/*.ts):
 - `bun db:generate` to update the migrations.
 - `bun db:migrate` to apply the migrations. This will sync the database schema with the code.
 
-If you update the default providers/models/assistants, don't forget to reflect this in `seed.ts.
-
-> **Note:** To see the database with the default data:
-- `bun db:seed`
-
-
+If you update the default providers/models/assistants, don't forget to reflect this in `src/lib/db/seed.ts`
 
 ## Deploy to Vercel
+
 - In settings, use the following commands:
   - Build command: `bun run deploy` - this will build the app and run migrations/seed if needed.
   - Install command: `bun i`
   - Development command: `bun dev`
 
-- Set the environment variables
 - Node version: 20
-- Set the domain name to your domain, and make sure the auth redirect URL in supabase matches the domain.
-
+- Set the environment variables
+- Set the domain name to your domain, and make sure the auth callback URL for Google/Github matches the domain.
 
 ## Development
 
-We use `debug.js` for logs.
 For backend logs, set `DEBUG=app:*` to see all logs. You can also set it a subset of the logs, e.g., `DEBUG=app:db*` to see only the database logs.
-For frontend logs, set `debug=* in the local storage.
-
-
-
-
+For frontend logs, set `debug` to `*` in the browser local storage.
+See the [debug](https://www.npmjs.com/package/debug) package for more information.
