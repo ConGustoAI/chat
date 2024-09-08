@@ -16,13 +16,12 @@
 		event.preventDefault();
 		const text = event.clipboardData?.getData('text/plain');
 		if (!textBox || !text) return;
-		textBox.innerText = text;
-		value = text;
+		document.execCommand('insertText', false, text);
 	}
 </script>
 
 {#if disabled}
-	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto py-2 text-base', className)}>{value}</div>
+	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto whitespace-pre-wrap py-2 text-base', className)}>{value}</div>
 {:else}
 	<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 	<div
