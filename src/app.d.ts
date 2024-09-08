@@ -130,6 +130,7 @@ declare global {
 		prompt?: PromptInterface;
 		updatedAt?: Date;
 		createdAt?: Date;
+		markdownCache?: string; // This is only used in the frontend, not saved to the database.
 	}
 
 	interface PromptInterface {

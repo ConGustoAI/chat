@@ -72,7 +72,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.assistants = (await DBgetAssistants({})) as AssistantInterface[];
 	}
 
-	debug({session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser });
+	// debug({session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser });
 
 	return resolve(event);
 };

@@ -124,12 +124,17 @@
 			if (!res.body) throw new Error('The response body is empty.');
 
 			const reader = res.body.getReader();
+			let timestamp = Date.now();
 
 			for await (const { type, value } of readDataStream(reader)) {
 				debug('readDataStream', type, value);
 				if (!conversation.messages) throw new Error('The conversation messages are missing??');
 				if (type === 'text') {
 					conversation.messages[conversation.messages.length - 1].text += value;
+					if (Date.now() - timestamp > 200) {
+						timestamp = Date.now();
+						conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
+					}
 				}
 				if (type === 'finish_message') {
 				}
@@ -171,7 +176,9 @@
 							}
 						}
 					}
-					conversation = conversation;
+					// conversation = conversation;
+					if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
+					conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
 				}
 				if (type === 'error') {
 					debug('readDataStream error', value);
@@ -182,6 +189,8 @@
 			chatError = errorToMessage(e);
 			debug('submitConversation error', chatError);
 		} finally {
+			if (!conversation?.messages?.length) throw new Error('The conversation messages are missing??');
+			conversation.messages[conversation.messages.length - 1].markdownCache = undefined;
 			// This will also trigger the conversation summary.
 			$chatStreaming = false;
 		}
@@ -253,7 +262,7 @@
 					<ChatMessage
 						bind:conversation
 						bind:message={m}
-						loading={(i === conversation.messages.length - 1) && $chatStreaming}
+						loading={i === conversation.messages.length - 1 && $chatStreaming}
 						{submitConversation} />
 				{/each}
 				<div class="mb-20 w-full" />

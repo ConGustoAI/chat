@@ -1,4 +1,5 @@
 <script lang="ts">
+	// import { chatStreaming } from '$lib/stores/appstate';
 	import rehypeHighlight from 'rehype-highlight';
 	import rehypeKatex from 'rehype-katex';
 	import rehypeStringify from 'rehype-stringify';
@@ -8,6 +9,9 @@
 	import remarkParse from 'remark-parse';
 	import remarkRehype from 'remark-rehype';
 	import { unified } from 'unified';
+
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:MarkdownMessage');
 
 	export let message: MessageInterface;
 
@@ -157,7 +161,9 @@ if (preElement) {
 		};
 	}
 
-	function parseMarkdown(text: string) {
+	function getMarkdown(msg: MessageInterface) {
+		if (msg.markdownCache) return msg.markdownCache;
+		debug('parseMarkdown start')
 		const res = unified()
 			.use(remarkParse)
 			.use(remarkBreaks)
@@ -170,11 +176,14 @@ if (preElement) {
 			.use(rehypeSelectAll)
 			.use(rehypeKatex)
 			.use(rehypeStringify)
-			.processSync(text);
-		return res.toString();
+			.processSync(msg.text);
+		const str = res.toString();
+		msg.markdownCache = str;
+		debug('parseMarkdown end');
+		return str;
 	}
 </script>
 
-<div class="text-message prose grow overflow-x-auto pt-2">
-	{@html parseMarkdown(message.text)}
+<div class="text-message prose grow  pt-2">
+	{@html getMarkdown(message)}
 </div>
