@@ -1,4 +1,5 @@
 <script lang="ts">
+	import {chatStreaming} from '$lib/stores/appstate';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ConversationInfo');
 
@@ -50,7 +51,7 @@
 	}
 
 	let info: Array<any> = [];
-	$: if (conversation) info = collectInfo();
+	$: if (conversation?.id  && !$chatStreaming) info = collectInfo();
 </script>
 
 <div class="card w-full overflow-auto rounded-none bg-base-300 p-4 shadow-xl">

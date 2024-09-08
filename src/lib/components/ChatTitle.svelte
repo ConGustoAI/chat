@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { APIupdateUser, APIupsertConversation } from '$lib/api';
-	import { apiKeys, assistants, dbUser, hiddenItems, models, providers, sidebarOpen } from '$lib/stores/appstate';
+	import {
+		apiKeys,
+		assistants,
+		dbUser,
+		hiddenItems,
+		models,
+		providers,
+		sidebarOpen,
+		chatDataLoading,
+		chatStreaming
+	} from '$lib/stores/appstate';
 	import { ArrowLeftCircle, Edit, Info, Link, Star, UserCircle } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { defaultsUUID } from '$lib/db/schema';
@@ -10,7 +20,6 @@
 
 	export let conversation: ConversationInterface | undefined;
 	export let updatingLike: boolean;
-	export let chatLoading: boolean;
 	export let isPublic = false;
 	let updatingPublic: boolean;
 
@@ -117,7 +126,7 @@
 	<!-- navbar-center -->
 	<div class="navbar-center hidden max-w-[70%] md:block">
 		<div class="w-full text-center text-xl font-bold">
-			{#if !chatLoading}
+			{#if !$chatDataLoading}
 				{#if conversation}
 					{#if editingSummary}
 						<input
@@ -145,7 +154,7 @@
 
 	<!-- navbar-end -->
 	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
-		{#if conversation?.id && !isPublic }
+		{#if conversation?.id && !isPublic}
 			<div class="mr-5 hidden items-center justify-end gap-4 md:flex">
 				{#if conversation.public}
 					<a href={'/public/' + conversation.id} class="btn btn-sm rounded-md bg-base-300"><Link size={18} /></a>

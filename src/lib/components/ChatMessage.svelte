@@ -13,6 +13,7 @@
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
 	export let message: MessageInterface;
 	export let isPublic = false;
+	export let loading: boolean = false;
 
 	let chatError: string | undefined;
 	$: markdown = message.role === 'assistant';
@@ -116,9 +117,11 @@
 	}
 </script>
 
-<div class="text-message relative flex items-start pb-2" class:bg-base-usermessage={message.role == 'user'}>
+<div class="relative flex items-start pb-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
-		{#if message.role == 'user'}
+		{#if loading}
+			<div class="loading loading-ring loading-md" />
+		{:else if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
 			<Computer size="24" />

@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import {
-		APIdeleteConversation,
-		APIfetchConversation,
-		APIfetchConversations
-	} from '$lib/api';
+	import { APIdeleteConversation, APIfetchConversation, APIfetchConversations } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { assistants, dbUser, hiddenItems, sidebarOpen } from '$lib/stores/appstate';
+	import { assistants, dbUser, hiddenItems, sidebarOpen, chatDataLoading, chatStreaming } from '$lib/stores/appstate';
 	import { errorToMessage, newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
@@ -21,7 +17,6 @@
 
 	let conversation: ConversationInterface | undefined;
 	let updatingLike = false;
-	let chatLoading = false;
 
 	let chatError: string | undefined;
 
@@ -30,7 +25,7 @@
 	// This will fetch the data eventually, but we are ok with the initial empty data.
 	dbUser.subscribe(async () => {
 		debug('dbUser changed, fetching data');
-		chatLoading = true;
+		$chatDataLoading = true;
 
 		const [gotConvos, cgotConvo] = await Promise.all([
 			APIfetchConversations().catch((e) => {
@@ -52,7 +47,7 @@
 		}
 
 		conversationOrder = Object.keys(conversations);
-		chatLoading = false;
+		$chatDataLoading = false;
 		debug('done fetching data', { conversation, conversations, conversationOrder });
 	});
 
@@ -68,7 +63,7 @@
 			if (conversations[convId]) conversation = conversations[convId];
 			// If the conversation has no messages loaded, fetch them.
 			if (!conversation?.messages) {
-				chatLoading = true;
+				$chatDataLoading = true;
 				let promise;
 				promise = APIfetchConversation(convId);
 
@@ -82,7 +77,7 @@
 						chatError = 'Failed to fetch conversation:' + errorToMessage(e);
 					})
 					.finally(() => {
-						chatLoading = false;
+						$chatDataLoading = false;
 					});
 			}
 		} else {
@@ -101,84 +96,94 @@
 			await goto('/login');
 		}
 
-		if (!conversation) throw new Error('The conversation is missing.');
-		if (!conversation.assistant) throw new Error('No assistant assigned.');
-		if (!conversation.messages) throw new Error('The conversation messages are missing.');
+		$chatStreaming = true;
 
-		const toSend = conversation.messages;
+		try {
+			if (!conversation) throw new Error('The conversation is missing.');
+			if (!conversation.assistant) throw new Error('No assistant assigned.');
+			if (!conversation.messages) throw new Error('The conversation messages are missing.');
 
-		if (toSend.length < 2) throw new Error('The conversation should have at least 2 messages.');
-		if (toSend[toSend.length - 2].role !== 'user') throw new Error('The first message should be from the user.');
-		if (toSend[toSend.length - 1].role !== 'assistant') {
-			throw new Error('The last message should be from the assistant.');
-		}
+			const toSend = conversation.messages;
 
-		const res = await fetch('/api/chat', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ conversation, toDelete })
-		});
-		debug('submitConversation POST: ', res);
-
-		if (!res.ok) throw new Error((await res.json()).message ?? 'Failed to submit the conversation.');
-		if (!res.body) throw new Error('The response body is empty.');
-
-		const reader = res.body.getReader();
-
-		for await (const { type, value } of readDataStream(reader)) {
-			debug('readDataStream', type, value);
-			if (!conversation.messages) throw new Error('The conversation messages are missing??');
-			if (type === 'text') {
-				conversation.messages[conversation.messages.length - 1].text += value;
+			if (toSend.length < 2) throw new Error('The conversation should have at least 2 messages.');
+			if (toSend[toSend.length - 2].role !== 'user') throw new Error('The first message should be from the user.');
+			if (toSend[toSend.length - 1].role !== 'assistant') {
+				throw new Error('The last message should be from the assistant.');
 			}
-			if (type === 'finish_message') {
-			}
-			if (type === 'data') {
-				debug('readDataStream', { type, value });
 
-				for (const dataPart of value) {
-					if (typeof dataPart === 'object' && dataPart !== null) {
-						if ('conversation' in dataPart) {
-							const dataConversation = dataPart.conversation as unknown as ConversationInterface;
-							// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
-							if (conversation.id && conversation.id != dataConversation.id)
-								throw new Error('The conversation ID does not match.');
+			const res = await fetch('/api/chat', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ conversation, toDelete })
+			});
+			debug('submitConversation POST: ', res);
 
-							conversation = { ...conversation, ...dataConversation };
-							if (!conversation.id) throw new Error('The conversation ID is missing.');
+			if (!res.ok) throw new Error((await res.json()).message ?? 'Failed to submit the conversation.');
+			if (!res.body) throw new Error('The response body is empty.');
 
-							if (!conversations[conversation.id]) {
-								// New conversation is not yet in the conversations dictionary.
-								conversations[conversation.id] = conversation;
-								conversationOrder = [conversation.id!, ...conversationOrder];
+			const reader = res.body.getReader();
+
+			for await (const { type, value } of readDataStream(reader)) {
+				debug('readDataStream', type, value);
+				if (!conversation.messages) throw new Error('The conversation messages are missing??');
+				if (type === 'text') {
+					conversation.messages[conversation.messages.length - 1].text += value;
+				}
+				if (type === 'finish_message') {
+				}
+				if (type === 'data') {
+					debug('readDataStream', { type, value });
+
+					for (const dataPart of value) {
+						if (typeof dataPart === 'object' && dataPart !== null) {
+							if ('conversation' in dataPart) {
+								const dataConversation = dataPart.conversation as unknown as ConversationInterface;
+								// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
+								if (conversation.id && conversation.id != dataConversation.id)
+									throw new Error('The conversation ID does not match.');
+
+								conversation = { ...conversation, ...dataConversation };
+								if (!conversation.id) throw new Error('The conversation ID is missing.');
+
+								if (!conversations[conversation.id]) {
+									// New conversation is not yet in the conversations dictionary.
+									conversations[conversation.id] = conversation;
+									conversationOrder = [conversation.id!, ...conversationOrder];
+								}
+							}
+							if ('userMessage' in dataPart) {
+								if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								// TS is being silly a bit
+								Object.assign(
+									conversation.messages[conversation.messages.length - 2],
+									dataPart.userMessage as unknown as MessageInterface
+								);
+							}
+							if ('assistantMessage' in dataPart) {
+								if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								// TS is being silly a bit
+								Object.assign(
+									conversation.messages[conversation.messages.length - 1],
+									dataPart.assistantMessage as unknown as MessageInterface
+								);
 							}
 						}
-						if ('userMessage' in dataPart) {
-							if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
-							// TS is being silly a bit
-							Object.assign(
-								conversation.messages[conversation.messages.length - 2],
-								dataPart.userMessage as unknown as MessageInterface
-							);
-						}
-						if ('assistantMessage' in dataPart) {
-							if (!conversation.messages?.length) throw new Error('The conversation messages are missing??');
-							// TS is being silly a bit
-							Object.assign(
-								conversation.messages[conversation.messages.length - 1],
-								dataPart.assistantMessage as unknown as MessageInterface
-							);
-						}
 					}
+					conversation = conversation;
 				}
-				conversation = conversation;
+				if (type === 'error') {
+					debug('readDataStream error', value);
+					throw new Error(value);
+				}
 			}
-			if (type === 'error') {
-				debug('readDataStream error', value);
-				throw new Error(value);
-			}
+		} catch (e) {
+			chatError = errorToMessage(e);
+			debug('submitConversation error', chatError);
+		} finally {
+			// This will also trigger the conversation summary.
+			$chatStreaming = false;
 		}
 	}
 
@@ -240,12 +245,16 @@
 	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen} />
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
-		<ChatTitle {chatLoading} bind:conversation bind:updatingLike />
+		<ChatTitle bind:conversation bind:updatingLike />
 
 		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
 			{#if conversation?.messages}
-				{#each conversation.messages as m}
-					<ChatMessage bind:conversation bind:message={m} {submitConversation} />
+				{#each conversation.messages as m, i}
+					<ChatMessage
+						bind:conversation
+						bind:message={m}
+						loading={(i === conversation.messages.length - 1) && $chatStreaming}
+						{submitConversation} />
 				{/each}
 				<div class="mb-20 w-full" />
 			{:else}
