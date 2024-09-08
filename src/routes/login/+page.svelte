@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Notification } from '$lib/components';
+	// import { Notification } from '$lib/components';
 
-	import { applyAction, enhance } from '$app/forms';
+	// import { applyAction, enhance } from '$app/forms';
 	import { env } from '$env/dynamic/public';
 	import { dbUser } from '$lib/stores/appstate';
 	import { goto } from '$app/navigation';
@@ -17,7 +17,7 @@
 
 	let isLogin = true;
 
-	let EmailSpinning = false;
+	// let EmailSpinning = false;
 	let loginGoogleSpinning = false;
 	let loginGithubSpinning = false;
 
@@ -27,7 +27,7 @@
 </script>
 
 <h2 class="card-title justify-center">{isLogin ? 'Login' : 'Sign Up'}</h2>
-{#if !env.PUBLIC_DISABLE_EMAIL_LOGIN}
+<!-- {#if !env.PUBLIC_DISABLE_EMAIL_LOGIN}
 	<form
 		method="POST"
 		action={isLogin ? '?/loginEmail' : '?/signup'}
@@ -108,49 +108,49 @@
 			</a>
 		</div>
 	</form>
+{/if} -->
 
-	{#if !env.PUBLIC_DISABLE_EMAIL_LOGIN && (!env.PUBLIC_DISABLE_GOOGLE_LOGIN || !env.PUBLIC_DISABLE_GITHUB_LOGIN)}
-		<div class="divider">OR</div>
-	{/if}
-	<form method="POST" action="?/loginProvider">
-		<div class="flex flex-col gap-2">
-			{#if !env.PUBLIC_DISABLE_GOOGLE_LOGIN}
-				<button
-					formaction="?/google"
-					class="btn btn-outline"
-					on:click={() => {
-						loginGoogleSpinning = true;
-					}}>
-					{#if loginGoogleSpinning}
-						<div class="loading"></div>
-					{:else}
-						<Google />
-					{/if}
-					{isLogin ? 'Log in' : 'Sign Up'} with Google
-				</button>
-			{/if}
-			{#if !env.PUBLIC_DISABLE_GITHUB_LOGIN}
-				<button
-					formaction="?/github"
-					class="btn btn-outline"
-					on:click={() => {
-						loginGithubSpinning = true;
-					}}>
-					{#if loginGithubSpinning}
-						<div class="loading"></div>
-					{:else}
-						<GitHub />
-					{/if}
-					{isLogin ? 'Log in' : 'Sign Up'} with GitHub
-				</button>
-			{/if}
-
-			{#if env.PUBLIC_DISABLE_EMAIL_LOGIN && env.PUBLIC_DISABLE_GOOGLE_LOGIN && env.PUBLIC_DISABLE_GITHUB_LOGIN}
-				<div class="text-center">
-					<p>No login methods available.</p>
-					<p>Please contact the Admin.</p>
-				</div>
-			{/if}
-		</div>
-	</form>
+{#if !env.PUBLIC_DISABLE_EMAIL_LOGIN && (!env.PUBLIC_DISABLE_GOOGLE_LOGIN || !env.PUBLIC_DISABLE_GITHUB_LOGIN)}
+	<div class="divider">OR</div>
 {/if}
+<form method="POST" action="?/loginProvider">
+	<div class="flex flex-col gap-2">
+		{#if !env.PUBLIC_DISABLE_GOOGLE_LOGIN}
+			<button
+				formaction="?/google"
+				class="btn btn-outline"
+				on:click={() => {
+					loginGoogleSpinning = true;
+				}}>
+				{#if loginGoogleSpinning}
+					<div class="loading"></div>
+				{:else}
+					<Google />
+				{/if}
+				{isLogin ? 'Log in' : 'Sign Up'} with Google
+			</button>
+		{/if}
+		{#if !env.PUBLIC_DISABLE_GITHUB_LOGIN}
+			<button
+				formaction="?/github"
+				class="btn btn-outline"
+				on:click={() => {
+					loginGithubSpinning = true;
+				}}>
+				{#if loginGithubSpinning}
+					<div class="loading"></div>
+				{:else}
+					<GitHub />
+				{/if}
+				{isLogin ? 'Log in' : 'Sign Up'} with GitHub
+			</button>
+		{/if}
+
+		{#if env.PUBLIC_DISABLE_EMAIL_LOGIN && env.PUBLIC_DISABLE_GOOGLE_LOGIN && env.PUBLIC_DISABLE_GITHUB_LOGIN}
+			<div class="text-center">
+				<p>No login methods available.</p>
+				<p>Please contact the Admin.</p>
+			</div>
+		{/if}
+	</div>
+</form>
