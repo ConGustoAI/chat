@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { APIfetchAssistants, APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
 	import { SidebarNav } from '$lib/components';
-	import { apiKeys, assistants, dbUser, models, providers } from '$lib/stores/appstate';
-	import { toIdMap } from '$lib/utils';
+	import { dbUser } from '$lib/stores/appstate';
 	import { ArrowLeftCircle } from 'lucide-svelte';
-	import { onMount } from 'svelte';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:layout');

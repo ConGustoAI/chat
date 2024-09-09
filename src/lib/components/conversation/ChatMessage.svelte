@@ -7,6 +7,7 @@
 	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
 
 	import dbg from 'debug';
+	import Notification from '../Notification.svelte';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	export let submitConversation: (toDelete: string[]) => Promise<void>;
@@ -167,10 +168,11 @@
 
 		{#if message.finishReason === 'content-filter'}
 			<div class="text-warning">Content filtered by the provider</div>
-		{:else if message.finishReason === 'error'}
+		{:else if message.finishReason == 'error'}
 			<div class="text-error">Request finished with an error</div>
 		{/if}
 		<!-- </div> -->
+		<Notification messageType="error" bind:message={chatError} />
 
 		{#if !editingMessage}
 			<div class="absolute right-0 top-0 mr-2 flex gap-2 text-base-content">
@@ -213,7 +215,3 @@
 		<!-- <pre>{JSON.stringify(message, null, 2)}</pre> -->
 	</div>
 </div>
-
-{#if chatError}
-	<div class="mx-12 text-error">{chatError}</div>
-{/if}

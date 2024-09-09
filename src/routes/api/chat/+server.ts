@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { defaultsUUID, messagesTable, promptsTable } from '$lib/db/schema';
-import { DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
+import { DBupdateUser, DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
 import { promptHash, undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
@@ -169,7 +169,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			]);
 
 			// Insert/update the rest in parallel
-			const [iAM, iDMs, iC] = await Promise.all([
+			const [iAM, iDMs, iC, iU] = await Promise.all([
 				DBupsertMessage({
 					dbUser,
 					message: AM
@@ -190,8 +190,9 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 					conversation,
 					tokensIn: AM.tokensIn,
 					tokensOut: AM.tokensOut
-				})
-			]) as [MessageInterface, MessageInterface[], ConversationInterface];
+				}),
+				DBupdateUser({ dbUser, updatedUser: { id: dbUser!.id, lastAssistant: assistantData.id } })
+			]) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];
 
 			iAM.prompt = { id: systemPromptHash, text: systemPrompt };
 			debug('After updating the DB: %o', {
@@ -199,7 +200,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 				assistantMessage: iAM,
 				deletedMessages: iDMs,
 				conversation: iC,
-				prompt: iP
+				prompt: iP,
+				user: iU
 			});
 			if (!iUM.id || !iAM.id) error(500, 'Failed to update messages');
 			if (iDMs.length != (toDelete?.length ?? 0)) error(500, 'Failed to delete messages');

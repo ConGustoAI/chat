@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { ClassValue } from 'tailwind-variants';
+import { defaultsUUID } from './db/schema';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -43,10 +44,19 @@ export function errorToMessage(error: unknown): string {
 	return 'Unknown error';
 }
 
-export const newConversation = (userID: string, assistant?: string): ConversationInterface => ({
-	userID,
-	assistant
-});
+export function newConversation(
+	dbUser: UserInterface | undefined,
+	assistants: { [key: string]: AssistantInterface } | undefined
+): ConversationInterface {
+	if (!dbUser) return { userID: 'anon' };
+	let newAssistant = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
+	if (!newAssistant && assistants && Object.keys(assistants).length) newAssistant = Object.keys(assistants)[0];
+
+	return {
+		userID: dbUser.id,
+		assistant: newAssistant || defaultsUUID
+	};
+}
 
 type MappableInterface =
 	| ProviderInterface
@@ -58,7 +68,7 @@ type MappableInterface =
 	| UserInterface
 	| ConversationInterface;
 
-export function toIdMap<T extends MappableInterface>(array: Array<T>)  {
+export function toIdMap<T extends MappableInterface>(array: Array<T>) {
 	if (!array) return {};
 	// [ {id:a, ...}, {id:b, ...} ] => {a: {id:a, ...}, b: {id:b, ...}}
 	return array.reduce<{ [key: string]: T }>((acc, cur) => {

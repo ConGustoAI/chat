@@ -5,6 +5,7 @@
 	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { dbUser } from '$lib/stores/appstate';
+	import { defaultsUUID } from '$lib/db/schema';
 
 	let assistants: AssistantInterface[] = [];
 
@@ -89,6 +90,7 @@
 			<label class="flex flex-col">
 				<span class="text-sm">Default Assistant</span>
 				<select class="select select-bordered w-full" bind:value={$dbUser.assistant} on:change={statusChanged}>
+					<option value={defaultsUUID}>Last one used</option>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}

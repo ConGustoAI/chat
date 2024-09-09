@@ -4,6 +4,7 @@
 	import GrowInput from '../GrowInput.svelte';
 	import dbg from 'debug';
 	import { conversation } from '$lib/stores/appstate';
+	import Notification from '../Notification.svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -24,6 +25,7 @@
 			{ userID: $conversation.userID, role: 'user', text: input },
 			{ userID: $conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
+		
 
 		let savedInput = input;
 		input = '';
@@ -37,6 +39,7 @@
 			chatError = undefined;
 			await goto(`/chat/${$conversation.id}`);
 		} catch (e: unknown) {
+			debug('onSubmit error', e);
 			$conversation.messages = $conversation.messages.slice(0, -2);
 			if (e instanceof Error) {
 				chatError = e.message;
@@ -59,9 +62,7 @@
 </script>
 
 <div class="flex h-fit w-full flex-col">
-	{#if chatError}
-		<div class="text-error">{chatError}</div>
-	{/if}
+	<Notification messageType="error" bind:message={chatError} />
 
 	<div class="relative h-fit w-full">
 		<GrowInput
@@ -71,7 +72,7 @@
 			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
 		<div class="absolute bottom-1 left-2">
 			<button class="btn btn-circle btn-sm" disabled={true}>
-				<Upload style="disabled" size={20}/>
+				<Upload style="disabled" size={20} />
 			</button>
 		</div>
 		<div class="absolute bottom-1 right-2">

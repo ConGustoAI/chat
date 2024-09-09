@@ -28,6 +28,7 @@ declare global {
 		admin?: boolean;
 		hacker?: boolean;
 		assistant?: string;
+		lastAssistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;
 		createdAt?: Date;

@@ -4,7 +4,7 @@
 </script>
 
 <button
-	class="text-{messageType}"
+	class="text-{messageType} self-start"
 	on:click={() => {
 		message = '';
 	}}

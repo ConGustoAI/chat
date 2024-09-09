@@ -25,7 +25,7 @@
 		{@const model = $models[assistant?.model ?? 'empty']}
 		{@const provider = $providers[model?.providerID ?? 'empty']}
 		{@const providerKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === provider?.id)}
-		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.id === assistant.apiKey)}
+		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.id === assistant?.apiKey)}
 
 		{#if assistant}
 			{#if !model}
