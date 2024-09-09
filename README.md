@@ -68,7 +68,7 @@ Github is the easiest to set up.
   - Set the `Homepage URL` to your domain.
   - Set the `Authorization callback URL` to `https://yourdomain.com/login/github`
 
-- Github does not allow multiple callback URLs, so if you want to both deploy publicly and do lovel development, you will need to create an extra OAuth App for local development.
+- Github does not allow multiple callback URLs, so if you want to both deploy publicly and do local development, you will need to create an extra OAuth App for local development.
   - Set the `Authorization callback URL` to `http://localhost:5173/login/github`
 
 Set the following environment variables:
@@ -96,9 +96,7 @@ To set up OAuth authentication with Google:
 - Click "Create Credentials" and select "OAuth client ID".
 - Choose "Web application" as the application type.
 - Set the "Authorized JavaScript origins" to your domain (e.g., `https://yourdomain.com`).
-- For local development:
-  - Set the "Authorized redirect URIs" to `https://yourdomain.com/login/google`.
-  - For local development, add `http://localhost:5173` as an authorized JavaScript origin and `http://localhost:5173/login/google` as a redirect URI.
+- For local development, add `http://localhost:5173` as an authorized JavaScript origin and `http://localhost:5173/login/google` as a redirect URI.
 
 After creating the OAuth client, you'll receive a client ID and client secret. Set these as environment variables:
 
@@ -127,6 +125,8 @@ Coming soon.
 - Install the dependencies
   `bun i`
 
+- Populate .env with your Postgres connection string, Google and/or Github OAuth credentials.
+
 - Run migrations (populate the table structure) and seed the database with default data.
   `bun db:migrate`
   `bun db:seed`
@@ -135,8 +135,6 @@ Coming soon.
   `bun dev`
 
 - Open the browser at http://localhost:5173 and sign up as a new user.
-- In your database, the `public.users` table should have a new user.
-  - Set the `is_admin` field to `true` to make the user an admin.
 
 > **Note:** Run migrations when you make changes to the database schema (src/lib/db/schema/*.ts):
 - `bun db:generate` to update the migrations.
@@ -148,13 +146,10 @@ If you update the default providers/models/assistants, don't forget to reflect t
 
 - Fork the repository on Github.
 - Create a new project, "Deploy from GitHub" and point it to our repository.
-- In settings:
-  - Set the "start command" to `node build`.
 - Set the envorpnment variables in the settings.
+- Set the domain name to your domain, make sure it matches the auth callback URL for Google/Github.
 
-- Set the domain name to your domain,
-
-
+> @xl0 You can also deploy Postgres on Railway, but the management UI is minimal. I prefer Supabase or Neon if I have to touch the database.
 
 ## Deploy to Vercel (Not recommended)
 
@@ -173,6 +168,13 @@ Still, if you choose to deploy to Vercel, you can:
 - Runtime limits: 60 seconds on Hoby plan, 300 seconds on Pro plan.
 - Set the environment variables.
 - Set the domain name to your domain, and make sure the auth callback URL for Google/Github matches the domain.
+
+## Admin users
+
+Congusto Chat keeps the providers (OpenAI, Anthropic, etc.), models and assistants in the database. It comes with a set of default ones, and the users are able to define their own. The default ones are seeded in the database when you run `bun db:seed`.
+
+To edit the default providers, models, and assistants through the UI, the user needs to be an Admin.
+To make a user an Admin, set the `is_admin` field to `true` for that user in the `public.users` table, you will see the Admin entries in the Settings page.
 
 ## Development
 

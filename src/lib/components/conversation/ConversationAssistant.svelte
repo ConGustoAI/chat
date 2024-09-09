@@ -25,7 +25,7 @@
 		{@const model = $models[assistant?.model ?? 'empty']}
 		{@const provider = $providers[model?.providerID ?? 'empty']}
 		{@const providerKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === provider?.id)}
-		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === assistant.apiKey)}
+		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.id === assistant.apiKey)}
 
 		{#if assistant}
 			{#if !model}
@@ -35,7 +35,7 @@
 				</div>
 			{:else if !providerKey}
 				<div class="flex flex-col text-sm">
-					<div class="text-error">Provider '{provider?.name}' has no API key</div>
+					<div class="text-error">Provider '{provider?.name}' has no API keys</div>
 					<a href="/settings/providers/#{provider.id}/keys" class="link">Edit provider</a>
 				</div>
 			{:else if !assistantKey && assistant.apiKey !== defaultsUUID}
