@@ -1,7 +1,7 @@
 # 👍 Congusto Chat
 
 Vision:
-To build the best AI Chat application for developers and power users.
+To build the best open-source AI Chat application for developers and power users.
 
 Features:
 
@@ -18,6 +18,7 @@ Features:
 - [~] Esay deployment
   - [x] Postgres + Vercel (or any other host with node support)
   - [ ] Local deployment with SQLite an no auth.
+- [x] MIT license allows for commercial use and modification.
 
 Milestones:
 
@@ -143,15 +144,34 @@ Coming soon.
 
 If you update the default providers/models/assistants, don't forget to reflect this in `src/lib/db/seed.ts`
 
-## Deploy to Vercel
+## Deployment on Railway.app (Recommended)
 
+- Fork the repository on Github.
+- Create a new project, "Deploy from GitHub" and point it to our repository.
+- In settings:
+  - Set the "start command" to `node build`.
+- Set the envorpnment variables in the settings.
+
+- Set the domain name to your domain,
+
+
+
+## Deploy to Vercel (Not recommended)
+
+> The issue with Vercel is, instead of the normal long-lived node runtime, they wrap your code into "server functions" that are short-lived, and then charge per millisecond of their runtime. On the hobby plan, the default runtime cap is 10 seconds that can be extended to 60.
+> When we execute a chat request, the backend function runs for the time the message is being streamed from the LLM provider. This typically takes a few seconds, and can easily be minutes for long message from a slow provider. This will result in a timeous and/or an expensive deployment.
+
+Still, if you choose to deploy to Vercel, you can:
+
+- In `svelte.config.js`, set the `adapter` to `vercel` (uncomment vercel, comment out node).
 - In settings, use the following commands:
   - Build command: `bun run deploy` - this will build the app and run migrations/seed if needed.
   - Install command: `bun i`
   - Development command: `bun dev`
 
 - Node version: 20
-- Set the environment variables
+- Runtime limits: 60 seconds on Hoby plan, 300 seconds on Pro plan.
+- Set the environment variables.
 - Set the domain name to your domain, and make sure the auth callback URL for Google/Github matches the domain.
 
 ## Development
@@ -159,3 +179,6 @@ If you update the default providers/models/assistants, don't forget to reflect t
 For backend logs, set `DEBUG=app:*` to see all logs. You can also set it a subset of the logs, e.g., `DEBUG=app:db*` to see only the database logs.
 For frontend logs, set `debug` to `*` in the browser local storage.
 See the [debug](https://www.npmjs.com/package/debug) package for more information.
+
+## Sponsors:
+Possibly, you: [info@congusto.ai](mailto:info@congusto.ai)
