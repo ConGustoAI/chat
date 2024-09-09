@@ -16,7 +16,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "bun db:generate && bun drizzle-kit migrate",
+		"db:migrate": "bun ./src/lib/db/migrations.ts",
 		"db:seed": "bun ./src/lib/db/seed.ts"
 	},
 	"devDependencies": {
@@ -37,6 +37,7 @@
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.6",
 		"svelte": "^4.2.19",
+		"svelte-adapter-bun": "^0.5.2",
 		"svelte-check": "^4.0.1",
 		"tailwindcss": "^3.4.10",
 		"ts-node": "^10.9.2",
@@ -57,6 +58,7 @@
 		"@sveltejs/adapter-node": "^5.2.2",
 		"@types/hast": "^3.0.4",
 		"ai": "^3.3.30",
+		"bun": "^1.1.27",
 		"arctic": "^1.9.2",
 		"clsx": "^2.1.1",
 		"daisyui": "^4.12.10",
