@@ -178,7 +178,7 @@
 				}
 				if (type === 'error') {
 					debug('readDataStream error', value);
-					throw new Error(value);
+					// throw new Error(value);
 				}
 			}
 		} catch (e) {
