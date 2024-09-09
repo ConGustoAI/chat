@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { defaultsUUID } from '$lib/db/schema';
-	import { dbUser, assistants, hiddenItems, models, providers, apiKeys, conversation } from '$lib/stores/appstate';
-	import { Star } from 'lucide-svelte';
-
-	export let updateConversation: (e: Event) => Promise<void>;
-	let updatingLike = false;
+	import { apiKeys, assistants, conversation, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
 </script>
 
 {#if $conversation}
@@ -23,21 +19,6 @@
 				{/if}
 			{/each}
 		</select>
-	{:else if updatingLike}
-		<span class="loading loading-spinner loading-xs"></span>
-	{:else}
-		<label class="swap">
-			<input
-				type="checkbox"
-				bind:checked={$conversation.like}
-				on:change={async (e) => {
-					updatingLike = true;
-					await updateConversation(e);
-					updatingLike = false;
-				}} />
-			<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
-			<div class="swap-off"><Star color="var(--star)" /></div>
-		</label>
 	{/if}
 	{#if $conversation.assistant}
 		{@const assistant = $assistants[$conversation?.assistant ?? 'empty']}

@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { APIupsertConversation } from '$lib/api';
-	import { ConversationAssistant, ConversationInfo, ProfileCircle, ShareConversation, } from '$lib/components';
-	import {
-		chatDataLoading,
-		sidebarOpen,
-		conversation
-	} from '$lib/stores/appstate';
+	import { ConversationAssistant, ConversationInfo, ProfileCircle, ShareConversation } from '$lib/components';
+	import { chatDataLoading, sidebarOpen, conversation } from '$lib/stores/appstate';
 	import dbg from 'debug';
-	import { ArrowLeftCircle, Edit, Info } from 'lucide-svelte';
+	import { ArrowLeftCircle, Edit, Info, Star } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
@@ -25,6 +21,7 @@
 	}
 
 	let editingSummary = false;
+	let updatingLike = false;
 </script>
 
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-100">
@@ -38,9 +35,27 @@
 		{#if $conversation?.id && !$sidebarOpen}
 			<a href={'/chat/'} class="link"><Edit /></a>
 		{/if}
+		{#if $conversation?.id}
+			{#if updatingLike}
+				<span class="loading loading-spinner loading-xs"></span>
+			{:else}
+				<label class="swap">
+					<input
+						type="checkbox"
+						bind:checked={$conversation.like}
+						on:change={async (e) => {
+							updatingLike = true;
+							await updateConversation(e);
+							updatingLike = false;
+						}} />
+					<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
+					<div class="swap-off"><Star color="var(--star)" /></div>
+				</label>
+			{/if}
+		{/if}
 
 		{#if !isPublic}
-			<ConversationAssistant {updateConversation} />
+			<ConversationAssistant />
 		{/if}
 	</div>
 	<!-- navbar-center -->
