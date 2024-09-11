@@ -1,4 +1,4 @@
-import { assistantsTable, modelsTable, providersTable, usersTable, seedTable, defaultsUUID } from './schema';
+import { assistantsTable, modelsTable, providersTable, usersTable, seedTable, defaultsUUID } from '$lib/db/schema';
 import dbg from 'debug';
 const debug = dbg('app:db:seed');
 
@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 import { DefaultLogger, type LogWriter } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema';
+import * as schema from '$lib/db/schema';
 
 // Provider IDs
 export const anthropicProviderID = '8040ae6a-03cf-41b2-b1c7-c50b5fc3f54f';

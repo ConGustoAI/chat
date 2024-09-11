@@ -3,7 +3,7 @@ import { DefaultLogger, type LogWriter } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import * as schema from './schema';
+import * as schema from '$lib/db/schema';
 
 import dbg from 'debug';
 const debug = dbg('app:db:migrations');

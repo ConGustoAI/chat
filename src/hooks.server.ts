@@ -1,7 +1,8 @@
 import { type Handle } from '@sveltejs/kit';
 
-// import dbg from 'debug';
-// const debug = dbg('app:hooks');
+import dbg from 'debug';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const debug = dbg('app:hooks');
 
 export const sse = false;
 
@@ -10,13 +11,13 @@ import { DBgetAssistants, DBgetHiddenItems, DBgetUser, DBinsertUser, DBupdateUse
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
-	if (!sessionId) {
-		event.locals.user = null;
-		event.locals.session = null;
-		return resolve(event);
-	}
+	// if (!sessionId) {
+	// 	event.locals.user = null;
+	// 	event.locals.session = null;
+	// 	return resolve(event);
+	// }
 
-	const { session, user } = await lucia.validateSession(sessionId);
+	const { session, user } = await lucia.validateSession(sessionId??"");
 	if (session && session.fresh) {
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		// sveltekit types deviates from the de-facto standard
@@ -72,7 +73,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.assistants = (await DBgetAssistants({})) as AssistantInterface[];
 	}
 
-	// debug({session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser });
+	// debug("hook %o", {session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser, assistants: event.locals.assistants, hiddenItems: event.locals.hiddenItems});
 
 	return resolve(event);
 };

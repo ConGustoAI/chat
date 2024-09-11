@@ -118,29 +118,28 @@ Coming soon.
 
 - Clone the repository: `git clone https://github.com/ConGustoAI/chat`
 - Copy `.env.example` to `.env` and set the environment variables.
-- Make sure you have NodeJS v20 and Bun installed.
-  - Install NodeJS 20, platform-dependent.
-  - `npm install -g bun`
+- Make sure you have NodeJS v20+ installed.
+  - Install NodeJS, platform-dependent.
 
 - Install the dependencies
-  `bun i`
+  `npm i`
 
 - Populate .env with your Postgres connection string, Google and/or Github OAuth credentials.
 
 - Run migrations (populate the table structure) and seed the database with default data.
-  `bun db:migrate`
-  `bun db:seed`
+  `npm db:migrate`
+  `npm db:seed`
 
 - Start the dev server
-  `bun dev`
+  `npm dev`
 
 - Open the browser at http://localhost:5173 and sign up as a new user.
 
 > **Note:** Run migrations when you make changes to the database schema (src/lib/db/schema/*.ts):
-- `bun db:generate` to update the migrations.
-- `bun db:migrate` to apply the migrations. This will sync the database schema with the code.
+- `npm db:generate` to update the migrations.
+- `npm db:migrate` to apply the migrations. This will sync the database schema with the code.
 
-If you update the default providers/models/assistants, don't forget to reflect this in `src/lib/db/seed.ts`
+If you update the default providers/models/assistants, don't forget to reflect this in `src/scripts/seed.ts`
 
 ## Deployment on Railway.app (Recommended)
 
@@ -160,9 +159,9 @@ Still, if you choose to deploy to Vercel, you can:
 
 - In `svelte.config.js`, set the `adapter` to `vercel` (uncomment vercel, comment out node).
 - In settings, use the following commands:
-  - Build command: `bun run deploy` - this will build the app and run migrations/seed if needed.
-  - Install command: `bun i`
-  - Development command: `bun dev`
+  - Build command: `npm run deploy` - this will build the app and run migrations/seed if needed.
+  - Install command: `npm i`
+  - Development command: `npm dev`
 
 - Node version: 20
 - Runtime limits: 60 seconds on Hoby plan, 300 seconds on Pro plan.
@@ -171,7 +170,7 @@ Still, if you choose to deploy to Vercel, you can:
 
 ## Admin users
 
-Congusto Chat keeps the providers (OpenAI, Anthropic, etc.), models and assistants in the database. It comes with a set of default ones, and the users are able to define their own. The default ones are seeded in the database when you run `bun db:seed`.
+Congusto Chat keeps the providers (OpenAI, Anthropic, etc.), models and assistants in the database. It comes with a set of default ones, and the users are able to define their own. The default ones are seeded in the database when you run `npm run db:seed`.
 
 To edit the default providers, models, and assistants through the UI, the user needs to be an Admin.
 To make a user an Admin, set the `is_admin` field to `true` for that user in the `public.users` table, you will see the Admin entries in the Settings page.
