@@ -2,22 +2,19 @@
 	"name": "assistant",
 	"version": "0.0.1",
 	"private": true,
-	"engines": {
-		"bun": "^1.1.27"
-	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"start": "bun ./build",
-		"deploy": "vite build && bun run db:migrate && bun run db:seed",
+		"start": "node ./build",
+		"deploy": "vite build && npm run db:migrate && npm run db:seed",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "bun ./src/lib/db/migrations.ts",
-		"db:seed": "bun ./src/lib/db/seed.ts"
+		"db:migrate": "node ./src/lib/db/migrations.ts",
+		"db:seed": "node ./src/lib/db/seed.ts"
 	},
 	"devDependencies": {
 		"@tailwindcss/typography": "^0.5.15",
@@ -55,10 +52,10 @@
 		"@aws-sdk/client-s3": "^3.645.0",
 		"@aws-sdk/lib-storage": "^3.645.0",
 		"@lucia-auth/adapter-drizzle": "^1.1.0",
+		"@sveltejs/adapter-auto": "^3.2.4",
 		"@sveltejs/adapter-node": "^5.2.2",
 		"@types/hast": "^3.0.4",
 		"ai": "^3.3.30",
-		"bun": "^1.1.27",
 		"arctic": "^1.9.2",
 		"clsx": "^2.1.1",
 		"daisyui": "^4.12.10",
