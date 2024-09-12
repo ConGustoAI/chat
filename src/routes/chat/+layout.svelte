@@ -17,7 +17,7 @@
 	} from '$lib/stores/appstate';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp, Github, GithubIcon } from 'lucide-svelte';
+	import { ChevronUp, Github, GithubIcon, Star } from 'lucide-svelte';
 
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
@@ -224,19 +224,22 @@
 						<p class="mx-2 opacity-50">Made with ❤️ by</p>
 						<span class="link opacity-100">Congusto.ai</span>
 					</a>
-					<a href="https://github.com/congustoAI" class="flex text-2xl opacity-50" target="_blank" rel="noopener noreferrer">
-						<p class="mx-2 opacity-50">Check us out on</p>
+					<a
+						href="https://github.com/congustoAI/chat"
+						class="flex text-2xl opacity-50 items-top"
+						target="_blank"
+						rel="noopener noreferrer">
+						<p class=" mx-2 flex opacity-50 items-center">Give us a <Star class="mx-1" color="yellow" fill="yellow" /> on</p>
 						<span class="link flex items-center opacity-100">
-							<GitHub  />
+							<GitHub />
 							GitHub
 						</span>
 					</a>
 					{#if !$dbUser}
-						<a href="/login" class="mt-16 btn btn-outline text-xl">
+						<a href="/login" class="btn btn-outline mt-16 text-xl">
 							<p class="mx-2">Login to start chatting</p>
 						</a>
 					{/if}
-
 				</div>
 			{/if}
 		</div>
