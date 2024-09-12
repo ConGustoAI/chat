@@ -27,7 +27,7 @@
 		{@const providerKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === provider?.id)}
 		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.id === assistant?.apiKey)}
 
-		{#if assistant}
+		{#if assistant && $dbUser}
 			{#if !model}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no model</span>
