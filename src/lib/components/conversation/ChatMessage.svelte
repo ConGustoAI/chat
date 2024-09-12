@@ -127,7 +127,7 @@
 			<Computer size="24" />
 		{/if}
 	</div>
-	<div class="mr-16 flex grow flex-col pt-2">
+	<div class="mr-4 md:mr-16 flex grow flex-col pt-2">
 		{#if editingMessage && !isPublic}
 			<div class="my-4 flex w-full flex-col items-start">
 				<GrowInput class="textarea-bordered w-full" bind:value={message.text} on:keydown={inputKeyboardHandler} />
