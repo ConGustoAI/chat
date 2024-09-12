@@ -1,5 +1,5 @@
-import type { db } from "$lib/db";
-import { defaultsUUID, modelsTable, providersTable } from "$lib/db/schema";
+import type { db } from '$lib/db';
+import { defaultsUUID, modelsTable, providersTable } from '$lib/db/schema';
 
 // Provider IDs
 export const anthropicProviderID = '8040ae6a-03cf-41b2-b1c7-c50b5fc3f54f';
@@ -24,13 +24,14 @@ export const chatGPT4oID = 'cd593a97-1ac3-4bb4-960d-c6031fd6857d';
 export const gpt4ID = '439763f3-dab7-4c79-9f94-074412ff6a85';
 export const gpt432kID = '328f61f8-9dd8-4c71-8095-80e4c8578464';
 export const gpt4TurboID = '3ca66d32-05d5-4565-9bc7-b5a8ba999b47';
+export const o1PreviewID = '249f9912-7142-11ef-b336-3b44061dd216';
+export const o1MiniID = '278475a8-7142-11ef-99f6-cf2e173cd0c4';
 
 // Google models
 export const gemini15ProID = '34145f59-e1f3-4ad1-b3bb-02b8ab9f1882';
 export const gemini15ProExp0801ID = '75ee6f78-37ba-42d9-a865-147424a5fc5f';
 export const gemini15ProExp0827ID = '6556bcaf-2a73-43dd-b114-a1ef5fdac4c5';
 export const gemini15FlashID = '98ede844-8124-40c9-aad5-65e1f3098452';
-
 
 export const seedProviders = async (tx: typeof db) => {
 	await tx
@@ -263,7 +264,30 @@ export const seedModels = async (tx: typeof db) => {
 				inputCost: 10,
 				outputCost: 30
 			},
-
+			{
+				id: o1PreviewID,
+				userID: defaultsUUID,
+				displayName: 'o1 Preview',
+				name: 'o1-preview',
+				inputContext: 128000,
+				outputContext: 32768,
+				maxTemp: 2,
+				providerID: OpenAIProviderID,
+				inputCost: 15,
+				outputCost: 60
+			},
+			{
+				id: o1MiniID,
+				userID: defaultsUUID,
+				displayName: 'o1 Mini',
+				name: 'o1-mini',
+				inputContext: 128000,
+				outputContext: 65536,
+				maxTemp: 2,
+				providerID: OpenAIProviderID,
+				inputCost: 3,
+				outputCost: 12
+			},
 			// Google models
 			{
 				id: gemini15ProID,
