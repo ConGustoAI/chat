@@ -152,7 +152,7 @@ if (preElement) {
 
 					// There may be a more elegant way to implement this!
 
-					const newNode = h('pre .relative .copy-button p-1 bg-base-300 mb-2');
+					const newNode = h('pre .relative .copy-button p-1 bg-base-300 mb-2 whitespace-pre-wrap');
 					newNode.children = [header, ...node.children];
 
 					Object.assign(node, newNode);
@@ -164,7 +164,7 @@ if (preElement) {
 	function getMarkdown(msg: MessageInterface) {
 		// The cache should be invalidated by the code that mosidies the text.
 		if (msg.markdownCache) return msg.markdownCache;
-		debug('parseMarkdown start')
+		debug('parseMarkdown start');
 		const res = unified()
 			.use(remarkParse)
 			.use(remarkBreaks)
@@ -185,6 +185,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="text-message prose grow pt-2">
+<div class="prose grow pt-2 text-message">
 	{@html getMarkdown(message)}
 </div>
