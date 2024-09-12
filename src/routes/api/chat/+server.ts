@@ -169,7 +169,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			]);
 
 			// Insert/update the rest in parallel
-			const [iAM, iDMs, iC, iU] = await Promise.all([
+			const [iAM, iDMs, iC, iU] = (await Promise.all([
 				DBupsertMessage({
 					dbUser,
 					message: AM
@@ -192,7 +192,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 					tokensOut: AM.tokensOut
 				}),
 				DBupdateUser({ dbUser, updatedUser: { id: dbUser!.id, lastAssistant: assistantData.id } })
-			]) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];
+			])) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];
 
 			iAM.prompt = { id: systemPromptHash, text: systemPrompt };
 			debug('After updating the DB: %o', {
@@ -227,7 +227,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		const result = await streamText({
 			model: client,
 			messages: inputMessages,
-			system: systemPrompt,
+			system: systemPrompt.trim().length ? systemPrompt : undefined,
 			temperature: assistantData.temperature,
 			topP: assistantData.topP,
 			topK: assistantData.topK,
