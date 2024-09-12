@@ -42,6 +42,18 @@
 		class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
 		on:change={(e) => selectAll(e)}
 		checked={!!selectedConversations.length && selectedConversations.length === filteredConversations.length} />
+	{#if selectedConversations.length}
+		{#if deleting}
+			<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform" />
+		{:else}
+			<DeleteButton
+				class="dropdown-right absolute right-3 top-1/2 -translate-y-1/2"
+				btnClass="btn btn-sm m-0 btn-outline rounded-md p-0 px-1"
+				deleteAction={deleteSelected}
+				size={19} />
+		{/if}
+	{/if}
+
 	<input
 		type="text"
 		placeholder="Search chats..."
@@ -51,17 +63,7 @@
 
 <ul class="base-200 no-scrollbar menu max-h-full max-w-full flex-nowrap overflow-y-auto p-0">
 	{#if selectedConversations.length}
-		<div class="z-20 flex justify-start px-0">
-			{#if deleting}
-				<span class="loading loading-spinner" />
-			{:else}
-				<DeleteButton
-					class="dropdown-right"
-					btnClass="btn btn-sm btn-outline m-0 rounded-md p-0 px-1"
-					deleteAction={deleteSelected}
-					size={19} />
-			{/if}
-		</div>
+		<div class="z-20 flex justify-start px-0"></div>
 		<div class="divider min-h-4 w-full"></div>
 	{/if}
 
