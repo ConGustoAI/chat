@@ -12,10 +12,10 @@
 <h2 class="card-title">Logged in as {$dbUser?.name}</h2>
 <p><strong>Email:</strong> {$dbUser?.email}</p>
 <p><strong>User ID:</strong> {$dbUser?.id}</p>
-<div class="flex gap-4">
+<div class="flex gap-4 mt-4">
 	<form method="POST" action="?/logout">
 		<button
-			class="btn btn-outline"
+			class="btn btn-outline text-xl"
 			on:click={() => {
 				logoutSpinning = true;
 			}}>
@@ -27,7 +27,7 @@
 	</form>
 	<form method="POST" action="?/logoutAll">
 		<button
-			class="btn btn-outline"
+			class="btn btn-outline text-xl"
 			on:click={() => {
 				logoutAllSpinning = true;
 			}}>

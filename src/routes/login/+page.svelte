@@ -118,7 +118,7 @@
 		{#if !env.PUBLIC_DISABLE_GOOGLE_LOGIN}
 			<button
 				formaction="?/google"
-				class="btn btn-outline"
+				class="btn btn-outline text-xl"
 				on:click={() => {
 					loginGoogleSpinning = true;
 				}}>
@@ -133,7 +133,7 @@
 		{#if !env.PUBLIC_DISABLE_GITHUB_LOGIN}
 			<button
 				formaction="?/github"
-				class="btn btn-outline"
+				class="btn btn-outline text-xl"
 				on:click={() => {
 					loginGithubSpinning = true;
 				}}>

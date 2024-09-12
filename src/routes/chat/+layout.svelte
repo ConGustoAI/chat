@@ -17,10 +17,11 @@
 	} from '$lib/stores/appstate';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp } from 'lucide-svelte';
+	import { ChevronUp, Github, GithubIcon } from 'lucide-svelte';
 
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
+	import GitHub from '$lib/components/icons/GitHub.svelte';
 	const debug = dbg('app:ui:chat');
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
@@ -171,8 +172,9 @@
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
 	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56" class:hidden={!$sidebarOpen}>
 		<div class="join flex w-full">
-			<button class="border- btn btn-outline join-item h-full grow" on:click={async () => await NewChat($dbUser?.assistant)}
-				>New chat</button>
+			<button
+				class="border- btn btn-outline join-item h-full grow"
+				on:click={async () => await NewChat($dbUser?.assistant)}>New chat</button>
 			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
 				<ul class="menu dropdown-content z-[1] w-52 bg-base-300 p-2 shadow">
@@ -213,10 +215,28 @@
 				<div class="mb-20 w-full" />
 			{:else}
 				<div
-					class="pointer-events-none m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale md:w-1/3"
-					style="opacity:0.05">
-					<img class="w-[50%] max-w-[200px]" src="/favicon.png" alt="Congusto" />
-					<p class="w-fit text-nowrap text-[5vw] md:text-[3vw]">Congusto Chat</p>
+					class=" m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
+					<div class="pointer-events-none flex flex-col font-bold grayscale" style="opacity:0.05">
+						<img class="w-[50%] max-w-[200px] self-center" src="/favicon.png" alt="Congusto" />
+						<p class="w-fit text-nowrap text-[5vw] md:text-[3vw]">Congusto Chat</p>
+					</div>
+					<a href="https://congusto.ai" class="flex text-2xl opacity-50" target="_blank" rel="noopener noreferrer">
+						<p class="mx-2 opacity-50">Made with ❤️ by</p>
+						<span class="link opacity-100">Congusto.ai</span>
+					</a>
+					<a href="https://github.com/congustoAI" class="flex text-2xl opacity-50" target="_blank" rel="noopener noreferrer">
+						<p class="mx-2 opacity-50">Check us out on</p>
+						<span class="link flex items-center opacity-100">
+							<GitHub  />
+							GitHub
+						</span>
+					</a>
+					{#if !$dbUser}
+						<a href="/login" class="mt-16 btn btn-outline text-xl">
+							<p class="mx-2">Login to start chatting</p>
+						</a>
+					{/if}
+
 				</div>
 			{/if}
 		</div>
