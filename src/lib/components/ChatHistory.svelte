@@ -31,6 +31,7 @@
 			deleting = false;
 		}
 		selectedConversations = [];
+		seachValue = '';
 		deleting = false;
 	}
 </script>
