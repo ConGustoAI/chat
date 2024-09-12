@@ -213,7 +213,7 @@
 						{submitConversation} />
 				{/each}
 				<div class="mb-20 w-full" />
-			{:else}
+			{:else if !$conversation?.id}
 				<div
 					class=" m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
 					<div class="pointer-events-none flex flex-col font-bold grayscale" style="opacity:0.05">
