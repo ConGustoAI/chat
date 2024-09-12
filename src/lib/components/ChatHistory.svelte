@@ -8,7 +8,7 @@
 
 	let seachValue: string | undefined;
 	$: filteredConversations = $conversationOrder.filter(
-		(c) => !seachValue || $conversations[c].summary?.includes(seachValue)
+		(c) => !seachValue || $conversations[c].summary?.toLowerCase().includes(seachValue.toLowerCase())
 	);
 
 	let selectedConversations: string[] = [];
