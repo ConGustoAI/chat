@@ -1,6 +1,6 @@
 import { undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
-import { and, eq, not, sql } from 'drizzle-orm';
+import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
 
@@ -152,21 +152,18 @@ export async function DBupsertConversation({
 	return insert[0];
 }
 
-export async function DBdeleteConversation({
-	dbUser,
-	conversation
-}: {
-	dbUser?: UserInterface;
-	conversation: ConversationInterface;
-}) {
+export async function DBdeleteConversation({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
 	if (!dbUser) error(401, 'Unauthorized');
-	if (!conversation.id) error(400, 'Conversation ID is required');
-	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
-		error(401, 'Tried to delete a conversation that does not belong to the user');
+	if (!Array.isArray(ids) || ids.length === 0) error(400, 'At least one conversation ID is required');
 
 	const res = await db
 		.delete(conversationsTable)
-		.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
+		.where(
+			and(
+				inArray(conversationsTable.id, ids),
+				eq(conversationsTable.userID, dbUser.id)
+			)
+		)
 		.returning({ id: conversationsTable.id });
 
 	if (!res.length) error(500, 'Failed to delete conversation');

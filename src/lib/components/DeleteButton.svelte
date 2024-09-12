@@ -18,8 +18,10 @@
 	<div tabindex={0} class={cn(disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
 			<div class="loading loading-sm" />
+			<slot />
 		{:else}
 			<Trash2 {size} />
+			<slot />
 		{/if}
 	</div>
 

@@ -39,7 +39,6 @@
 		debug('done fetching data', { $conversation, $conversations, $conversationOrder });
 	});
 
-
 	async function submitConversation(toDelete?: string[]) {
 		debug('submitConversation', $conversation, toDelete);
 
@@ -152,18 +151,13 @@
 		goto('/chat');
 	}
 
-	async function deleteConversation(conversation: ConversationInterface) {
+	async function deleteConversations(ids: string[]) {
+		$conversationOrder = $conversationOrder.filter((c) => !ids.includes(c));
 		if (dbUser) {
-			const del = await APIdeleteConversation(conversation);
+			const del = await APIdeleteConversation(ids);
 			if (!del.id) throw new Error('Failed to delete the conversation.');
 		}
-		if ($conversation?.id) delete $conversations[$conversation.id!];
-		$conversationOrder = $conversationOrder.filter((c) => c !== conversation.id);
 	}
-	let seachValue: string | undefined;
-	$: filteredConversations = $conversationOrder.filter(
-		(c) => !seachValue || $conversations[c].summary?.includes(seachValue)
-	);
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
@@ -192,12 +186,7 @@
 			</details>
 		</div>
 
-		<input
-			type="text"
-			placeholder="Search chats..."
-			class="input input-bordered min-h-12 w-full"
-			bind:value={seachValue} />
-		<ChatHistory conversationOrder={filteredConversations} {deleteConversation} />
+		<ChatHistory {deleteConversations} />
 	</div>
 
 	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen} />

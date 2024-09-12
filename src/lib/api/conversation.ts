@@ -55,12 +55,12 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 	return data;
 }
 
-export async function APIdeleteConversation(conversation: ConversationInterface) {
-	debug('deleteConversation %o', conversation);
+export async function APIdeleteConversation(ids: string[]) {
+	debug('deleteConversation %o', ids);
 	const res = await fetch(`/api/conversation`, {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(conversation)
+		body: JSON.stringify(ids)
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete conversation: ${await res.text()}`);

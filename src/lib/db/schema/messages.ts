@@ -25,7 +25,7 @@ export const messagesTable = pgTable('messages', {
 	temperature: real('temperature'),
 	topP: real('top_p'),
 	topK: integer('top_k'),
-	role: messageRoleEnum('role').notNull(),
+	role: messageRoleEnum('role').notNull(), 
 	text: text('text').notNull(),
 	tokensIn: integer('tokens_in').default(0),
 	tokensOut: integer('tokens_out').default(0),
