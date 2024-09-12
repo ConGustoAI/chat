@@ -185,6 +185,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="text-message prose grow  pt-2">
+<div class="text-message prose grow pt-2">
 	{@html getMarkdown(message)}
 </div>

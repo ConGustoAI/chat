@@ -46,15 +46,16 @@ export function errorToMessage(error: unknown): string {
 
 export function newConversation(
 	dbUser: UserInterface | undefined,
+	assistantID: string | undefined,
 	assistants: { [key: string]: AssistantInterface } | undefined
 ): ConversationInterface {
 	if (!dbUser) return { userID: 'anon' };
-	let newAssistant = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
-	if (!newAssistant && assistants && Object.keys(assistants).length) newAssistant = Object.keys(assistants)[0];
+	if (!assistantID) assistantID = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
+	if (!assistantID && assistants && Object.keys(assistants).length) assistantID = Object.keys(assistants)[0];
 
 	return {
 		userID: dbUser.id,
-		assistant: newAssistant || defaultsUUID
+		assistant: assistantID || defaultsUUID
 	};
 }
 

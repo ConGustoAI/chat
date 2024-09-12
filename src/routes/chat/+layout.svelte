@@ -12,9 +12,10 @@
 		conversations,
 		dbUser,
 		hiddenItems,
+		isMobile,
 		sidebarOpen
 	} from '$lib/stores/appstate';
-	import { toIdMap } from '$lib/utils';
+	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp } from 'lucide-svelte';
 
@@ -27,6 +28,11 @@
 		debug('dbUser changed, fetching data');
 		$chatDataLoading = true;
 
+		// Sidebar closed by default on small screens
+		if (window.innerWidth < 768) {
+			$sidebarOpen = false; // Open drawer on larger screens
+			$isMobile = true;
+		}
 		const gotConvos = await APIfetchConversations().catch((e) => {
 			debug('Failed to fetch conversations:', e);
 			$chatDataLoading = false;
@@ -146,9 +152,11 @@
 
 	let dropdownElement: HTMLDetailsElement;
 
-	function NewChat(assistantId?: string) {
+	async function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
-		goto('/chat');
+		if ($isMobile) $sidebarOpen = false;
+		$conversation = newConversation($dbUser, assistantId, $assistants);
+		await goto('/chat');
 	}
 
 	async function deleteConversations(ids: string[]) {
@@ -163,7 +171,7 @@
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
 	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56" class:hidden={!$sidebarOpen}>
 		<div class="join flex w-full">
-			<button class="border- btn btn-outline join-item h-full grow" on:click={() => NewChat($dbUser?.assistant)}
+			<button class="border- btn btn-outline join-item h-full grow" on:click={async () => await NewChat($dbUser?.assistant)}
 				>New chat</button>
 			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
@@ -171,14 +179,14 @@
 					<div class="divider w-full py-2">Your assistants</div>
 					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" on:click={() => NewChat(assistant.id)}
+							<button class="btn-base-300 btn btn-outline w-full" on:click={async () => await NewChat(assistant.id)}
 								>{assistant.name}</button>
 						{/if}
 					{/each}
 					<div class="divider w-full py-2">Default assistants</div>
 					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
 						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" on:click={() => NewChat(assistant.id)}
+							<button class="btn-base-300 btn btn-outline w-full" on:click={async () => await NewChat(assistant.id)}
 								>{assistant.name}</button>
 						{/if}
 					{/each}
@@ -227,7 +235,7 @@
 			<div class="navbar-end max-w-fit"></div>
 		</div>
 	</div>
-	<div class="absolute bottom-4 left-2">
+	<div class="absolute bottom-4 left-2 z-20">
 		<SidebarButton />
 	</div>
 </main>

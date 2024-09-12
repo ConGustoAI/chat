@@ -10,7 +10,9 @@
 			debug('Expected a new conversation, but got an existing one:', convId);
 			return;
 		}
-		$conversation = newConversation($dbUser, $assistants);
+		// If the previous conversation was a new conversation, keep the assistant ID.
+		const oldAssistantId = $conversation?.id ? undefined : $conversation?.assistant;
+		$conversation = newConversation($dbUser, oldAssistantId, $assistants);
 	}
 
 	$: fetchConversation($page.params.chat);

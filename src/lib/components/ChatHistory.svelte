@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DeleteButton } from '$lib/components';
-	import { conversation, conversationOrder, conversations } from '$lib/stores/appstate';
+	import { conversation, conversationOrder, conversations, isMobile, sidebarOpen } from '$lib/stores/appstate';
 	import { Star } from 'lucide-svelte';
 
 	// export let conversationOrder: string[];
@@ -73,7 +73,12 @@
 				class="checkbox absolute left-0 top-0.5 z-10 m-0 p-0"
 				bind:group={selectedConversations}
 				value={c} />
-			<a href={'/chat/' + c} class="relative pl-8">
+			<a
+				href={'/chat/' + c}
+				class="relative pl-8"
+				on:click={() => {
+					if ($isMobile) $sidebarOpen = false;
+				}}>
 				{#if $conversations[c]?.like}
 					<span class="">
 						<Star size={15} color="var(--star)" fill="var(--star)" />

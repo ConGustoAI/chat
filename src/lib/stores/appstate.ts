@@ -19,3 +19,4 @@ export const chatDataLoading = writable(false);
 export const chatStreaming = writable(false);
 
 export const sidebarOpen = writable(true);
+export const isMobile = writable(false);
