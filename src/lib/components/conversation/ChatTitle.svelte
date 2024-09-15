@@ -35,7 +35,7 @@
 		{#if $conversation?.id && !$sidebarOpen}
 			<a href={'/chat/'} class="link"><Edit /></a>
 		{/if}
-		{#if $conversation?.id}
+		{#if $conversation?.id && !isPublic}
 			{#if updatingLike}
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
