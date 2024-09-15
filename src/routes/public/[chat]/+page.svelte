@@ -5,43 +5,36 @@
 	import { onMount } from 'svelte';
 
 	import dbg from 'debug';
+	import { chatDataLoading, conversation } from '$lib/stores/appstate';
 	const debug = dbg('app:ui:public');
-
-	let conversation: ConversationInterface | undefined;
-	let drawer_open = true;
-	let chatLoading = false;
-
-	let chatError: string | undefined;
-
-	$: convId = $page.params.chat;
 
 	onMount(async () => {
 		debug('onMount');
-		chatLoading = true;
-		conversation = await APIfetchPublicConversation(convId).catch((e) => {
+		$chatDataLoading = true;
+		$conversation = await APIfetchPublicConversation($page.params.chat).catch((e) => {
 			debug('Failed to fetch conversation:', e);
-			chatLoading = false;
+			$chatDataLoading = false;
 			return undefined;
 		});
 
-		chatLoading = false;
+		$chatDataLoading = false;
 		debug('onMount', { conversation });
 	});
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
-		<ChatTitle {chatLoading} bind:conversation isPublic={true} updatingLike={false} />
+		<ChatTitle isPublic={true} />
 
 		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
-			{#if conversation?.messages}
-				{#each conversation.messages as m}
-					<ChatMessage bind:conversation bind:message={m} isPublic={true} submitConversation={async () => {}} />
+			{#if $conversation?.messages}
+				{#each $conversation.messages as m}
+					<ChatMessage bind:message={m} isPublic={true} submitConversation={async () => {}} />
 				{/each}
 				<div class=" mb-20 w-full" />
 			{:else}
 				<div class="flex h-full flex-col items-center">
-					{#if !conversation && !chatLoading}
+					{#if !$conversation && !chatDataLoading}
 						<p class="w-fit text-nowrap text-[2vw]">Conversation does not exist or is not public</p>
 						<a
 							href="/chat"
