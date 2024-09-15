@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CostEstimate, GrowInput, Notification } from '$lib/components';
+	import { CostEstimate, GrowInput, Notification, ImageCarousel } from '$lib/components';
 	import { chatStreaming, conversation } from '$lib/stores/appstate';
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
+
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
+
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -13,6 +15,7 @@
 
 	let input: string;
 	let chatError: string | undefined;
+	let uploadOpen: boolean = true;
 
 	async function onSubmit() {
 		debug('onSubmit', { input, $conversation });
@@ -58,9 +61,13 @@
 	let inputFocus = false;
 </script>
 
-<div class="flex h-fit w-full flex-col">
+<div class="relative flex h-fit w-full flex-col">
 	<Notification messageType="error" bind:message={chatError} />
-
+	{#if uploadOpen}
+		<div class="absolute bottom-8 mb-4 w-full">
+			<ImageCarousel />
+		</div>
+	{/if}
 	<div class="relative h-fit w-full">
 		{#if inputFocus}
 			<div class="absolute -top-4 right-2 z-20 text-xs">
@@ -79,7 +86,7 @@
 			disabled={$chatStreaming}
 			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
 		<div class="absolute bottom-1 left-2">
-			<button class="btn btn-circle btn-sm" disabled={true}>
+			<button class="btn btn-circle btn-sm" on:click={() => (uploadOpen = !uploadOpen)}>
 				<Upload style="disabled" size={20} />
 			</button>
 		</div>
