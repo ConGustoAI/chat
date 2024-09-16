@@ -57,6 +57,13 @@
       "when": 1726517792090,
       "tag": "0007_clumsy_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1726525672352,
+      "tag": "0008_serious_triathlon",
+      "breakpoints": true
     }
   ]
 }

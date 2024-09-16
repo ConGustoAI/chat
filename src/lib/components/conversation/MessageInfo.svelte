@@ -40,11 +40,11 @@
 		{#if message.tokensIn || message.tokensOut}
 			<div>
 				<span
-					>Tokens: ({message.tokensIn ?? 0}/{message.tokensOut ?? 0}/{(message.tokensIn ?? 0) +
+					>Tokens: ({message.tokensIn ?? 0} / {message.tokensOut ?? 0} / {(message.tokensIn ?? 0) +
 						(message.tokensOut ?? 0)})</span>
 				{#if (message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0) > 0}
 					<span
-						> =&gt; ({message.tokensInCost ?? 0}/{message.tokensOutCost ?? 0}/{(message.tokensInCost ?? 0) +
+						> =&gt; ({message.tokensInCost ?? 0} / {message.tokensOutCost ?? 0} / {(message.tokensInCost ?? 0) +
 							(message.tokensOutCost ?? 0)})$</span>
 				{/if}
 			</div>

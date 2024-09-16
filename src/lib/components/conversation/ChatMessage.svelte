@@ -4,7 +4,7 @@
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 	import { dbUser, conversation, providers, models, assistants } from '$lib/stores/appstate';
 	import { APIupsertMessage } from '$lib/api';
-	import { DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
+	import { Cost, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
@@ -22,7 +22,7 @@
 	let editingMessage = false;
 	let savingMessage = false;
 
-	let detailsOpen = true;
+	let detailsOpen = false;
 
 	let summaryElement: HTMLElement;
 
@@ -145,7 +145,7 @@
 					<Computer />
 				</summary>
 				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<div  class="dropdown-content z-40 ml-2" on:keydown={handleKeydown} tabindex="-1">
+				<div class="dropdown-content z-40 ml-2" on:keydown={handleKeydown} tabindex="-1">
 					<MessageInfo {message} />
 				</div>
 			</details>
@@ -239,6 +239,15 @@
 						}}>{markdown ? 'md' : 'raw'}</button>
 				{/if}
 			</div>
+
+			{#if $dbUser?.showInfo && message.role == 'assistant' && message.id}
+				<div class="absolute bottom-0 right-0 mb-2 mr-2 text-xs text-base-content flex gap-4">
+
+						<span>{message.assistantName} (T={message.temperature}, P={message.topP}, K={message.topK}) </span>
+						<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
+
+				</div>
+			{/if}
 		{/if}
 		<!-- <pre>{JSON.stringify(message, null, 2)}</pre> -->
 	</div>

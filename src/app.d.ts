@@ -31,6 +31,10 @@ declare global {
 		lastAssistant?: string;
 		aboutUser?: string;
 		assistantInstructions?: string;
+		costShow?: number;
+		costWarn1?: number;
+		costWarn2?: number;
+		showInfo?: boolean;
 		createdAt?: Date;
 		updatedAt?: Date;
 	}
@@ -107,6 +111,8 @@ declare global {
 		createAt?: Date;
 		updatedAt?: Date;
 	}
+
+
 
 	interface MessageInterface {
 		id?: string;

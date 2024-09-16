@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { hiddenItems } from './hide';
@@ -20,6 +20,10 @@ export const usersTable = pgTable('users', {
 	lastAssistant: text('last_assistant'),
 	aboutUser: text('about_user'),
 	assistantInstructions: text('assistant_instructions'),
+	costShow: real('cost_show').default(0),
+	costWarn1: real('cost_warn1').default(0),
+	costWarn2: real('cost_warn2').default(0),
+	showInfo: boolean('show_info').default(true),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
