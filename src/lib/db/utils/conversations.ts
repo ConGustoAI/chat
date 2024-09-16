@@ -106,12 +106,16 @@ export async function DBupsertConversation({
 	dbUser,
 	conversation,
 	tokensIn,
-	tokensOut
+	tokensOut,
+	tokensInCost,
+	tokensOutCost
 }: {
 	dbUser?: UserInterface;
 	conversation: ConversationInterface;
 	tokensIn?: number;
 	tokensOut?: number;
+	tokensInCost?: number;
+	tokensOutCost?: number;
 }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
@@ -125,7 +129,9 @@ export async function DBupsertConversation({
 			.set({
 				...conversation,
 				tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn ?? 0}`,
-				tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut ?? 0}`
+				tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut ?? 0}`,
+				tokensInCost: sql`${conversationsTable.tokensInCost} + ${tokensInCost ?? 0}`,
+				tokensOutCost: sql`${conversationsTable.tokensOutCost} + ${tokensOutCost ?? 0}`
 			})
 			.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
 			.returning();
@@ -158,12 +164,7 @@ export async function DBdeleteConversation({ dbUser, ids }: { dbUser?: UserInter
 
 	const res = await db
 		.delete(conversationsTable)
-		.where(
-			and(
-				inArray(conversationsTable.id, ids),
-				eq(conversationsTable.userID, dbUser.id)
-			)
-		)
+		.where(and(inArray(conversationsTable.id, ids), eq(conversationsTable.userID, dbUser.id)))
 		.returning({ id: conversationsTable.id });
 
 	if (!res.length) error(500, 'Failed to delete conversation');

@@ -149,6 +149,10 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			AM.finishReason = result.finishReason;
 			AM.tokensIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
 			AM.tokensOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
+			AM.tokensInCost = assistantData.model?.inputCost ? (AM.tokensIn / 1000000) * assistantData.model.inputCost : 0;
+			AM.tokensOutCost = assistantData.model?.outputCost
+				? (AM.tokensOut / 1000000) * assistantData.model.outputCost
+				: 0;
 			AM.text += result.text;
 			AM.assistantID = assistantData.id;
 			AM.assistantName = assistantData.name;
@@ -189,7 +193,9 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 					dbUser,
 					conversation,
 					tokensIn: AM.tokensIn,
-					tokensOut: AM.tokensOut
+					tokensOut: AM.tokensOut,
+					tokensInCost: AM.tokensInCost,
+					tokensOutCost: AM.tokensOutCost
 				}),
 				DBupdateUser({ dbUser, updatedUser: { id: dbUser!.id, lastAssistant: assistantData.id } })
 			])) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];

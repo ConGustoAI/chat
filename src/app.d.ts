@@ -122,6 +122,8 @@ declare global {
 		text: string;
 		tokensIn?: number;
 		tokensOut?: number;
+		tokensInCost?: number;
+		tokensOutCost?: number;
 		requestID?: string;
 		finishReason?: string;
 		temperature?: number;
@@ -152,6 +154,8 @@ declare global {
 		public?: boolean;
 		tokensIn?: number;
 		tokensOut?: number;
+		tokensInCost?: number;
+		tokensOutCost?: number;
 		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;

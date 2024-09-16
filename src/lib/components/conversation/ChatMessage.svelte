@@ -2,9 +2,9 @@
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
-	import { dbUser, conversation } from '$lib/stores/appstate';
+	import { dbUser, conversation, providers, models, assistants } from '$lib/stores/appstate';
 	import { APIupsertMessage } from '$lib/api';
-	import { DeleteButton, GrowInput, MarkdownMessage } from '$lib/components';
+	import { DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
@@ -21,6 +21,16 @@
 	let originalMessage: string;
 	let editingMessage = false;
 	let savingMessage = false;
+
+	let detailsOpen = true;
+
+	let summaryElement: HTMLElement;
+
+	function closeDetails() {
+		console.log('closeDetails');
+		detailsOpen = false;
+		if (summaryElement) summaryElement.blur();
+	}
 
 	async function sendEditedMessage() {
 		debug('sendEditedMessage', { $conversation, message });
@@ -115,6 +125,12 @@
 			}
 		}
 	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			closeDetails();
+		}
+	}
 </script>
 
 <div class="relative flex items-start pb-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
@@ -124,10 +140,22 @@
 		{:else if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
-			<Computer size="24" />
+			<details class="dropdown dropdown-right" bind:open={detailsOpen}>
+				<summary class="block cursor-pointer text-center">
+					<Computer />
+				</summary>
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
+				<div  class="dropdown-content z-40 ml-2" on:keydown={handleKeydown} tabindex="-1">
+					<MessageInfo {message} />
+				</div>
+			</details>
+			{#if detailsOpen}
+				<button class="fixed inset-0 z-20" on:click|self={closeDetails}></button>
+			{/if}
 		{/if}
 	</div>
-	<div class="mr-4 md:mr-16 flex grow flex-col pt-2">
+
+	<div class="mr-4 flex grow flex-col pt-2 md:mr-16">
 		{#if editingMessage && !isPublic}
 			<div class="my-4 flex w-full flex-col items-start">
 				<GrowInput class="textarea-bordered w-full" bind:value={message.text} on:keydown={inputKeyboardHandler} />
