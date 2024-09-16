@@ -2,7 +2,7 @@ import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp, uuid,
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { relations } from 'drizzle-orm';
-import { messageMediaTable } from './media';
+import { mediaTable, messageMediaTable } from './media';
 import { usersTable } from './users';
 import { modelsTable } from './models';
 import { promptsTable } from './prompts';
@@ -34,6 +34,7 @@ export const messagesTable = pgTable('messages', {
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),
+	media: uuid('media_id').references(() => mediaTable.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

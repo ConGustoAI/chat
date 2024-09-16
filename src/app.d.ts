@@ -176,6 +176,26 @@ declare global {
 		updatedAt?: Date;
 		createdAt?: Date;
 	}
+
+
+	interface MediaInterface {
+		id?: string;
+		userID: string;
+		title?: string;
+		type: 'image' | 'audio' | 'video';
+		filename: string;
+		filetype: string;
+		fileID: string;
+
+		filesize: number;
+		width?: number;
+		height?: number;
+		duration?: number;
+		repeat?: boolean;
+		uploadStatus: 'pending' | 'uploaded' | 'failed';
+		createdAt?: Date;
+		updatedAt?: Date;
+	}
 }
 
 export {};

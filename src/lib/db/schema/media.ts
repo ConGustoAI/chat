@@ -1,25 +1,24 @@
-import { integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { messagesTable } from './messages';
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
 
 export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video']);
-export const mediaUploadStatus = pgEnum('media_upload_status', ['pending', 'uploaded', 'failed']);
+
 export const mediaTable = pgTable('media', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	title: text('title'),
 	type: mediaTypes('type').notNull(),
+	mimeType: text('mime_type'),
 	filename: text('filename').notNull(),
-	filetype: text('filetype').notNull(),
-	fileID: uuid('file_id').notNull(),
-	hash: text('hash').notNull(),
 	filesize: integer('filesize').notNull(),
-	width: integer('image_width'),
-	height: integer('image_height'),
-	duration: integer('duration'),
-	uploadStatus: mediaUploadStatus('upload_status').notNull().default('pending'),
+	width: integer('image_width').default(0),
+	height: integer('image_height').default(0),
+	duration: integer('duration').default(0),
+	repeat: boolean('repeat').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
