@@ -29,7 +29,7 @@
 		<li>
 			<button
 				bind:this={button}
-				class="btn btn-sm bg-primary z-10 btn-outline text-nowrap rounded-md"
+				class="btn btn-sm bg-primary btn-outline text-nowrap rounded-md"
 				on:click={async () => {
 					disabled = true;
 					deleting = true;
