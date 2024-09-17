@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { apiKeysTable } from './keys';
 import { modelsTable } from './models';
 import { usersTable } from './users';
@@ -13,6 +13,8 @@ export const providersTable = pgTable('providers', {
 		.notNull(),
 	name: text('name').notNull(),
 	type: providerTypes('type').notNull(),
+	// Does the OpenAI provider support usage stats when streaming?
+	openAIStreamUsage: boolean('openai_stream_usage').default(true),
 	baseURL: text('base_url').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')

@@ -15,7 +15,7 @@ Features:
 - [ ] Code Interpreter
   - [ ] One-off calculation
   - [ ] Jupyter notebook session
-- [~] Esay deployment
+- [ ] Esay deployment
   - [x] Postgres + Vercel (or any other host with node support)
   - [ ] Local deployment with SQLite an no auth.
 - [x] MIT license allows for commercial use and modification.

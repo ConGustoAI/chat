@@ -161,6 +161,16 @@
 	debug(provider, $page.url.hash);
 	$: if ($page.url.hash == `#${provider.id}/keys`) showApiKeys = true;
 	$: if ($page.url.hash == `#${provider.id}/models`) showModels = true;
+
+	$: streamUsage = provider.type !== 'openai' || provider.openAIStreamUsage;
+
+	function streamUsageChanged(e: Event) {
+		if (provider.type === 'openai') {
+			provider.openAIStreamUsage = (e.target as HTMLInputElement).checked;
+			statusChanged();
+		}
+	}
+
 </script>
 
 <button
@@ -191,6 +201,14 @@
 		<option value={type.value}>{capitalize(type.label)}</option>
 	{/each}
 </select>
+
+<input
+	type="checkbox"
+	class="checkbox"
+	disabled={!edit || provider.type !== 'openai'}
+	checked={streamUsage}
+	on:change={streamUsageChanged} />
+
 <input
 	type="text"
 	class="input input-bordered w-full"

@@ -90,7 +90,11 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	let client;
 	if (assistantData.model.provider.type === 'openai') {
-		const aiModel = createOpenAI(clientSettings);
+		const aiModel = createOpenAI({
+			...clientSettings,
+			// Some OpenAI-compatible providers don't support usage when streaming.
+			compatibility: assistantData.model.provider.openAIStreamUsage ? 'strict' : 'compatible'
+		});
 		client = aiModel(assistantData.model.name);
 	} else if (assistantData.model.provider.type === 'anthropic') {
 		const aiModel = createAnthropic(clientSettings);
@@ -238,7 +242,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			topK: assistantData.topK,
 			maxTokens: assistantData.maxTokens || assistantData.model.outputContext || 4096,
 			onFinish: onFinish,
-			abortSignal: request.signal,
+			abortSignal: request.signal
 		});
 
 		return result.toDataStreamResponse({ data: d });
