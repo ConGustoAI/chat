@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { APIupsertConversation } from '$lib/api';
-	import { ConversationAssistant, ConversationInfo, ProfileCircle, ShareConversation } from '$lib/components';
+	import { ConversationAssistant, ConversationInfo, Cost, ProfileCircle, ShareConversation } from '$lib/components';
 	import { chatDataLoading, sidebarOpen, conversation } from '$lib/stores/appstate';
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star } from 'lucide-svelte';
@@ -89,10 +89,12 @@
 
 	<!-- navbar-end -->
 	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
+
 		{#if $conversation?.id && !isPublic}
-			<ShareConversation {updateConversation} />
+		<ShareConversation {updateConversation} />
 		{/if}
 
+		<Cost total={($conversation?.tokensInCost ?? 0) + ($conversation?.tokensOutCost ?? 0)} />
 		<details class="dropdown-botton dropdown dropdown-end hidden md:block">
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<summary class="mt-auto block text-center" tabindex={0}><Info /></summary>

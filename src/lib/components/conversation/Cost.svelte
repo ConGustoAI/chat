@@ -10,6 +10,6 @@
 	$: color = total > costWarn2 ? 'text-error' : total > costWarn1 ? 'text-warning' : '';
 </script>
 
-{#if total > costShow}
+{#if total > costShow || total > costWarn1 || total > costWarn2}
 	<span class="font-mono text-xs {color}">${total.toFixed(2)}</span>
 {/if}

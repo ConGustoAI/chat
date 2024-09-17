@@ -4,7 +4,7 @@
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 	import { dbUser, conversation, providers, models, assistants } from '$lib/stores/appstate';
 	import { APIupsertMessage } from '$lib/api';
-	import { Cost, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
+	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
@@ -131,9 +131,11 @@
 			closeDetails();
 		}
 	}
+
+	let inputFocus = false;
 </script>
 
-<div class="relative flex items-start pb-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
+<div class="relative flex items-start pt-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
 		{#if loading}
 			<div class="loading loading-ring loading-md" />
@@ -155,10 +157,26 @@
 		{/if}
 	</div>
 
-	<div class="mr-4 flex grow flex-col pt-2 md:mr-16">
+	<div class="mr-4 flex grow flex-col md:mr-16">
 		{#if editingMessage && !isPublic}
-			<div class="my-4 flex w-full flex-col items-start">
-				<GrowInput class="textarea-bordered w-full" bind:value={message.text} on:keydown={inputKeyboardHandler} />
+			<div class="relative my-4 flex w-full flex-col items-start">
+				{#if inputFocus && message.role === 'user'}
+					{@const currentIndex = $conversation?.messages?.findIndex((m) => m === message) ?? -1}
+					<div class="absolute -top-4 right-2 z-20 text-xs">
+						<CostEstimate
+							input={message.text}
+							messages={$conversation?.messages?.slice(
+								0,
+								currentIndex >= 0 ? currentIndex : $conversation.messages.length
+							)} />
+					</div>
+				{/if}
+
+				<GrowInput
+					class="textarea-bordered w-full"
+					bind:focused={inputFocus}
+					bind:value={message.text}
+					on:keydown={inputKeyboardHandler} />
 				<div class="mt-2 flex w-full items-start justify-start gap-2">
 					<button class="btn btn-outline btn-sm" on:click={sendEditedMessage}> Save & Send </button>
 					<button
@@ -203,7 +221,14 @@
 		<Notification messageType="error" bind:message={chatError} />
 
 		{#if !editingMessage}
-			<div class="absolute right-0 top-0 mr-2 flex gap-2 text-base-content">
+			<div class="absolute right-0 top-0 mr-2 flex w-fit items-center gap-2 text-base-content">
+				{#if $dbUser?.showInfo && message.role == 'assistant' && message.id}
+					<div class="mr-2 flex gap-4 text-xs text-base-content">
+						<span>{message.assistantName} (T={message.temperature}, P={message.topP}, K={message.topK}) </span>
+						<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
+					</div>
+				{/if}
+
 				<!-- {message.order} -->
 				{#if message.role == 'assistant' && !isPublic}
 					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
@@ -239,15 +264,6 @@
 						}}>{markdown ? 'md' : 'raw'}</button>
 				{/if}
 			</div>
-
-			{#if $dbUser?.showInfo && message.role == 'assistant' && message.id}
-				<div class="absolute bottom-0 right-0 mb-2 mr-2 text-xs text-base-content flex gap-4">
-
-						<span>{message.assistantName} (T={message.temperature}, P={message.topP}, K={message.topK}) </span>
-						<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
-
-				</div>
-			{/if}
 		{/if}
 		<!-- <pre>{JSON.stringify(message, null, 2)}</pre> -->
 	</div>

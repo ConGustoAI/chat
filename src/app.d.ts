@@ -35,6 +35,7 @@ declare global {
 		costWarn1?: number;
 		costWarn2?: number;
 		showInfo?: boolean;
+		showEstimate?: boolean;
 		createdAt?: Date;
 		updatedAt?: Date;
 	}

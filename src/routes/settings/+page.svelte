@@ -117,43 +117,38 @@
 
 		<div class="divider w-full">Message Information</div>
 
-
-		<div class="grid w-full grid-cols-[max-content,max-content,max-content,max-content] gap-4 gap-y-2 items-center">
+		<div
+			class="grid w-full grid-cols-[max-content,max-content,max-content,max-content,max-content] items-center gap-4 gap-y-2">
+			<div class="flex items-center">Token estimate</div>
 			<div class="flex items-center">Message info</div>
 			<div class="flex items-center">Show cost above</div>
 			<div class="flex items-center text-warning">Show cost above</div>
 			<div class="flex items-center text-error">Show cost above</div>
 
-			<input
-				type="checkbox"
-				class="checkbox"
-				bind:checked={$dbUser.showInfo}
-				on:change={statusChanged}
-			/>
+			<input type="checkbox" class="checkbox" bind:checked={$dbUser.showEstimate} on:change={statusChanged} />
+
+			<input type="checkbox" class="checkbox" bind:checked={$dbUser.showInfo} on:change={statusChanged} />
 			<input
 				type="number"
 				class="input input-bordered w-32"
 				bind:value={$dbUser.costShow}
 				on:input={statusChanged}
 				min="0"
-				step="0.01"
-			/>
+				step="0.01" />
 			<input
 				type="number"
 				class="input input-bordered w-32"
 				bind:value={$dbUser.costWarn1}
 				on:input={statusChanged}
 				min="0"
-				step="0.01"
-			/>
+				step="0.01" />
 			<input
 				type="number"
 				class="input input-bordered w-32"
 				bind:value={$dbUser.costWarn2}
 				on:input={statusChanged}
 				min="0"
-				step="0.01"
-			/>
+				step="0.01" />
 		</div>
 	</section>
 {/if}

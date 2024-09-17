@@ -9,6 +9,7 @@
 	export { className as class }; // Export it as 'class'
 	export let disabled = false;
 	export let spellcheck = false;
+	export let focused = false;
 
 	let textBox: HTMLDivElement | null = null;
 
@@ -31,6 +32,8 @@
 		{spellcheck}
 		bind:this={textBox}
 		bind:innerText={value}
+		on:focus={() => focused = true}
+		on:blur={() => focused = false}
 		on:keydown
 		on:change
 		on:input

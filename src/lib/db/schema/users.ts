@@ -20,10 +20,11 @@ export const usersTable = pgTable('users', {
 	lastAssistant: text('last_assistant'),
 	aboutUser: text('about_user'),
 	assistantInstructions: text('assistant_instructions'),
-	costShow: real('cost_show').default(0),
-	costWarn1: real('cost_warn1').default(0),
-	costWarn2: real('cost_warn2').default(0),
-	showInfo: boolean('show_info').default(true),
+	costShow: real('cost_show').default(0.05),
+	costWarn1: real('cost_warn1').default(0.5),
+	costWarn2: real('cost_warn2').default(5),
+	showInfo: boolean('show_info').default(false),
+	showEstimate: boolean('show_estimate').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

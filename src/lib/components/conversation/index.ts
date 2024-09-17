@@ -7,3 +7,4 @@ export { default as ShareConversation } from './ShareConversation.svelte';
 export { default as ConversationAssistant } from './ConversationAssistant.svelte';
 export { default as MessageInfo } from './MessageInfo.svelte';
 export { default as Cost } from './Cost.svelte';
+export { default as CostEstimate } from './CostEstimate.svelte';

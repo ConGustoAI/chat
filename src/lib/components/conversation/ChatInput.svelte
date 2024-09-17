@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
-	import GrowInput from '../GrowInput.svelte';
 	import dbg from 'debug';
-	import { conversation } from '$lib/stores/appstate';
-	import Notification from '../Notification.svelte';
+	import { assistants, conversation, dbUser, models } from '$lib/stores/appstate';
+	import { CostEstimate, GrowInput, Notification } from '$lib/components';
+	import Cost from './Cost.svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -25,7 +25,6 @@
 			{ userID: $conversation.userID, role: 'user', text: input },
 			{ userID: $conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
-		
 
 		let savedInput = input;
 		input = '';
@@ -59,13 +58,21 @@
 			await onSubmit();
 		}
 	}
+
+	let inputFocus = false;
 </script>
 
 <div class="flex h-fit w-full flex-col">
 	<Notification messageType="error" bind:message={chatError} />
 
 	<div class="relative h-fit w-full">
+		{#if inputFocus}
+			<div class="absolute -top-4 right-2 z-20 text-xs">
+				<CostEstimate {input} />
+			</div>
+		{/if}
 		<GrowInput
+			bind:focused={inputFocus}
 			bind:value={input}
 			on:keydown={inputKeyboardHandler}
 			disabled={chatLoading}
