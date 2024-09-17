@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Send, StopCircle, Upload } from 'lucide-svelte';
-	import dbg from 'debug';
-	import { assistants, conversation, dbUser, models } from '$lib/stores/appstate';
 	import { CostEstimate, GrowInput, Notification } from '$lib/components';
-	import Cost from './Cost.svelte';
+	import { chatStreaming, conversation } from '$lib/stores/appstate';
+	import dbg from 'debug';
+	import { Send, StopCircle, Upload } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
 	export let submitConversation: (toDelete?: string[]) => Promise<void>;
+	export let cancelConversation: () => void;
 
 	let input: string;
-	let chatLoading: boolean = false;
 	let chatError: string | undefined;
 
 	async function onSubmit() {
@@ -29,7 +28,6 @@
 		let savedInput = input;
 		input = '';
 
-		chatLoading = true;
 
 		try {
 			// This modifieds the messages and sets the conversaion id if it was not set.
@@ -46,14 +44,11 @@
 				chatError = 'An unknown error occurred';
 			}
 			input = savedInput;
-		} finally {
-			chatLoading = false;
 		}
 	}
 
 	async function inputKeyboardHandler(event: any) {
-		debug('inputKeyboardHandler', { event, chatLoading });
-		if (!chatLoading && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
+		if (!$chatStreaming && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
 			await onSubmit();
 		}
@@ -75,7 +70,7 @@
 			bind:focused={inputFocus}
 			bind:value={input}
 			on:keydown={inputKeyboardHandler}
-			disabled={chatLoading}
+			disabled={$chatStreaming}
 			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
 		<div class="absolute bottom-1 left-2">
 			<button class="btn btn-circle btn-sm" disabled={true}>
@@ -83,9 +78,9 @@
 			</button>
 		</div>
 		<div class="absolute bottom-1 right-2">
-			{#if chatLoading}
+			{#if $chatStreaming}
 				<div class="relative">
-					<button class="btn btn-sm">
+					<button class="btn btn-sm" on:click={cancelConversation}>
 						<div class="relative">
 							<StopCircle />
 							<span class="absolute inset-0 flex items-center justify-center">
@@ -95,7 +90,7 @@
 					</button>
 				</div>
 			{:else}
-				<button class="btn btn-sm rounded-md" disabled={chatLoading} on:click={onSubmit}>
+				<button class="btn btn-sm rounded-md" disabled={$chatStreaming} on:click={onSubmit}>
 					<Send size={20} />
 				</button>
 			{/if}

@@ -43,22 +43,31 @@
 					>Tokens: ({message.tokensIn ?? 0} / {message.tokensOut ?? 0} / {(message.tokensIn ?? 0) +
 						(message.tokensOut ?? 0)})</span>
 				{#if (message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0) > 0}
-					<span
-						> =&gt; ({message.tokensInCost ?? 0} / {message.tokensOutCost ?? 0} / {(message.tokensInCost ?? 0) +
+					<span>
+						=&gt; ({message.tokensInCost ?? 0} / {message.tokensOutCost ?? 0} / {(message.tokensInCost ?? 0) +
 							(message.tokensOutCost ?? 0)})$</span>
 				{/if}
 			</div>
 		{/if}
 	</div>
 
+	<dov>
+		<span>Finish reason:</span>
+		{#if message.finishReason === 'content-filter' || message.finishReason === 'aborted'}
+			<span class="text-warning">{message.finishReason}</span>
+		{:else if message.finishReason == 'error'}
+			<span class="text-error">error</span>
+		{:else}
+			<span class="text-success">{message.finishReason}</span>
+		{/if}
+	</dov>
+
 	<div>
-		Prompt:
 		{#if message.prompt}
+			Prompt:
 			<pre class="prose w-full whitespace-pre-wrap text-sm">
 {message.prompt.text}
 </pre>
-		{:else}
-			<em>None</em>
 		{/if}
 	</div>
 </div>

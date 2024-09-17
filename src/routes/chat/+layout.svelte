@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { APIdeleteConversation, APIfetchConversations } from '$lib/api';
+	import { APIdeleteConversation, APIfetchConversations, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import {
@@ -13,6 +13,7 @@
 		dbUser,
 		hiddenItems,
 		isMobile,
+		models,
 		sidebarOpen
 	} from '$lib/stores/appstate';
 	import { newConversation, toIdMap } from '$lib/utils';
@@ -46,6 +47,8 @@
 		debug('done fetching data', { $conversation, $conversations, $conversationOrder });
 	});
 
+	let abortController: AbortController | undefined = undefined;
+
 	async function submitConversation(toDelete?: string[]) {
 		debug('submitConversation', $conversation, toDelete);
 
@@ -74,12 +77,15 @@
 				throw new Error('The last message should be from the assistant.');
 			}
 
+			abortController = new AbortController();
+
 			const res = await fetch('/api/chat', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ conversation: $conversation, toDelete })
+				body: JSON.stringify({ conversation: $conversation, toDelete }),
+				signal: abortController.signal
 			});
 			debug('submitConversation POST: ', res);
 
@@ -143,11 +149,59 @@
 			}
 			if (!$conversation?.messages?.length) throw new Error('The conversation messages are missing??');
 			$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
-		} catch (e: unknown) {
-			throw e;
+		} catch (e) {
+			if (e instanceof Error) {
+				const E = e as Error;
+				if (E.name === 'AbortError') {
+					// The conversation was aborted, and thus was not saved on the server side.
+					// We need to save the conversation and the messages locally and update it in the database.
+					debug('submitConversation', 'aborted');
+					if ($conversation && $conversation.messages && $conversation.messages?.length >= 2) {
+						let newConversation = await APIupsertConversation($conversation);
+
+						let userMessage = $conversation.messages[$conversation.messages.length - 2];
+
+						userMessage = {
+							...userMessage,
+							conversationId: newConversation.id
+						};
+
+						$conversation.messages[$conversation.messages.length - 2] = await APIupsertMessage(userMessage);
+
+						let assistantMessage = $conversation.messages[$conversation.messages.length - 1];
+
+						assistantMessage = {
+							...assistantMessage,
+							finishReason: 'aborted',
+							assistantID: $conversation.assistant,
+							assistantName: $assistants[$conversation.assistant ?? 'unknown']?.name ?? 'Unknown',
+							model: $assistants[$conversation.assistant ?? 'unknown']?.model ?? 'Unknown',
+							modelName:
+								$models[$assistants[$conversation.assistant ?? 'unknown']?.model ?? 'unknown']?.name ?? 'Unknown',
+							temperature: $assistants[$conversation.assistant ?? 'unknown']?.temperature ?? 0,
+							topP: $assistants[$conversation.assistant ?? 'unknown']?.topP ?? 0,
+							topK: $assistants[$conversation.assistant ?? 'unknown']?.topK ?? 0,
+							conversationId: newConversation.id
+						};
+
+						$conversation.messages[$conversation.messages.length - 1] = await APIupsertMessage(assistantMessage);
+
+						$conversation = { ...$conversation, ...newConversation };
+						if (!$conversation.id) throw new Error('The conversation ID is missing.');
+
+						if (!$conversations[$conversation.id]) {
+							$conversations[$conversation.id] = $conversation;
+							$conversationOrder = [$conversation.id!, ...$conversationOrder];
+						}
+					}
+				} else {
+					throw e;
+				}
+			}
 		} finally {
 			// This will also trigger the conversation summary.
 			$chatStreaming = false;
+			abortController = undefined;
 		}
 	}
 
@@ -226,10 +280,12 @@
 					</a>
 					<a
 						href="https://github.com/congustoAI/chat"
-						class="flex text-2xl opacity-50 items-top"
+						class="items-top flex text-2xl opacity-50"
 						target="_blank"
 						rel="noopener noreferrer">
-						<p class=" mx-2 flex opacity-50 items-center">Give us a <Star class="mx-1" color="yellow" fill="yellow" /> on</p>
+						<p class=" mx-2 flex items-center opacity-50">
+							Give us a <Star class="mx-1" color="yellow" fill="yellow" /> on
+						</p>
 						<span class="link flex items-center opacity-100">
 							<GitHub />
 							GitHub
@@ -253,7 +309,7 @@
 				{/if}
 			</div>
 			<div class="navbar-center mx-auto h-fit max-w-full grow p-0 md:max-w-[95%]">
-				<ChatInput {submitConversation} />
+				<ChatInput {submitConversation} cancelConversation={() => abortController?.abort()} />
 			</div>
 			<div class="navbar-end max-w-fit"></div>
 		</div>

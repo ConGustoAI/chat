@@ -178,7 +178,6 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 					dbUser,
 					message: AM
 				}),
-
 				db
 					.update(messagesTable)
 					.set({ deleted: true })
@@ -238,7 +237,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			topP: assistantData.topP,
 			topK: assistantData.topK,
 			maxTokens: assistantData.maxTokens || assistantData.model.outputContext || 4096,
-			onFinish: onFinish
+			onFinish: onFinish,
+			abortSignal: request.signal,
 		});
 
 		return result.toDataStreamResponse({ data: d });
