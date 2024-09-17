@@ -65,8 +65,15 @@
 
 .katex * {
 	margin: 0;
+	text-align: left;
 }
 
 .katex-display {
-	margin: 0.5rem 0!important;
+	margin-left: 0;
+}
+
+@media (min-width: 768px) {
+	.katex-display {
+		margin-left: 10rem !important;
+	}
 }
