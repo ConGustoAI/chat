@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { APIupsertProvider } from '$lib/api';
-	import { Provider } from '$lib/components';
+	import { InfoPopup, Provider } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { dbUser, providers } from '$lib/stores/appstate';
 	import { Plus } from 'lucide-svelte';
@@ -51,11 +51,20 @@
 </script>
 
 <div class="flex w-full flex-col gap-4">
-	<div class="grid w-full grid-cols-[min-content,10rem,8rem,8rem,auto,6rem,6rem,min-content,min-content,0] gap-4 gap-y-2 items-center">
+	<div
+		class="grid w-full grid-cols-[min-content,10rem,8rem,8rem,auto,6rem,6rem,min-content,min-content,0] items-center gap-4 gap-y-2">
 		<div />
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>
-		<div class="font-bold">Stream usage</div>
+		<div class="font-bold">
+			Stream usage<InfoPopup title="Request usage information at the end of text stream">
+				<p>OpenAI has introduced a feature that allows requesting token usage statistics at the conclusion of a text stream.</p>
+				<p>Some other providers are using an older version of the API that lacks this functionality.</p>
+				<p>Enable this option if your OpenAI-compatible provider supports</p>
+				<pre><code>stream_options: &lbrace; include_usage: true &rbrace;</code></pre>
+				<p>Note: Anthropic and Google APIs always provide usage information, so this setting doesn't apply to them.</p>
+			</InfoPopup>
+		</div>
 		<div class="font-bold">Base URL</div>
 		<div />
 		<div />

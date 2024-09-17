@@ -6,7 +6,7 @@ To build the best open-source AI Chat application for developers and power users
 Features:
 
 - [x] Any model from any API provider
-- [~] Multi-modal
+- [ ] Multi-modal
   - [x] Text
   - [ ] Images
   - [ ] Audio
@@ -119,19 +119,17 @@ Coming soon.
 - Clone the repository: `git clone https://github.com/ConGustoAI/chat`
 - Copy `.env.example` to `.env` and set the environment variables.
 - Make sure you have NodeJS v20+ installed.
-  - Install NodeJS, platform-dependent.
-
 - Install the dependencies
-  `npm i`
+  - `npm i`
 
 - Populate .env with your Postgres connection string, Google and/or Github OAuth credentials.
 
 - Run migrations (populate the table structure) and seed the database with default data.
-  `npm db:migrate`
-  `npm db:seed`
+  - `npm db:migrate`
+  - `npm db:seed`
 
 - Start the dev server
-  `npm dev`
+  - `npm dev`
 
 - Open the browser at http://localhost:5173 and sign up as a new user.
 

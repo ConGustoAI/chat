@@ -6,5 +6,7 @@ export { default as GrowInput } from './GrowInput.svelte';
 export { default as DeleteButton } from './DeleteButton.svelte';
 export { default as Notification } from './Notification.svelte';
 export { default as ChatInput } from './conversation/ChatInput.svelte';
+export { default as InfoPopup } from './InfoPopup.svelte';
+
 export * from './settings';
 export * from './conversation';
