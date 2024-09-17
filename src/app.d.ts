@@ -45,6 +45,7 @@ declare global {
 		userID: string;
 		name: string;
 		type: ProviderType;
+		openAIStreamUsage?: boolean;
 		baseURL: string;
 		apiKeys?: ApiKeyInterface[];
 		models?: ModelInterface[];
