@@ -162,8 +162,12 @@ if (preElement) {
 	}
 
 	function getMarkdown(msg: MessageInterface) {
-		// The cache should be invalidated by the code that mosidies the text.
+		// The cache should be invalidated by the code that modifies the text.
 		if (msg.markdownCache) return msg.markdownCache;
+
+		// This is a bit of a hack to support the OpenAI markdown syntax.
+		let convertedMsg = msg.text.replace(/\\\((.*?)\\\)/g, '$ $1 $').replace(/\\\[\n([\s\S]*?)\n\\\]/g, '$$\n$1\n$$');
+
 		debug('parseMarkdown start');
 		const res = unified()
 			.use(remarkParse)
@@ -177,7 +181,7 @@ if (preElement) {
 			.use(rehypeSelectAll)
 			.use(rehypeKatex)
 			.use(rehypeStringify)
-			.processSync(msg.text);
+			.processSync(convertedMsg);
 		const str = res.toString();
 		msg.markdownCache = str;
 		debug('parseMarkdown end');
