@@ -166,19 +166,20 @@ if (preElement) {
 		if (msg.markdownCache) return msg.markdownCache;
 
 		// This is a bit of a hack to support the OpenAI markdown syntax.
-		let convertedMsg = msg.text.replace(/\\\((.*?)\\\)/g, '$ $1 $').replace(/\\\[\n([\s\S]*?)\n\\\]/g, '$$\n$1\n$$');
-
+		let convertedMsg = msg.text.replace(/\\\((.*?)\\\)/g, '$$ $1 $$').replace(/\\\[\n([\s\S]*?)\n\\\]/g, '$$$$\n$1\n$$$$');
+		debug('msg.text', msg.text);
+		debug('convertedMsg', convertedMsg);
 		debug('parseMarkdown start');
 		const res = unified()
 			.use(remarkParse)
-			.use(remarkBreaks)
-			.use(remarkGfm)
+			// .use(remarkBreaks)
+			// .use(remarkGfm)
 			.use(remarkMath)
 			.use(remarkRehype, { allowDangerousHtml: true })
-			.use(rehypeHighlight, { detect: true })
-			.use(rehypeCopyButton)
-			.use(rehypeClickFormulas)
-			.use(rehypeSelectAll)
+			// .use(rehypeHighlight, { detect: true })
+			// .use(rehypeCopyButton)
+			// .use(rehypeClickFormulas)
+			// .use(rehypeSelectAll)
 			.use(rehypeKatex)
 			.use(rehypeStringify)
 			.processSync(convertedMsg);

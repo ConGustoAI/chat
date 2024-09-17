@@ -64,6 +64,10 @@
 }
 
 .katex * {
-	padding-top: 0.05rem;
-	padding-bottom: 0.05rem;
+	text-align: initial;
+	margin: 0;
+}
+
+.katex-display {
+	margin: 0.5rem 0!important;
 }
