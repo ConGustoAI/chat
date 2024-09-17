@@ -1,0 +1,1 @@
+ALTER TABLE "providers" ADD COLUMN "openai_stream_usage" boolean DEFAULT true;
