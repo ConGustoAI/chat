@@ -62,3 +62,8 @@
 	padding: 0;
 	width: 100%;
 }
+
+.katex * {
+	padding-top: 0.05rem;
+	padding-bottom: 0.05rem;
+}
