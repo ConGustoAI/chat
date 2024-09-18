@@ -34,7 +34,7 @@
 
 					const newChildren = [
 						// @ts-ignore
-						h('code', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value),
+						h('code ', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value),
 						h(
 							'code',
 							{ class: ['click-formula'], style: 'display: none;' },
@@ -115,6 +115,8 @@ this.childNodes.forEach((node) => {
 						}
 					}
 
+					if (language == 'math') return;
+
 					const copyButton: Element = h(
 						'.btn btn-ghost  .rounded-md size-5 p-0 mr-1 min-h-fit',
 						{
@@ -145,14 +147,14 @@ if (preElement) {
 						]
 					);
 
-					const header = h('div', { class: 'flex justify-between items-center' }, [
+					const header = h('div', { class: 'flex justify-between items-center bg-base-300' }, [
 						s('span', { class: 'text-sm text-gray-500' }, language),
 						copyButton
 					]);
 
 					// There may be a more elegant way to implement this!
 
-					const newNode = h('pre .relative .copy-button p-1 bg-base-300 mb-2 whitespace-pre-wrap');
+					const newNode = h('pre .relative .copy-button .p-1 .bg-base-300 .mb-2 .whitespace-pre-wrap');
 					newNode.children = [header, ...node.children];
 
 					Object.assign(node, newNode);
@@ -166,20 +168,22 @@ if (preElement) {
 		if (msg.markdownCache) return msg.markdownCache;
 
 		// This is a bit of a hack to support the OpenAI markdown syntax.
-		let convertedMsg = msg.text.replace(/\\\((.*?)\\\)/g, '$$ $1 $$').replace(/\\\[\n([\s\S]*?)\n\\\]/g, '$$$$\n$1\n$$$$');
+		let convertedMsg = msg.text
+			.replace(/\\\((.*?)\\\)/g, '$$ $1 $$')
+			.replace(/\\\[\n([\s\S]*?)\n(\s*)\\\]/g, '$$$$\n$1\n$2$$$$'); // Preserve leading whitespace before closing $$
 		debug('msg.text', msg.text);
 		debug('convertedMsg', convertedMsg);
 		debug('parseMarkdown start');
 		const res = unified()
 			.use(remarkParse)
-			// .use(remarkBreaks)
-			// .use(remarkGfm)
+			.use(remarkBreaks)
+			.use(remarkGfm)
 			.use(remarkMath)
 			.use(remarkRehype, { allowDangerousHtml: true })
-			// .use(rehypeHighlight, { detect: true })
-			// .use(rehypeCopyButton)
-			// .use(rehypeClickFormulas)
-			// .use(rehypeSelectAll)
+			.use(rehypeHighlight, { detect: true })
+			.use(rehypeCopyButton)
+			.use(rehypeSelectAll)
+			.use(rehypeClickFormulas)
 			.use(rehypeKatex)
 			.use(rehypeStringify)
 			.processSync(convertedMsg);
