@@ -18,11 +18,11 @@
 	} from '$lib/stores/appstate';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp, Github, GithubIcon, Star } from 'lucide-svelte';
+	import { ChevronUp, Star } from 'lucide-svelte';
 
+	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
-	import GitHub from '$lib/components/icons/GitHub.svelte';
 	const debug = dbg('app:ui:chat');
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
@@ -210,6 +210,8 @@
 	async function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
 		if ($isMobile) $sidebarOpen = false;
+		debug('NewChat', { assistantId, $assistants });
+
 		$conversation = newConversation($dbUser, assistantId, $assistants);
 		await goto('/chat');
 	}

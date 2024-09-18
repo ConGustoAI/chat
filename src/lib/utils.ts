@@ -50,7 +50,7 @@ export function newConversation(
 	assistants: { [key: string]: AssistantInterface } | undefined
 ): ConversationInterface {
 	if (!dbUser) return { userID: 'anon' };
-	if (!assistantID) assistantID = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
+	if (!assistantID || assistantID == defaultsUUID) assistantID = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
 	if (!assistantID && assistants && Object.keys(assistants).length) assistantID = Object.keys(assistants)[0];
 
 	return {
