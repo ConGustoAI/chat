@@ -114,22 +114,22 @@
 
 <ul class="base-200 no-scrollbar menu max-h-full max-w-full flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}
-		<ConversationHistoryGroup title="Today" group={datedConversation.today} {selectedConversations} />
+		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations />
 	{/if}
 
 	{#if datedConversation.yesterday.length}
-		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} {selectedConversations} />
+		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} bind:selectedConversations />
 	{/if}
 
 	{#if datedConversation.lastWeek.length}
-		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} {selectedConversations} />
+		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} bind:selectedConversations />
 	{/if}
 
 	{#if datedConversation.lastMonth.length}
-		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} {selectedConversations} />
+		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} bind:selectedConversations />
 	{/if}
 
 	{#if datedConversation.unknown.length}
-		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} {selectedConversations} />
+		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations />
 	{/if}
 </ul>
