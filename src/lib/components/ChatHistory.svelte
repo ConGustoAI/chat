@@ -1,15 +1,60 @@
 <script lang="ts">
-	import { DeleteButton } from '$lib/components';
-	import { conversation, conversationOrder, conversations, isMobile, sidebarOpen } from '$lib/stores/appstate';
-	import { Star } from 'lucide-svelte';
+	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
+	import { conversationOrder, conversations } from '$lib/stores/appstate';
 
-	// export let conversationOrder: string[];
 	export let deleteConversations: (id: string[]) => Promise<void>;
 
 	let seachValue: string | undefined;
-	$: filteredConversations = $conversationOrder.filter(
-		(c) => !seachValue || $conversations[c].summary?.toLowerCase().includes(seachValue.toLowerCase())
-	);
+
+	function splitConversations(conversatonIds: string[], seachValue: string | undefined) {
+		const today = new Date();
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		const lastWeek = new Date();
+		lastWeek.setDate(lastWeek.getDate() - 7);
+		const lastMonth = new Date();
+		lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+		const todayConversations = [];
+		const yesterdayConversations = [];
+		const lastWeekConversations = [];
+		const lastMonthConversations = [];
+		const unknownConversations = [];
+
+		const filteredConversations = conversatonIds.filter(
+			(c) => !seachValue || $conversations[c].summary?.toLowerCase().includes(seachValue.toLowerCase())
+		);
+
+		for (const c of filteredConversations) {
+			if (!$conversations[c].updatedAt) {
+				unknownConversations.push(c);
+				continue;
+			}
+			const date = new Date($conversations[c].updatedAt);
+			if (date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) {
+				todayConversations.push(c);
+			} else if (date.getDate() === yesterday.getDate() && date.getMonth() === yesterday.getMonth() && date.getFullYear() === yesterday.getFullYear()) {
+				yesterdayConversations.push(c);
+			} else if (date > lastWeek) {
+				lastWeekConversations.push(c);
+			} else if (date > lastMonth) {
+				lastMonthConversations.push(c);
+			}
+		}
+
+		return {
+			today: todayConversations,
+			yesterday: yesterdayConversations,
+			lastWeek: lastWeekConversations,
+			lastMonth: lastMonthConversations,
+			unknown: unknownConversations,
+			allFiltered: filteredConversations
+		};
+
+	}
+
+	$: datedConversation = splitConversations($conversationOrder, seachValue);
+
 
 	let selectedConversations: string[] = [];
 	let deleting = false;
@@ -17,7 +62,7 @@
 	export function selectAll(e: Event) {
 		const target = e.target as HTMLInputElement;
 		if (target.checked) {
-			selectedConversations = filteredConversations;
+			selectedConversations = datedConversation.allFiltered;
 		} else {
 			selectedConversations = [];
 		}
@@ -34,6 +79,10 @@
 		seachValue = '';
 		deleting = false;
 	}
+
+
+
+
 </script>
 
 <div class="relative w-full">
@@ -41,7 +90,7 @@
 		type="checkbox"
 		class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
 		on:change={(e) => selectAll(e)}
-		checked={!!selectedConversations.length && selectedConversations.length === filteredConversations.length} />
+		checked={!!selectedConversations.length && selectedConversations.length === datedConversation.allFiltered.length} />
 	{#if selectedConversations.length}
 		{#if deleting}
 			<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform" />
@@ -62,32 +111,25 @@
 </div>
 
 <ul class="base-200 no-scrollbar menu max-h-full max-w-full flex-nowrap overflow-y-auto p-0">
-	{#if selectedConversations.length}
-		<div class="z-20 flex justify-start px-0"></div>
-		<div class="divider min-h-4 w-full"></div>
+
+	{#if datedConversation.today.length}
+		<ConversationHistoryGroup title="Today" group={datedConversation.today} selectedConversations={selectedConversations} />
 	{/if}
 
-	{#each filteredConversations as c}
-		<li class="tooltip relative min-h-8 p-0" title={$conversation?.summary} class:bg-base-300={$conversation?.id == c}>
-			<!-- <span class="max-w-fit">{conversations[c].order}</span> -->
-			<input
-				type="checkbox"
-				class="checkbox absolute left-0 top-0.5 z-10 m-0 p-0"
-				bind:group={selectedConversations}
-				value={c} />
-			<a
-				href={'/chat/' + c}
-				class="relative pl-8"
-				on:click={() => {
-					if ($isMobile) $sidebarOpen = false;
-				}}>
-				{#if $conversations[c]?.like}
-					<span class="">
-						<Star size={15} color="var(--star)" fill="var(--star)" />
-					</span>
-				{/if}
-				<span class="truncate">{($conversations[c]?.summary ?? 'New Chat').trim()}</span>
-			</a>
-		</li>
-	{/each}
+	{#if datedConversation.yesterday.length}
+		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} selectedConversations={selectedConversations} />
+	{/if}
+
+	{#if datedConversation.lastWeek.length}
+		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} selectedConversations={selectedConversations} />
+	{/if}
+
+	{#if datedConversation.lastMonth.length}
+		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} selectedConversations={selectedConversations} />
+	{/if}
+
+	{#if datedConversation.unknown.length}
+		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} selectedConversations={selectedConversations} />
+	{/if}
+
 </ul>

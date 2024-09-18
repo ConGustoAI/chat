@@ -8,3 +8,4 @@ export { default as ConversationAssistant } from './ConversationAssistant.svelte
 export { default as MessageInfo } from './MessageInfo.svelte';
 export { default as Cost } from './Cost.svelte';
 export { default as CostEstimate } from './CostEstimate.svelte';
+export { default as ConversationHistoryGroup } from './ConversationHistoryGroup.svelte';

@@ -171,9 +171,9 @@ if (preElement) {
 		let convertedMsg = msg.text
 			.replace(/\\\((.*?)\\\)/g, '$$ $1 $$')
 			.replace(/\\\[\n([\s\S]*?)\n(\s*)\\\]/g, '$$$$\n$1\n$2$$$$'); // Preserve leading whitespace before closing $$
-		debug('msg.text', msg.text);
-		debug('convertedMsg', convertedMsg);
-		debug('parseMarkdown start');
+		// debug('msg.text', msg.text);
+		// debug('convertedMsg', convertedMsg);
+		// debug('parseMarkdown start');
 		const res = unified()
 			.use(remarkParse)
 			.use(remarkBreaks)
