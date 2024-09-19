@@ -19,34 +19,30 @@
 
 	export let data;
 
-	let loading = false;
-
 	$: $dbUser = data.dbUser;
 	$: $hiddenItems = data.hiddenItems;
 
-	dbUser.subscribe(async () => {
-		debug('dbUser changed, fetching data');
-		loading = true;
-		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
-			APIfetchProviders(),
-			APIfetchModels(),
-			APIfetchKeys()
-		]);
+	// dbUser.subscribe(async () => {
+	// 	debug('dbUser changed, fetching data');
+	// 	const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
+	// 		APIfetchProviders(),
+	// 		APIfetchModels(),
+	// 		APIfetchKeys()
+	// 	]);
 
-		$assistants = toIdMap(data.assistants);
-		$providers = toIdMap(fetchedProviders);
-		$models = toIdMap(fetchedModels);
-		$apiKeys = toIdMap(fetchedApiKeys);
-		loading = false;
+	// 	$assistants = toIdMap(data.assistants);
+	// 	$providers = toIdMap(fetchedProviders);
+	// 	$models = toIdMap(fetchedModels);
+	// 	$apiKeys = toIdMap(fetchedApiKeys);
 
-		debug('Done fetching', {
-			assistants: $assistants,
-			providers: $providers,
-			models: $models,
-			dbUser: $dbUser,
-			apiKeys: Object.keys($apiKeys)
-		});
-	});
+	// 	debug('Done fetching', {
+	// 		assistants: $assistants,
+	// 		providers: $providers,
+	// 		models: $models,
+	// 		dbUser: $dbUser,
+	// 		apiKeys: Object.keys($apiKeys)
+	// 	});
+	// });
 </script>
 
 <ModeWatcher />

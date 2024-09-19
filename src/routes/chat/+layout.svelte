@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { APIdeleteConversation, APIfetchConversations, APIupsertConversation, APIupsertMessage } from '$lib/api';
+	import { APIdeleteConversation, APIfetchConversations, APIfetchKeys, APIfetchModels, APIfetchProviders, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import {
+	apiKeys,
 		assistants,
 		chatDataLoading,
 		chatStreaming,
@@ -14,6 +15,7 @@
 		hiddenItems,
 		isMobile,
 		models,
+		providers,
 		sidebarOpen
 	} from '$lib/stores/appstate';
 	import { newConversation, toIdMap } from '$lib/utils';
@@ -45,6 +47,31 @@
 		$conversationOrder = Object.keys($conversations);
 		$chatDataLoading = false;
 		debug('done fetching data', { $conversation, $conversations, $conversationOrder });
+	});
+
+	export let data;
+
+	dbUser.subscribe(async () => {
+		debug('dbUser changed, fetching data');
+
+		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
+			APIfetchProviders(),
+			APIfetchModels(),
+			APIfetchKeys()
+		]);
+
+		$assistants = toIdMap(data.assistants);
+		$providers = toIdMap(fetchedProviders);
+		$models = toIdMap(fetchedModels);
+		$apiKeys = toIdMap(fetchedApiKeys);
+
+		debug('Done fetching', {
+			assistants: $assistants,
+			providers: $providers,
+			models: $models,
+			dbUser: $dbUser,
+			apiKeys: Object.keys($apiKeys)
+		});
 	});
 
 	let abortController: AbortController | undefined = undefined;
