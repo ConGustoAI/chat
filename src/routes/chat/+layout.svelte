@@ -287,7 +287,7 @@
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle />
 
-		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
+		<div class="mb-auto w-full grow overflow-y-auto bg-transparent bg-opacity-10">
 			{#if $conversation?.messages}
 				{#each $conversation.messages as m, i}
 					<ChatMessage

@@ -7,7 +7,8 @@
 		conversation,
 		conversations,
 		conversationOrder,
-		dbUser
+		dbUser,
+		isMobile
 	} from '$lib/stores/appstate';
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
@@ -90,10 +91,10 @@
 	}
 </script>
 
-<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center bg-base-100">
-	<div class="navbar-start mr-5 flex w-fit grow-0 gap-4">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-100">
+	<div class="flex gap-2 min-w-0">
 		{#if isPublic}
-			<a class="link flex w-fit gap-2 text-nowrap" href="/chat">
+			<a class="link flex gap-2 text-ellipsis text-nowrap" href="/chat">
 				<ArrowLeftCircle />Congusto Chat
 			</a>
 		{/if}
@@ -102,7 +103,7 @@
 			<a href={'/chat/'} class="link"><Edit /></a>
 		{/if}
 
-		{#if $conversation?.id && !isPublic}
+		{#if $conversation?.id && !isPublic && !$isMobile}
 			{#if updatingLike}
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
@@ -129,14 +130,14 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="navbar-center hidden max-w-[70%] md:block">
-		<div class="w-full text-center text-xl font-bold">
+	<div class="min-w-0 shrink-[2]">
+		<div class="flex w-full text-ellipsis text-center text-xl font-bold">
 			{#if !$chatDataLoading}
 				{#if $conversation}
 					{#if editingSummary}
 						<input
 							type="text"
-							class="input input-sm input-bordered w-full"
+							class="input input-sm input-bordered w-full grow"
 							bind:value={$conversation.summary}
 							on:blur={() => (editingSummary = false)}
 							on:keypress={async (e) => e.key === 'Enter' && (await updateSummary())} />
@@ -158,7 +159,7 @@
 	</div>
 
 	<!-- navbar-end -->
-	<div class="navbar-end ml-auto mr-2 gap-2 justify-self-end">
+	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end max-w-">
 		{#if $conversation?.id && !isPublic}
 			<ShareConversation {updateConversation} />
 		{/if}

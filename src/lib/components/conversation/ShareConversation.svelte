@@ -7,7 +7,7 @@
 </script>
 
 {#if $conversation?.id}
-	<div class="mr-5 hidden items-center justify-end gap-4 md:flex">
+	<div class="hidden items-center justify-end gap-2 md:flex">
 		{#if $conversation.public}
 			<a href={'/public/' + $conversation.id} class="btn btn-sm rounded-md bg-base-300"><Link size={18} /></a>
 		{/if}

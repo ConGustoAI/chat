@@ -33,8 +33,17 @@
 					const isMathInline = node.properties.className?.includes('math-inline');
 
 					const newChildren = [
-						// @ts-ignore
-						h('code ', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value),
+						isMathInline // @ts-ignore
+							? h('code', { class: [...node.properties.className, 'click-formula'] }, node.children[0].value)
+							: h('span .click-formula .flex .w-full .shrink .min-w-0', [
+									h('div .max-w-32 .min-w-0 .shrink-1 .grow'),
+									h(
+										'code .shrink-0 .grow',
+										{ class: [...node.properties.className, 'click-formula'] },
+										// @ts-ignore
+										node.children[0].value
+									)
+								]),
 						h(
 							'code',
 							{ class: ['click-formula'], style: 'display: none;' },
@@ -194,6 +203,6 @@ if (preElement) {
 	}
 </script>
 
-<div class="prose grow pt-2 text-message">
+<div class="prose w-full grow pt-2 text-message">
 	{@html getMarkdown(message)}
 </div>
