@@ -135,6 +135,12 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 	const d = new StreamData();
 
+	conversation.assistantName = assistantData.name;
+	conversation.model = assistantData.model.id;
+	conversation.modelName = assistantData.model.name;
+	conversation.provider = assistantData.model.provider.id;
+	conversation.providerName = assistantData.model.provider.name;
+
 	// We end up inserting the conversation twice, because we need the conversation ID to insert the messages,
 	// and I want to insert the messages and update the final conversation in parallel.
 	if (!conversation.id) conversation = (await DBupsertConversation({ dbUser, conversation })) as ConversationInterface;

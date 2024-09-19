@@ -3,6 +3,8 @@ import { assistantsTable } from './assistants';
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
 import { messagesTable } from './messages';
+import { modelsTable } from './models';
+import { providersTable } from './providers';
 
 export const conversationsTable = pgTable('conversations', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -10,6 +12,13 @@ export const conversationsTable = pgTable('conversations', {
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	assistant: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
+	// Used for search.
+	assistantName: text('assistant_name'),
+	model: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
+	modelName: text('model_name'),
+	provider: uuid('provider_id').references(() => providersTable.id, { onDelete: 'set null' }),
+	providerName: text('provider_name'),
+
 	summary: text('summary'),
 	like: boolean('like').default(false),
 	deleted: boolean('deleted').default(false),

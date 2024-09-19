@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
 	import { conversationOrder, conversations } from '$lib/stores/appstate';
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:ChatHistory');
 
 	export let deleteConversations: (id: string[]) => Promise<void>;
 
-	let seachValue: string | undefined;
+	let seach: string | undefined;
+	let searchFocused = false;
+	let searchAMP: string | undefined;
+	let searchAMPFocused = false;
+	let focusedInputs = 0;
 
-	function splitConversations(conversatonIds: string[], seachValue: string | undefined) {
+	function splitConversations(conversatonIds: string[], value: string | undefined, amp: string | undefined) {
 		const today = new Date();
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
@@ -21,9 +27,24 @@
 		const lastMonthConversations = [];
 		const unknownConversations = [];
 
-		const filteredConversations = conversatonIds.filter(
-			(c) => !seachValue || $conversations[c].summary?.toLowerCase().includes(seachValue.toLowerCase())
-		);
+		const filteredConversations = [];
+		for (const c of conversatonIds) {
+			const conversation = $conversations[c];
+
+			const conversationAMP =
+				(conversation.assistantName ?? 'unknown') +
+				'/' +
+				(conversation.providerName ?? 'unknown') +
+				'/' +
+				(conversation.modelName ?? 'unknown');
+
+			// Summary match
+			if (value && !conversation.summary?.toLowerCase().includes(value.toLowerCase())) continue;
+			// Match assistant/model/provider
+			if (amp && !conversationAMP.toLowerCase().includes(amp.toLowerCase())) continue;
+			debug(conversationAMP);
+			filteredConversations.push(c);
+		}
 
 		for (const c of filteredConversations) {
 			if (!$conversations[c].updatedAt) {
@@ -60,7 +81,22 @@
 		};
 	}
 
-	$: datedConversation = splitConversations($conversationOrder, seachValue);
+	function findModelsProvidersAssistants(conversationIds: string[]) {
+		const m: { [key: string]: boolean } = {};
+		const p: { [key: string]: boolean } = {};
+		const a: { [key: string]: boolean } = {};
+		for (const c of conversationIds) {
+			const conversation = $conversations[c];
+
+			if (conversation?.modelName) m[conversation.modelName] = true;
+			if (conversation?.providerName) p[conversation.providerName] = true;
+			if (conversation?.assistantName) a[conversation.assistantName] = true;
+		}
+		return [...Object.keys(a), ...Object.keys(m), ...Object.keys(p)];
+	}
+
+	$: datedConversation = splitConversations($conversationOrder, seach, searchAMP);
+	$: historyAMPOptions = findModelsProvidersAssistants(datedConversation.allFiltered);
 
 	let selectedConversations: string[] = [];
 	let deleting = false;
@@ -82,8 +118,38 @@
 			deleting = false;
 		}
 		selectedConversations = [];
-		seachValue = '';
+		seach = '';
 		deleting = false;
+	}
+
+	function handleSearchFocus() {
+		focusedInputs++;
+		searchFocused = true;
+	}
+
+	function handleSearchBlur() {
+		// setTimeout lets us process the next focus event before the blur event.
+		setTimeout(() => {
+			focusedInputs--;
+			if (focusedInputs <= 0) {
+				searchFocused = false;
+			}
+		}, 0);
+	}
+
+	function handleSearchAMPFocus() {
+		searchAMPFocused = true;
+		focusedInputs++;
+	}
+
+	function handleSearchAMPBlur() {
+		searchAMPFocused = false;
+		setTimeout(() => {
+			focusedInputs--;
+			if (focusedInputs <= 0) {
+				searchAMPFocused = false;
+			}
+		}, 0);
 	}
 </script>
 
@@ -109,8 +175,32 @@
 		type="text"
 		placeholder="Search chats..."
 		class="input input-bordered min-h-12 w-full pl-12"
-		bind:value={seachValue} />
+		bind:value={seach}
+		on:focus={handleSearchFocus}
+		on:blur={handleSearchBlur} />
 </div>
+
+{#if searchFocused}
+	<div class="relative flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow transition-all">
+		<input
+			type="text"
+			class="input input-sm input-bordered"
+			placeholder="Assistant/Provider/Model"
+			bind:value={searchAMP}
+			on:focus={handleSearchAMPFocus}
+			on:blur={handleSearchAMPBlur} />
+
+		{#if searchAMPFocused}
+			<div class="absolute left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md shadow-lg bg-base-200">
+				{#each historyAMPOptions as option}
+					<button class="cursor-pointer text-nowrap px-4 py-2 text-start" on:click={() => (searchAMP = option)}>
+						{option}
+					</button>
+				{/each}
+			</div>
+		{/if}
+	</div>
+{/if}
 
 <ul class="base-200 no-scrollbar menu max-h-full max-w-full flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}

@@ -156,6 +156,13 @@ declare global {
 		order?: number;
 		userID: string;
 		assistant?: string;
+		// Used for search.
+		assistantName?: string;
+		model?: string;
+		modelName?: string;
+		provider?: string;
+		providerName?: string;
+
 		summary?: string;
 		like?: boolean;
 		deleted?: boolean;
