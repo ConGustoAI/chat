@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { conversation, conversations, sidebarOpen, isMobile } from '$lib/stores/appstate';
-	import { Star } from 'lucide-svelte';
+	import { Star, Link } from 'lucide-svelte';
 
 	export let title: string;
 	export let group: string[];
@@ -34,15 +34,20 @@
 
 		<a
 			href={'/chat/' + c}
-			class="relative pl-8"
+			class="relative pl-9"
 			on:click={() => {
 				if ($isMobile) $sidebarOpen = false;
 			}}>
 			{#if $conversations[c]?.like}
-				<span class="">
+				<span>
 					<Star size={15} color="var(--star)" fill="var(--star)" />
 				</span>
 			{/if}
+
+			{#if $conversations[c]?.public}
+				<span ><Link size={15} /></span>
+			{/if}
+
 			<span class="truncate">{($conversations[c]?.summary ?? 'New Chat').trim()}</span>
 		</a>
 	</li>
