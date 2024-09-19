@@ -1,10 +1,41 @@
 <script lang="ts">
 	import { SidebarNav } from '$lib/components';
-	import { dbUser } from '$lib/stores/appstate';
+	import { apiKeys, assistants, dbUser, models, providers } from '$lib/stores/appstate';
 	import { ArrowLeftCircle } from 'lucide-svelte';
 
 	import dbg from 'debug';
+	import { APIfetchProviders } from '$lib/api/provider.js';
+	import { APIfetchModels } from '$lib/api/model.js';
+	import { APIfetchKeys } from '$lib/api/key.js';
+	import { toIdMap } from '$lib/utils.js';
 	const debug = dbg('app:ui:settings:layout');
+
+
+	export let data;
+
+	dbUser.subscribe(async () => {
+		debug('dbUser changed, fetching data');
+
+		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
+			APIfetchProviders(),
+			APIfetchModels(),
+			APIfetchKeys()
+		]);
+
+		$assistants = toIdMap(data.assistants);
+		$providers = toIdMap(fetchedProviders);
+		$models = toIdMap(fetchedModels);
+		$apiKeys = toIdMap(fetchedApiKeys);
+
+		debug('Done fetching', {
+			assistants: $assistants,
+			providers: $providers,
+			models: $models,
+			dbUser: $dbUser,
+			apiKeys: Object.keys($apiKeys)
+		});
+	});
+
 
 	const sidebarNavItems = [
 		{
