@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { APIupsertMessage } from '$lib/api';
+	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
+	import { conversation, dbUser } from '$lib/stores/appstate';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
-	import { dbUser, conversation, providers, models, assistants } from '$lib/stores/appstate';
-	import { APIupsertMessage } from '$lib/api';
-	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';

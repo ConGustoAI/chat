@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { newConversation } from '$lib/utils';
-	import { APIfetchConversation } from '$lib/api';
-	import { dbUser, assistants, conversations, conversation, chatDataLoading } from '$lib/stores/appstate';
 	import { page } from '$app/stores';
+	import { APIfetchConversation } from '$lib/api';
+	import { chatDataLoading, conversation, conversations } from '$lib/stores/appstate';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:routes:chat:[id]');
 
@@ -34,7 +33,7 @@
 		}
 	}
 
-    $: fetchConversation($page.params.chat);
+	$: fetchConversation($page.params.chat);
 
 	// } else {
 	//     $conversation = newConversation($dbUser, $assistants);

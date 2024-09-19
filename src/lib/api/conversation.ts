@@ -3,7 +3,7 @@ import dbg from 'debug';
 const debug = dbg('app:lib:api:conversation');
 
 
-export async function APIfetchPublicConversation(id: string) {
+export async function APIfetchPublicConversation(id: string, fetch: typeof window.fetch = window.fetch) {
 	debug('fetchPublicConversation %o', { id });
 
 	const res = await fetch(`/api/public/${id}`);

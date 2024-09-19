@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { MetaTag } from '$lib/components';
 	import { assistants, conversation, dbUser } from '$lib/stores/appstate';
 	import { newConversation } from '$lib/utils';
 	import dbg from 'debug';
@@ -17,3 +18,5 @@
 
 	$: fetchConversation($page.params.chat);
 </script>
+
+<MetaTag title="Congusto Chat" url={$page.url.href} description="A better AI Chat User Interface" />
