@@ -5,10 +5,13 @@
 	import { onMount } from 'svelte';
 
 	import dbg from 'debug';
+	import { conversation } from '$lib/stores/appstate.js';
 	// import { chatDataLoading, conversation } from '$lib/stores/appstate';
 	const debug = dbg('app:ui:public');
 
 	export let data;
+
+	$: $conversation = data.conversation;
 
 	// onMount(async () => {
 	// 	debug('onMount');

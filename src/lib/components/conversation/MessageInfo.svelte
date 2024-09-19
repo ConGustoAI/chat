@@ -12,7 +12,7 @@
 			{#if $assistants[message.assistantID ?? 'unknown']}
 				<a class="link" href="/settings/assistants/#{message.assistantID}">{message.assistantName}</a>
 			{:else}
-				{message.assistantName} <span class="text-warning">[Deleted]</span>
+				{message.assistantName} <span class="text-warning">[Unavailable]</span>
 			{/if}
 		{:else}
 			Unknown
@@ -25,7 +25,7 @@
 				<a class="link" href="/settings/providers/#{provider.id}-{message.model}"
 					>{provider.name} / {message.modelName}</a>
 			{:else}
-				{message.modelName} <span class="text-warning">[Unknown provider]</span>
+				{message.modelName} <span class="text-warning">[Unavailable]</span>
 			{/if}
 		{:else}
 			Unknown

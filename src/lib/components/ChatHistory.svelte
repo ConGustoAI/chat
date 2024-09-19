@@ -92,6 +92,14 @@
 			}
 		}
 
+		debug('splitConversations', {
+			todayConversations,
+			yesterdayConversations,
+			lastWeekConversations,
+			lastMonthConversations,
+			unknownConversations
+		});
+
 		return {
 			today: todayConversations,
 			yesterday: yesterdayConversations,
