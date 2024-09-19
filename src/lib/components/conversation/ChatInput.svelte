@@ -65,6 +65,11 @@
 			<div class="absolute -top-4 right-2 z-20 text-xs">
 				<CostEstimate {input} />
 			</div>
+			{#if $conversation?.public}
+				<div class="absolute -top-4 left-2 z-20 text-xs">
+					<span class="text-warning">Conversation is public</span>
+				</div>
+			{/if}
 		{/if}
 		<GrowInput
 			bind:focused={inputFocus}

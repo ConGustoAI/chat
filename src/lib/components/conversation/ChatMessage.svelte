@@ -172,6 +172,12 @@
 					</div>
 				{/if}
 
+				{#if inputFocus && $conversation?.public}
+					<div class="absolute -top-4 left-2 z-20 text-xs">
+						<span class="text-warning">Conversation is public</span>
+					</div>
+				{/if}
+
 				<GrowInput
 					class="textarea-bordered w-full"
 					bind:focused={inputFocus}
