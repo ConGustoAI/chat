@@ -20,10 +20,10 @@
 	}
 </script>
 
-<div class="divider w-full">{title}</div>
+<div class="divider w-full grow-0">{title}</div>
 {#each group as c}
 	<li
-		class="tooltip relative min-h-8 p-0"
+		class="tooltip relative min-h-8 p-0 grow-0"
 		title={$conversations[c]?.summary}
 		class:bg-base-300={$conversation?.id === c}>
 		<input

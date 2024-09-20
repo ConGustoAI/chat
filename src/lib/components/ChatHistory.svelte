@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
 	import { conversationOrder, conversations } from '$lib/stores/appstate';
+	import { Link, Star, ArrowDownFromLine, ChevronDown } from 'lucide-svelte';
+	import { slide, scale, fly } from 'svelte/transition';
 	import dbg from 'debug';
-	import { Link, Star } from 'lucide-svelte';
 	const debug = dbg('app:ui:components:ChatHistory');
 
 	export let deleteConversations: (id: string[]) => Promise<void>;
 
 	let seach: string | undefined;
-	let searchFocused = false;
 	let searchAMP: string | undefined;
+
+	let searchOptionsOpen = false;
 	let searchAMPFocused = false;
-	let focusedInputs = 0;
 
 	let searchPublic = false;
 	let searchPrivate = false;
@@ -158,36 +159,6 @@
 		seach = '';
 		deleting = false;
 	}
-
-	function handleSearchFocus() {
-		focusedInputs++;
-		searchFocused = true;
-	}
-
-	function handleSearchBlur() {
-		// setTimeout lets us process the next focus event before the blur event.
-		setTimeout(() => {
-			focusedInputs--;
-			if (focusedInputs <= 0) {
-				searchFocused = false;
-			}
-		}, 0);
-	}
-
-	function handleSearchAMPFocus() {
-		searchAMPFocused = true;
-		focusedInputs++;
-	}
-
-	function handleSearchAMPBlur() {
-		searchAMPFocused = false;
-		setTimeout(() => {
-			focusedInputs--;
-			if (focusedInputs <= 0) {
-				searchAMPFocused = false;
-			}
-		}, 0);
-	}
 </script>
 
 <div class="relative w-full">
@@ -212,26 +183,39 @@
 		type="text"
 		placeholder="Search chats..."
 		class="input input-bordered min-h-12 w-full pl-12"
-		bind:value={seach}
-		on:focus={handleSearchFocus}
-		on:blur={handleSearchBlur} />
+		bind:value={seach} />
 </div>
 
-{#if searchFocused}
-	<div class="relative flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow transition-all">
+<div class="divider w-full grow-0">
+	<button
+		class="btn-outline mx-0 flex h-4 w-fit items-center rounded-full border px-4"
+		class:rotate-180={searchOptionsOpen}
+		on:click={() => (searchOptionsOpen = !searchOptionsOpen)}>
+		<ChevronDown size={12} />
+	</button>
+</div>
+
+{#if searchOptionsOpen}
+	<div class="relative mx-2 flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow" transition:slide={{duration: 20}}>
 		<input
 			type="text"
 			class="input input-sm input-bordered"
 			placeholder="Assistant/Provider/Model"
-			bind:value={searchAMP}
-			on:focus={handleSearchAMPFocus}
-			on:blur={handleSearchAMPBlur} />
+			on:focus={() => (searchAMPFocused = true)}
+			on:blur={() => {
+				setTimeout(() => {
+					searchAMPFocused = false;
+				}, 1000);
+			}}
+			bind:value={searchAMP} />
 
-		{#if searchAMPFocused}
+		{#if searchAMPFocused || searchAMP?.length}
 			<div
 				class="absolute left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
 				{#each historyAMPOptions as option}
-					<button class="cursor-pointer text-nowrap px-4 py-2 text-start" on:click={() => (searchAMP = option)}>
+					<button
+						class="btn btn-ghost cursor-pointer text-nowrap px-4 py-2 text-start"
+						on:click={() => (searchAMP = option)}>
 						{option}
 					</button>
 				{/each}
@@ -239,19 +223,16 @@
 		{/if}
 		<div class="flex gap-6 p-2">
 			<div class="flex items-center gap-2">
-				<label for="oplyPublic" on:focus={handleSearchFocus} on:blur={handleSearchBlur} tabindex="-1"
-					><Link size={20} /></label>
+				<label for="oplyPublic"><Link size={20} /></label>
 				<input
 					type="checkbox"
 					id="oplyPublic"
 					class="checkbox"
-					on:focus={handleSearchFocus}
-					on:blur={handleSearchBlur}
 					bind:checked={searchPublic}
 					on:change={() => (searchPrivate = false)} />
 			</div>
 			<div class="flex items-center gap-2">
-				<label for="oplyPrivate" on:focus={handleSearchFocus} on:blur={handleSearchBlur} tabindex="-1">
+				<label for="oplyPrivate">
 					<div class="relative">
 						<Link size={20} />
 						<div class="absolute left-0 top-1/2 h-0.5 w-full -rotate-45 transform bg-red-500"></div>
@@ -261,27 +242,22 @@
 					type="checkbox"
 					id="oplyPrivate"
 					class="checkbox"
-					on:focus={handleSearchFocus}
-					on:blur={handleSearchBlur}
 					bind:checked={searchPrivate}
 					on:change={() => (searchPublic = false)} />
 			</div>
 		</div>
 		<div class="flex gap-6 p-2">
 			<div class="flex items-center gap-2">
-				<label for="oplyStarred" on:focus={handleSearchFocus} on:blur={handleSearchBlur} tabindex="-1"
-					><Star color="yellow" fill="yellow" size={20} /></label>
+				<label for="oplyStarred"><Star color="yellow" fill="yellow" size={20} /></label>
 				<input
 					type="checkbox"
 					id="oplyStarred"
 					class="checkbox"
-					on:focus={handleSearchFocus}
-					on:blur={handleSearchBlur}
 					bind:checked={searchStarred}
 					on:change={() => (searchUnstarred = false)} />
 			</div>
 			<div class="flex items-center gap-2">
-				<label for="oplyUnstarred" on:focus={handleSearchFocus} on:blur={handleSearchBlur} tabindex="-1">
+				<label for="oplyUnstarred">
 					<div class="relative">
 						<Star color="yellow" size={20} />
 					</div>
@@ -290,8 +266,6 @@
 					type="checkbox"
 					id="oplyUnstarred"
 					class="checkbox"
-					on:focus={handleSearchFocus}
-					on:blur={handleSearchBlur}
 					bind:checked={searchUnstarred}
 					on:change={() => (searchStarred = false)} />
 			</div>
@@ -299,7 +273,7 @@
 	</div>
 {/if}
 
-<ul class="base-200 no-scrollbar menu max-h-full max-w-full flex-nowrap overflow-y-auto p-0">
+<ul class="base-200 no-scrollbar menu flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}
 		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations />
 	{/if}
@@ -320,3 +294,4 @@
 		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations />
 	{/if}
 </ul>
+<div class="grow" />

@@ -253,7 +253,7 @@
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
-	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56" class:hidden={!$sidebarOpen}>
+	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56 items-center justify-start" class:hidden={!$sidebarOpen}>
 		<div class="join flex w-full">
 			<button
 				class="border- btn btn-outline join-item h-full grow"
