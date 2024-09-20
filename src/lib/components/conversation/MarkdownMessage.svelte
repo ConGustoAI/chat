@@ -8,6 +8,7 @@
 	import remarkMath from 'remark-math';
 	import remarkParse from 'remark-parse';
 	import remarkRehype from 'remark-rehype';
+	import rehypeExternalLinks from 'rehype-external-links';
 	import { unified } from 'unified';
 
 	import dbg from 'debug';
@@ -194,6 +195,7 @@ if (preElement) {
 			.use(rehypeSelectAll)
 			.use(rehypeClickFormulas)
 			.use(rehypeKatex)
+			.use(rehypeExternalLinks, { target: '_blank' })
 			.use(rehypeStringify)
 			.processSync(convertedMsg);
 		const str = res.toString();
