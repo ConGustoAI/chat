@@ -23,7 +23,7 @@
 <div class="divider w-full grow-0">{title}</div>
 {#each group as c}
 	<li
-		class="tooltip relative min-h-8 p-0 grow-0"
+		class="tooltip relative min-h-8 w-full grow-0 p-0"
 		title={$conversations[c]?.summary}
 		class:bg-base-300={$conversation?.id === c}>
 		<input
@@ -34,7 +34,7 @@
 
 		<a
 			href={'/chat/' + c}
-			class="relative pl-9"
+			class="w-full pl-9"
 			on:click={() => {
 				if ($isMobile) $sidebarOpen = false;
 			}}>
@@ -45,10 +45,10 @@
 			{/if}
 
 			{#if $conversations[c]?.public}
-				<span ><Link size={15} /></span>
+				<span><Link size={15} /></span>
 			{/if}
 
-			<span class="truncate">{($conversations[c]?.summary ?? 'New Chat').trim()}</span>
+			<span class="text-nowrap">{($conversations[c]?.summary ?? 'New Chat').trim()}</span>
 		</a>
 	</li>
 {/each}

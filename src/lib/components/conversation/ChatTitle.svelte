@@ -130,7 +130,7 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="min-w-0 shrink-[2]">
+	<div class="min-w-0 shrink-[2] grow">
 		<div class="flex w-full text-ellipsis text-center text-xl font-bold">
 			{#if !$chatDataLoading}
 				{#if $conversation}
@@ -159,7 +159,7 @@
 	</div>
 
 	<!-- navbar-end -->
-	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end max-w-">
+	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end ">
 		{#if $conversation?.id && !isPublic}
 			<ShareConversation {updateConversation} />
 		{/if}

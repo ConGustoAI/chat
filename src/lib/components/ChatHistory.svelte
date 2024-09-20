@@ -196,7 +196,7 @@
 </div>
 
 {#if searchOptionsOpen}
-	<div class="relative mx-2 flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow" transition:slide={{duration: 20}}>
+	<div class="relative mx-2 flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow" transition:slide={{ duration: 20 }}>
 		<input
 			type="text"
 			class="input input-sm input-bordered"
@@ -273,7 +273,7 @@
 	</div>
 {/if}
 
-<ul class="base-200 no-scrollbar menu flex-nowrap overflow-y-auto p-0">
+<ul class="base-200 no-scrollbar menu flex w-full overflow-y-auto p-0">
 	{#if datedConversation.today.length}
 		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations />
 	{/if}
