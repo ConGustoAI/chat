@@ -92,7 +92,10 @@
 </script>
 
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-100">
-	<div class="flex gap-2 min-w-0">
+
+
+	<!-- navbar-start -->
+	<div class="flex min-w-0 gap-2 shrink-0">
 		{#if isPublic}
 			<a class="link flex gap-2 text-ellipsis text-nowrap" href="/chat">
 				<ArrowLeftCircle />Congusto Chat
@@ -159,7 +162,7 @@
 	</div>
 
 	<!-- navbar-end -->
-	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end ">
+	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end">
 		{#if $conversation?.id && !isPublic}
 			<ShareConversation {updateConversation} />
 		{/if}
