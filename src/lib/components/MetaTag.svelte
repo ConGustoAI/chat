@@ -32,7 +32,7 @@
 	{description}
 	canonical={url}
 	openGraph={{
-		siteName: 'Congusto Chat',
+		siteName: '👍 Congusto Chat',
 		type: 'website',
 		url: url,
 		title: title,

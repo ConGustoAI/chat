@@ -30,8 +30,9 @@
 
 	function makeDescription(conversation: ConversationInterface | undefined) {
 		if (!conversation?.messages?.length) return '';
-		if (conversation?.messages?.length === 1) return 'User: ' + conversation.messages[0].text;
-		return 'User: ' + conversation.messages[0].text + '\n\n' + 'Agent: ' + conversation.messages[1].text;
+
+		const text = conversation?.messages?.length === 1 ? conversation.messages[0].text : conversation.messages[1].text;
+		return (text.length > 80 ? text.slice(0, 77) + '...' : text).split('\n')[0];
 	}
 
 	$: description = makeDescription(data.conversation);

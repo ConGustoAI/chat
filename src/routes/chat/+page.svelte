@@ -19,4 +19,4 @@
 	$: fetchConversation($page.params.chat);
 </script>
 
-<MetaTag title="Congusto Chat" url={$page.url.href} description="A better AI Chat User Interface" />
+<MetaTag title="Congusto Chat" url={$page.url.href}/>
