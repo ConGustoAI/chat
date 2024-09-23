@@ -27,7 +27,7 @@
 		const apiKey = await APIupsertKey({
 			userID: newChildUserID,
 			providerID: provider.id!,
-			label: 'New Key',
+			label: provider.name + ' Key',
 			key: ''
 		});
 		apiKeys.update((current) => {

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { MetaTags } from 'svelte-meta-tags';
 
 	export let title: string;
-	export let description: string;
+	export let description: string = "";
 	export let url: string | undefined = undefined;
 	export let image_url: string | undefined = undefined;
 	export let image_width = 1200;
