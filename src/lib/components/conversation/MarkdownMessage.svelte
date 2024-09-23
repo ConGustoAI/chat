@@ -180,7 +180,9 @@ if (preElement) {
 		// This is a bit of a hack to support the OpenAI markdown syntax.
 		let convertedMsg = msg.text
 			.replace(/\\\((.*?)\\\)/g, '$$ $1 $$')
-			.replace(/\\\[\n([\s\S]*?)\n(\s*)\\\]/g, '$$$$\n$1\n$2$$$$'); // Preserve leading whitespace before closing $$
+			.replace(/\\\[([\s\S]*?)(\s*)\\\]/g, '$$$$\n$1\n$2$$$$')
+			.replace(/\$\$(.*?)\$\$/gs, (match, p1) => `$$\n${p1}\n$$`); // Some LLMs forget to put newlines in math blocks.
+
 		// debug('msg.text', msg.text);
 		// debug('convertedMsg', convertedMsg);
 		// debug('parseMarkdown start');
