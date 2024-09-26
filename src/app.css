@@ -56,17 +56,28 @@
 	max-width: inherit;
 }
 
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+	background-color: inherit;
+	padding: 1px 1px;
+}
+
+
 .prose pre {
 	background-color: inherit;
 	color: inherit;
 	margin: 0 0 0.5rem 0;
 	padding: 0;
 	width: 100%;
+	/* font-size: 100%; */
 }
 
 .katex * {
 	margin: 0;
 	text-align: left;
+}
+
+.MathJax svg {
+	display: initial !important;
 }
 
 /* .katex-display {

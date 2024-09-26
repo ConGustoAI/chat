@@ -59,6 +59,7 @@
 		"@sveltejs/adapter-auto": "^3.2.5",
 		"@sveltejs/adapter-node": "^5.2.3",
 		"@types/hast": "^3.0.4",
+		"@types/unist": "^3.0.3",
 		"ai": "^3.3.44",
 		"arctic": "^1.9.2",
 		"clsx": "^2.1.1",
@@ -67,6 +68,9 @@
 		"drizzle-orm": "^0.33.0",
 		"formsnap": "^1.0.1",
 		"hast": "^1.0.0",
+		"hast-util-class-list": "https://github.com/xl0/hast-util-class-list",
+		"hast-util-has-property": "^3.0.0",
+		"hast-util-is-element": "^3.0.0",
 		"katex": "^0.16.11",
 		"lowlight": "^3.1.0",
 		"lucide-svelte": "^0.439.0",
@@ -89,6 +93,7 @@
 		"remark-rehype": "^11.1.1",
 		"svelte-meta-tags": "^3.1.4",
 		"tailwind-merge": "^2.5.2",
-		"tailwind-variants": "^0.2.1"
+		"tailwind-variants": "^0.2.1",
+		"unist-util-visit-parents": "^6.0.1"
 	}
 }
