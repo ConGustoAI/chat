@@ -251,12 +251,16 @@
 		if (msg.markdownCache) return msg.markdownCache;
 
 		// This is a bit of a hack to support the OpenAI markdown syntax.
+		// We convert \( ... \) to $ ... $ and \[ ... \] to $$ ... $$.
 		let convertedMsg = msg.text
 			.replace(/\\\((.*?)\\\)/g, '$$$1$$')
-			.replace(/\\\[[\s*]([\s\S]*?)[\s*]\\\][\s*]/g, '\n$$$$\n$1\n$$$$\n');
+			// Some LLMs output \[ ... \] without newlines, which does not get parsed as a math block.
+			.replace(/^\\\[(.*?)\\\]$/gm, '\n$$$$\n$1\n$$$$\n')
+			// Keep whitespace intact when converting other [\ ... \] math blocks.
+			.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$');
 
-		debug('msg.text', msg.text);
-		debug('convertedMsg', convertedMsg);
+		// debug('msg.text', msg.text);
+		// debug('convertedMsg', convertedMsg);
 
 		const timestamp = Date.now();
 		const res = unified()
