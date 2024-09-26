@@ -273,7 +273,7 @@
 	</div>
 {/if}
 
-<ul class="base-200 no-scrollbar menu flex w-full overflow-y-auto p-0">
+<ul class="base-200 no-scrollbar menu flex w-full flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}
 		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations />
 	{/if}
