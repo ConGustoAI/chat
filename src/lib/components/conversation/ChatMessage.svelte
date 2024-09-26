@@ -34,7 +34,6 @@
 
 	async function sendEditedMessage() {
 		debug('sendEditedMessage', { $conversation, message });
-		editingMessage = false;
 
 		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
 
@@ -118,6 +117,8 @@
 		if (editingMessage && conversation && event instanceof KeyboardEvent) {
 			if (event.key === 'Enter' && event.ctrlKey) {
 				event.preventDefault();
+				message.markdownCache = undefined;
+				editingMessage = false;
 				await sendEditedMessage();
 			} else if (event.key === 'Escape') {
 				message.text = originalMessage;
@@ -190,6 +191,7 @@
 						disabled={savingMessage}
 						on:click={async () => {
 							savingMessage = true;
+							message.markdownCache = undefined;
 							await updateMessage();
 							savingMessage = false;
 							editingMessage = false;

@@ -255,8 +255,8 @@
 			.replace(/\\\((.*?)\\\)/g, '$$$1$$')
 			.replace(/\\\[[\s*]([\s\S]*?)[\s*]\\\][\s*]/g, '\n$$$$\n$1\n$$$$\n');
 
-		// debug('msg.text', msg.text);
-		// debug('convertedMsg', convertedMsg);
+		debug('msg.text', msg.text);
+		debug('convertedMsg', convertedMsg);
 
 		const timestamp = Date.now();
 		const res = unified()
@@ -276,7 +276,7 @@
 		msg.markdownCache = str;
 		const processingTime = Date.now() - timestamp;
 		debug('parseMarkdown processing time', processingTime + 'ms');
-		return msg.text;
+		return str;
 	}
 </script>
 
