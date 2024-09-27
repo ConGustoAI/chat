@@ -126,12 +126,8 @@
 		assert(child.tagName === 'code', 'nodeCopyButton expects a pre element with a code child');
 		const cl = classList(child);
 
-		debug('copyButton', { node, child, cl });
-
 		// // Skip math blocks, they will be rendered as formulas.
 		if (cl.contains('math-inline') || cl.contains('math-display')) return node;
-
-		debug('copyButton class', cl.toString());
 
 		let language = 'unknown';
 
@@ -141,7 +137,6 @@
 			}
 		});
 
-		debug('copyButton', { node, child, language });
 		const copyButton: Element = h(
 			'div',
 			{
@@ -167,7 +162,6 @@
 			...childCopy.properties,
 			style: undefined
 		};
-		debug('copyButton', { child, childCopy });
 
 		const newPreWithCode = h('pre', { className: 'whitespace-pre-wrap' }, [childCopy]);
 
@@ -204,7 +198,6 @@
 
 	// Add some shrinkable space on the left side of math blocks.
 	function offsetFormulas(node: Element): Element {
-		debug('offsetFormulas', node);
 		if (node.children.length === 1 && isElement(node.children[0], 'code')) {
 			const code = node.children[0] as Element;
 			if (classList(code).contains('math-display')) {
