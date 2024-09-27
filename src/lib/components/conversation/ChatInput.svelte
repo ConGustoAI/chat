@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { CostEstimate, GrowInput, Notification } from '$lib/components';
 	import { chatStreaming, conversation } from '$lib/stores/appstate';
+	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
 
@@ -17,7 +18,7 @@
 		debug('onSubmit', { input, $conversation });
 		if (!input) return;
 		if (!$conversation) return;
-		if (!$conversation.summary) $conversation.summary = input;
+		if (!$conversation.summary) $conversation.summary = trimLineLength(input, 128);
 
 		$conversation.messages = [
 			...($conversation.messages ?? []),

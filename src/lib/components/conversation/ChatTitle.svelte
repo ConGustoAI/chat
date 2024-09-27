@@ -13,6 +13,7 @@
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { trimLineLength } from '$lib/utils';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
@@ -45,7 +46,7 @@
 
 	async function updateSummary() {
 		if (!$conversation || !$conversation.id) return;
-
+		if ($conversation.summary) $conversation.summary = trimLineLength($conversation.summary, 128);
 		editingSummary = false;
 		await updateConversation();
 	}
@@ -58,7 +59,7 @@
 
 		const clone = { ...$conversation };
 		delete clone.id;
-		clone.summary = '+' + clone.summary;
+		clone.summary = trimLineLength('+' + clone.summary, 128);
 		clone.public = false;
 		clone.order = undefined;
 		clone.userID = $dbUser.id;

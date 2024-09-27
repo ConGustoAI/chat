@@ -108,3 +108,9 @@ export async function promptHash(text: string) {
 		.join('')
 		.slice(0, 16);
 }
+
+
+export function trimLineLength(text: string, maxLength: number) {
+	if (text.length <= maxLength) return text;
+	return text.slice(0, maxLength - 3) + '...';
+}

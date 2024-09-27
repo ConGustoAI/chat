@@ -17,7 +17,7 @@ export async function APIfetchPublicConversation(id: string, fetch: typeof windo
 
 
 export async function APIfetchConversations() {
-	debug('fetchConversations %o');
+	debug('fetchConversations');
 
 	const res = await fetch('/api/conversation');
 

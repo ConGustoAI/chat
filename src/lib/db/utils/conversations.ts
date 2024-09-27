@@ -1,4 +1,4 @@
-import { undefineExtras } from '$lib/utils';
+import { trimLineLength, undefineExtras } from '$lib/utils';
 import { error } from '@sveltejs/kit';
 import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import { db } from '../index';
@@ -122,6 +122,7 @@ export async function DBupsertConversation({
 		error(401, 'Tried to update a conversation that does not belong to the user');
 
 	conversation = undefineExtras(conversation);
+	if (conversation.summary) conversation.summary = trimLineLength(conversation.summary, 128);
 
 	if (conversation.id) {
 		const update = await db
