@@ -28,6 +28,9 @@ export const conversationsTable = pgTable('conversations', {
 	tokensOut: integer('tokens_out').default(0),
 	tokensInCost: real('tokens_in_cost').default(0),
 	tokensOutCost: real('tokens_out_cost').default(0),
+	// For o1 models.
+	tokensReasoning: integer('tokens_reasoning'),
+	tokensReasoningCost: real('tokens_reasoning_cost'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

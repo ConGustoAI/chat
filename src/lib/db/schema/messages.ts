@@ -31,6 +31,10 @@ export const messagesTable = pgTable('messages', {
 	tokensOut: integer('tokens_out').default(0),
 	tokensInCost: real('tokens_in_cost').default(0),
 	tokensOutCost: real('tokens_out_cost').default(0),
+	// For o1 models.
+	tokensReasoning: integer('tokens_reasoning'),
+	tokensReasoningCost: real('tokens_reasoning_cost'),
+
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),

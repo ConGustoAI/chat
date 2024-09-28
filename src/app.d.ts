@@ -133,6 +133,8 @@ declare global {
 		tokensOut?: number;
 		tokensInCost?: number;
 		tokensOutCost?: number;
+		tokensReasoning?: number;
+		tokensReasoningCost?: number;
 		requestID?: string;
 		finishReason?: string;
 		temperature?: number;
@@ -172,6 +174,9 @@ declare global {
 		tokensOut?: number;
 		tokensInCost?: number;
 		tokensOutCost?: number;
+		// For o1 models.
+		tokensReasoning?: number;
+		tokensReasoningCost?: number;
 		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;

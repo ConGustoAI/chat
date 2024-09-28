@@ -39,15 +39,62 @@
 	<div>
 		{#if message.tokensIn || message.tokensOut}
 			<div>
-				<span
-					>Tokens: ({message.tokensIn ?? 0} / {message.tokensOut ?? 0} / {(message.tokensIn ?? 0) +
-						(message.tokensOut ?? 0)})</span>
+				<span>
+					Tokens: {(message.tokensIn ?? 0) + (message.tokensOut ?? 0)}
+				</span>
 				{#if (message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0) > 0}
 					<span>
-						=&gt; ({message.tokensInCost ?? 0} / {message.tokensOutCost ?? 0} / {(message.tokensInCost ?? 0) +
-							(message.tokensOutCost ?? 0)})$</span>
+						({((message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)).toFixed(4)}$)
+					</span>
 				{/if}
 			</div>
+		{/if}
+
+		{#if message.tokensIn}
+			<div class="ml-4">
+				<span>
+					Tokens in: {message.tokensIn}
+				</span>
+				{#if message.tokensInCost}
+					<span>
+						({message.tokensInCost.toFixed(4)}$)
+					</span>
+				{/if}
+			</div>
+		{/if}
+		{#if message.tokensOut}
+			<div class="ml-4">
+				<span>
+					Tokens out: {message.tokensOut}
+				</span>
+				{#if message.tokensOutCost}
+					<span>
+						({message.tokensOutCost.toFixed(4)}$)
+					</span>
+				{/if}
+			</div>
+			{#if message.tokensReasoning}
+				<div class="ml-8">
+					<span>
+						Reasoning: {message.tokensReasoning}
+					</span>
+					{#if message.tokensReasoningCost}
+						<span>
+							({message.tokensReasoningCost.toFixed(4)}$)
+						</span>
+					{/if}
+				</div>
+				<div class="ml-8">
+					<span>
+						Completion: {message.tokensOut - message.tokensReasoning}
+					</span>
+					{#if message.tokensOutCost}
+						<span>
+							({(message.tokensOutCost - (message.tokensReasoningCost ?? 0)).toFixed(4)}$)
+						</span>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 	</div>
 

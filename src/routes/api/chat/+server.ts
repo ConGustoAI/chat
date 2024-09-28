@@ -156,12 +156,20 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 		try {
 			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
+
+			// experimental_providerMetadata: { openai: { reasoningTokens: 128 } },
+			const reasoningTokens = (result.experimental_providerMetadata?.openai?.reasoningTokens) as number | undefined;
+
 			AM.finishReason = result.finishReason;
 			AM.tokensIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
 			AM.tokensOut = isNaN(result.usage.completionTokens) ? 0 : result.usage.completionTokens;
 			AM.tokensInCost = assistantData.model?.inputCost ? (AM.tokensIn / 1000000) * assistantData.model.inputCost : 0;
 			AM.tokensOutCost = assistantData.model?.outputCost
 				? (AM.tokensOut / 1000000) * assistantData.model.outputCost
+				: 0;
+			AM.tokensReasoning = reasoningTokens && isNaN(reasoningTokens) ? 0 : reasoningTokens;
+			AM.tokensReasoningCost = assistantData.model?.outputCost
+				? ((AM.tokensReasoning ?? 0) / 1000000) * assistantData.model.outputCost
 				: 0;
 			AM.text += result.text;
 			AM.assistantID = assistantData.id;
@@ -204,7 +212,9 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 					tokensIn: AM.tokensIn,
 					tokensOut: AM.tokensOut,
 					tokensInCost: AM.tokensInCost,
-					tokensOutCost: AM.tokensOutCost
+					tokensOutCost: AM.tokensOutCost,
+					tokensReasoning: AM.tokensReasoning,
+					tokensReasoningCost: AM.tokensReasoningCost
 				}),
 				DBupdateUser({ dbUser, updatedUser: { id: dbUser!.id, lastAssistant: assistantData.id } })
 			])) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];

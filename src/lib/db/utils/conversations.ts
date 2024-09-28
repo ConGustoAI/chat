@@ -108,14 +108,18 @@ export async function DBupsertConversation({
 	tokensIn,
 	tokensOut,
 	tokensInCost,
-	tokensOutCost
+	tokensOutCost,
+	tokensReasoning,
+	tokensReasoningCost
 }: {
 	dbUser?: UserInterface;
 	conversation: ConversationInterface;
 	tokensIn?: number;
 	tokensOut?: number;
+	tokensReasoning?: number;
 	tokensInCost?: number;
 	tokensOutCost?: number;
+	tokensReasoningCost?: number;
 }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
@@ -132,7 +136,10 @@ export async function DBupsertConversation({
 				tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn ?? 0}`,
 				tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut ?? 0}`,
 				tokensInCost: sql`${conversationsTable.tokensInCost} + ${tokensInCost ?? 0}`,
-				tokensOutCost: sql`${conversationsTable.tokensOutCost} + ${tokensOutCost ?? 0}`
+				tokensOutCost: sql`${conversationsTable.tokensOutCost} + ${tokensOutCost ?? 0}`,
+				tokensReasoning: sql`${conversationsTable.tokensReasoning} + ${tokensReasoning ?? 0}`,
+				tokensReasoningCost: sql`${conversationsTable.tokensReasoningCost} + ${tokensReasoningCost ?? 0}`
+
 			})
 			.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
 			.returning();
