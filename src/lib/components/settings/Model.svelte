@@ -127,6 +127,13 @@
 	on:input={statusChanged}
 	disabled={!edit || status === 'deleting'} />
 
+<!-- <input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.streaming}
+	on:input={statusChanged}
+	disabled={!edit || status === 'deleting'} /> -->
+
 <input
 	type="checkbox"
 	class="checkbox"
