@@ -238,6 +238,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		await d.close();
 	}
 
+
+
 	try {
 		const result = await streamText({
 			model: client,
@@ -246,7 +248,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			temperature: assistantData.temperature,
 			topP: assistantData.topP,
 			topK: assistantData.topK,
-			maxTokens: assistantData.maxTokens || assistantData.model.outputContext || 4096,
+			maxTokens: assistantData.maxTokens || undefined,
 			onFinish: onFinish,
 			abortSignal: request.signal
 		});
