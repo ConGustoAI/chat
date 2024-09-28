@@ -1,5 +1,6 @@
 import type { db } from "$lib/db";
 import { conversationsTable, defaultsUUID, messagesTable } from "$lib/db/schema";
+import { sonnet35ID } from "./assistants";
 
 // Conversation IDs
 const romanEmpireEmojiEssayID = '64e383c8-a513-4c52-b639-49d36aea0d69';
@@ -39,7 +40,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: lastDigitsOfPiID,
         userID: defaultsUUID,
-        assistant: '652465bc-2fdd-4dcb-bd00-fa8190069fa3',
+        assistant: sonnet35ID,
         summary: '20 last digits of Pi in Python',
         public: true,
         tokensIn: 1206,
