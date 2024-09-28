@@ -1,5 +1,8 @@
 <script lang="ts">
-	export let file: File;
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:MediaPreview');
+
+	export let media: MediaInterface;
 
 	let progressBar: HTMLProgressElement;
 
@@ -33,25 +36,25 @@
 			progressBar.value = percentage;
 		}
 	}
-    console.log(file);
-    console.log(URL.createObjectURL(file));
+	debug('media', media);
+	if (media.file) debug(URL.createObjectURL(media.file));
 
 	let isHovered = false;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-	class="relative flex h-32 w-32 flex-col gap-2 rounded-sm justify-start"
+	class="relative flex h-32 w-32 flex-col justify-start gap-2 rounded-sm"
 	on:mouseenter={() => (isHovered = true)}
 	on:mouseleave={() => (isHovered = false)}>
-	{#if isVideo(file)}
+	{#if media.type === 'video'}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<video
 			class="grow object-cover"
 			on:mousemove={(event) => handleVideoSeek(event)}
 			on:mouseleave={handleVideoStop}
 			on:timeupdate={updateProgressBar}>
-			<source src={URL.createObjectURL(file)} type={file.type} />
+			<source src={URL.createObjectURL(media.url)} type={media.mimeType} />
 			Your browser does not support the video tag.
 		</video>
 		<progress
@@ -60,14 +63,11 @@
 			value={0}
 			max={100}></progress>
 	{:else}
-		<img src={URL.createObjectURL(file)} alt={file.name} class=" object-contain" />
+		<img src={URL.createObjectURL(media)} alt={media.name} class=" object-contain" />
 	{/if}
 
 	<label class="absolute right-1 top-1 z-30">
 		<input type="checkbox" class="checkbox checkbox-sm" />
 	</label>
-	{#if isHovered}
-		<input type="text" class="input input-xs input-bordered absolute bottom-1 w-full" />
-	{:else}
-        <div class="text-sm break-all"></div>
+	<div class="break-all text-sm"></div>
 </div>

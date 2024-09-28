@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CostEstimate, GrowInput, Notification, ImageCarousel } from '$lib/components';
+	import { CostEstimate, GrowInput, Notification, MediaCarousel } from '$lib/components';
 	import { chatStreaming, conversation } from '$lib/stores/appstate';
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
 
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
-
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -65,7 +64,7 @@
 	<Notification messageType="error" bind:message={chatError} />
 	{#if uploadOpen}
 		<div class="absolute bottom-8 mb-4 w-full">
-			<ImageCarousel />
+			<MediaCarousel />
 		</div>
 	{/if}
 	<div class="relative h-fit w-full">

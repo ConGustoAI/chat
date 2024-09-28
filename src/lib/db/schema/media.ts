@@ -1,7 +1,7 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { messagesTable } from './messages';
-import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
+import { pgEnum, pgTable, real, text, timestamp, uuid, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import { fileTable } from './file';
+import { usersTable } from './users';
 
 export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video']);
 
@@ -10,15 +10,27 @@ export const mediaTable = pgTable('media', {
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	title: text('title'),
-	type: mediaTypes('type').notNull(),
-	mimeType: text('mime_type'),
+	title: text('title').notNull(),
 	filename: text('filename').notNull(),
-	filesize: integer('filesize').notNull(),
-	width: integer('image_width').default(0),
-	height: integer('image_height').default(0),
-	duration: integer('duration').default(0),
-	repeat: boolean('repeat').default(false),
+	type: mediaTypes('type').notNull(),
+
+	// // For images and videos
+	// // Crop in %, stays constant across resizes.
+	// cropStartX: real('crop_start_x'),
+	// cropStartY: real('crop_start_y'),
+	// cropEndX: real('crop_end_x'),
+	// cropEndY: real('crop_end_y'),
+
+	// // For video and audio
+	// trimStart: real('duration_start'),
+	// trimEnd: real('duration_end'),
+
+	originalID: uuid('original_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
+	// We keep the resized uncropped image to be able to show the crop area.
+	resizedID: uuid('resized_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
+	croppedID: uuid('cropped_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
+
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
@@ -26,28 +38,45 @@ export const mediaTable = pgTable('media', {
 		.$onUpdate(() => new Date())
 });
 
-export const messageMediaTable = pgTable('message_media', {
-	messageId: uuid('message_id')
-		.references(() => messagesTable.id, { onDelete: 'cascade' })
-		.notNull(),
-	mediaId: uuid('media_id')
-		.references(() => mediaTable.id, { onDelete: 'cascade' })
-		.notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow().notNull().defaultNow()
-});
+// export const messageMediaTable = pgTable('message_media', {
+// 	messageId: uuid('message_id')
+// 		.references(() => messagesTable.id, { onDelete: 'cascade' })
+// 		.notNull(),
+// 	mediaId: uuid('media_id')
+// 		.references(() => mediaTable.id, { onDelete: 'cascade' })
+// 		.notNull(),
+// 	createdAt: timestamp('created_at').notNull().defaultNow().notNull().defaultNow()
+// });
 
-export const mediaTableRelations = relations(mediaTable, ({ one, many }) => ({
+export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 	user: one(usersTable, {
 		fields: [mediaTable.userID],
 		references: [usersTable.id]
 	}),
-	messages: many(messageMediaTable)
+	original: one(fileTable, {
+		fields: [mediaTable.originalID],
+		references: [fileTable.id]
+	}),
+	resized: one(fileTable, {
+		fields: [mediaTable.resizedID],
+		references: [fileTable.id]
+	}),
+	cropped: one(fileTable, {
+		fields: [mediaTable.croppedID],
+		references: [fileTable.id]
+	})
+
+
+
+
+	// files: many(fileTable)
+	// messages: many(messageMediaTable)
 }));
 
-export const messageMediaTableRelations = relations(messageMediaTable, ({ one, many }) => ({
-	message: one(messagesTable, {
-		fields: [messageMediaTable.messageId],
-		references: [messagesTable.id]
-	}),
-	media: many(mediaTable)
-}));
+// export const messageMediaTableRelations = relations(messageMediaTable, ({ one, many }) => ({
+// 	message: one(messagesTable, {
+// 		fields: [messageMediaTable.messageId],
+// 		references: [messagesTable.id]
+// 	}),
+// 	media: many(mediaTable)
+// }));

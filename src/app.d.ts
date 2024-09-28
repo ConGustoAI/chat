@@ -1,5 +1,5 @@
 import type { ProviderType } from '@prisma/client';
-import {  User, Session} from 'lucia'
+import { User, Session } from 'lucia';
 
 declare global {
 	namespace App {
@@ -115,8 +115,6 @@ declare global {
 		updatedAt?: Date;
 	}
 
-
-
 	interface MessageInterface {
 		id?: string;
 		userID: string;
@@ -177,25 +175,58 @@ declare global {
 		createdAt?: Date;
 	}
 
-
 	interface MediaInterface {
 		id?: string;
 		userID: string;
-		title?: string;
-		type: 'image' | 'audio' | 'video';
+		title: string;
 		filename: string;
-		filetype: string;
-		fileID: string;
+		type: 'image' | 'audio' | 'video';
 
-		filesize: number;
-		width?: number;
-		height?: number;
-		duration?: number;
-		repeat?: boolean;
-		uploadStatus: 'pending' | 'uploaded' | 'failed';
+		originalID?: string;
+		resizedID?: string;
+		croppedID?: string;
+
 		createdAt?: Date;
 		updatedAt?: Date;
+
+		// From relations
+		user?: UserInterface;
+		orignal?: FileInterface;
+		resized?: FileInterface;
+		cropped?: FileInterface;
 	}
+
+	interface FileInterface {
+		id?: string;
+		userID: string;
+
+		fileName: string;
+		size: number;
+		mimeType: string;
+
+		fileKey?: string;
+		hasPreview?: boolean;
+		previewSize?: number;
+		previewMimeType?: string;
+
+
+		// mediaID?: string;
+		// width?: number;
+		// height?: number;
+		// duration?: number;
+		// createdAt?: Date;
+		// updatedAt?: Date;
+
+		// Not in the database
+		file?: File;  // A freshly selected file will have a file object.
+		url?: string; // A file that has been uploaded will have a URL.
+
+		uploadStatus?: null | 'pending' | 'uploading' |  'uploaded' | 'failed';
+		uploadProgress?: number;
+		uploadError?: string;
+		uploading?: boolean;
+	}
+
 }
 
 export {};

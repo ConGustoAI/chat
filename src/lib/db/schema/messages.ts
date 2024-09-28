@@ -2,7 +2,7 @@ import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp, uuid,
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
 import { relations } from 'drizzle-orm';
-import { mediaTable, messageMediaTable } from './media';
+import { mediaTable } from './media';
 import { usersTable } from './users';
 import { modelsTable } from './models';
 import { promptsTable } from './prompts';
@@ -42,12 +42,12 @@ export const messagesTable = pgTable('messages', {
 		.$onUpdate(() => new Date())
 });
 
-export const messageTableRelations = relations(messagesTable, ({ one, many }) => ({
+export const messageTableRelations = relations(messagesTable, ({ one }) => ({
 	conversation: one(conversationsTable, {
 		fields: [messagesTable.conversationId],
 		references: [conversationsTable.id]
 	}),
-	media: many(messageMediaTable),
+	// media: many(messageMediaTable),
 	user: one(usersTable, {
 		fields: [messagesTable.userID],
 		references: [usersTable.id]
