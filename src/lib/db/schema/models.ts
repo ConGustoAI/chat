@@ -12,6 +12,7 @@ export const modelsTable = pgTable('models', {
 		.notNull(),
 	displayName: text('display_name').notNull(),
 	name: text('name').notNull(),
+	streaming: boolean('streaming').default(true),
 	audio: boolean('audio').notNull().default(false),
 	images: boolean('images').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),

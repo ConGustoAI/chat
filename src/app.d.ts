@@ -68,6 +68,7 @@ declare global {
 		userID: string;
 		name: string;
 		displayName: string;
+		streaming?: boolean;
 		images?: boolean;
 		audio?: boolean;
 		video?: boolean;
