@@ -69,7 +69,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			? dbUser.assistantInstructions
 			: assistantData.assistantInstructions) ?? '';
 
-	const systemPrompt = (assistantData.systemPrompt ?? '')
+	let systemPrompt = (assistantData.systemPrompt ?? '')
 		.replace('{profile}', userProfile)
 		.replace('{instructions}', assistantInstrictions);
 
@@ -148,11 +148,20 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	UM.conversationId = AM.conversationId = conversation.id;
 	UM.userID = AM.userID = dbUser.id;
 
+	if (assistantData.model.provider.type === 'openai' && assistantData.model.name.startsWith('o1') && systemPrompt) {
+		inputMessages.unshift({
+			role: 'user',
+			content: [{ type: 'text', text: "SYSTEM PROMPT:\n" + systemPrompt }]
+		});
+		systemPrompt = "";
+	}
+
+
 	async function onFinish(
 		// I don't always love TypeScript
 		result: NonNullable<Parameters<NonNullable<Parameters<typeof streamText>[0]['onFinish']>>>[0]
 	): Promise<void> {
-		debug('streamText result:', result);
+		debug('streamText result:', JSON.stringify(result, null, 2));
 
 		try {
 			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
@@ -254,7 +263,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		const result = await streamText({
 			model: client,
 			messages: inputMessages,
-			system: systemPrompt.trim().length ? systemPrompt : undefined,
+			system: systemPrompt?.trim().length ? systemPrompt : undefined,
 			temperature: assistantData.temperature,
 			topP: assistantData.topP,
 			topK: assistantData.topK,
