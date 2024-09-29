@@ -19,7 +19,10 @@
 				{/if}
 			{/each}
 		</select>
+	{:else}
+		<div class="text-lg">{$conversation.assistantName??""}</div>
 	{/if}
+
 	{#if $conversation.assistant}
 		{@const assistant = $assistants[$conversation?.assistant ?? 'empty']}
 		{@const model = $models[assistant?.model ?? 'empty']}
