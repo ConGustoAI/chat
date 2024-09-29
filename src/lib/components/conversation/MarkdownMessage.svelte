@@ -143,9 +143,11 @@
 				className: ['btn', 'btn-ghost', 'rounded-md', 'size-5', 'p-0', 'mr-1', 'min-h-fit'],
 				title: 'Copy to clipboard',
 				onClick: `
-								const preElement = this.closest('pre');
+
+								const preElement = this.parentElement.nextElementSibling;
+								console.log('copyButton', preElement);
 								if (preElement) {
-									navigator.clipboard.writeText(preElement.childNodes[1].textContent);
+									navigator.clipboard.writeText(preElement.childNodes[0].textContent;
 								}`
 			},
 			[copySVG]
