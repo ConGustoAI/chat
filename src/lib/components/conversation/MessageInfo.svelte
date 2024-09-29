@@ -6,6 +6,20 @@
 </script>
 
 <div class="flex w-max max-w-md flex-col whitespace-pre-line rounded-sm bg-base-300 p-2 lg:max-w-screen-md">
+	{#if message.createdAt}
+		<div>
+			<span>Created at:</span>
+			{new Date(message.createdAt).toLocaleString('en-GB', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false
+			})}
+		</div>
+	{/if}
+
 	<div>
 		<span>Assistant:</span>
 		{#if message.assistantName}
