@@ -93,10 +93,8 @@
 </script>
 
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-100">
-
-
 	<!-- navbar-start -->
-	<div class="flex min-w-0 gap-2 shrink-0">
+	<div class="flex min-w-0 shrink-0 gap-2">
 		{#if isPublic}
 			<a class="link flex gap-2 text-ellipsis text-nowrap" href="/chat">
 				<ArrowLeftCircle />Congusto Chat
@@ -118,16 +116,18 @@
 				</label>
 			{/if}
 		{/if}
-		<button
-			class="btn btn-sm rounded-md bg-base-100 p-1"
-			title="Clone conversation"
-			on:click={async () => await cloneConversation()}>
-			{#if cloningConversation}
-				<span class="loading loading-spinner loading-xs"></span>
-			{:else}
-				<CopyPlus />
-			{/if}
-		</button>
+		{#if $conversation?.id}
+			<button
+				class="btn btn-sm rounded-md bg-base-100 p-1"
+				title="Clone conversation"
+				on:click={async () => await cloneConversation()}>
+				{#if cloningConversation}
+					<span class="loading loading-spinner loading-xs"></span>
+				{:else}
+					<CopyPlus />
+				{/if}
+			</button>
+		{/if}
 
 		{#if !isPublic}
 			<ConversationAssistant />
