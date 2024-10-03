@@ -16,7 +16,7 @@ import { ReadableStream } from 'stream/web';
 
 import Busboy from 'busboy';
 
-import { s3 } from '$lib/s3';
+import { s3 } from '$lib/files';
 
 import dbg from 'debug';
 const debug = dbg('app:upload');
@@ -173,4 +173,3 @@ const debug = dbg('app:upload');
 // 		reader.pipe(busboy);
 // 	});
 // }
-

@@ -7,3 +7,4 @@ export * from './conversations';
 export * from './messages';
 export * from './hide';
 export * from './file';
+export * from './media';

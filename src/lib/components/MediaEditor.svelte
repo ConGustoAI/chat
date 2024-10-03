@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { dbUser } from '$lib/stores/appstate';
-	import dbg from 'debug';
+	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+
+	import dbg from 'debug';
 	const debug = dbg('app:ui:components:MediaPreview');
 
 	export let media: MediaInterface;
@@ -11,38 +13,11 @@
 		return media.type === 'video';
 	}
 
-	// Handle video seek based on mouse position
-	function handleVideoSeek(event: MouseEvent) {
-		const video = event.currentTarget as HTMLVideoElement;
-		const rect = video.getBoundingClientRect();
-		const xPos = event.clientX - rect.left;
-		const percentage = xPos / rect.width;
-
-		video.currentTime = percentage * video.duration; // Use video.duration
-		video.muted = true; // Mute the video
-		video.play();
-	}
-
-	// Stop video playback when mouse leaves
-	function handleVideoStop(event: MouseEvent) {
-		const video = event.currentTarget as HTMLVideoElement;
-		video.pause();
-	}
-
-	// Update progress bar based on video time
-	function updateProgressBar(event: Event) {
-		const video = event.currentTarget as HTMLVideoElement;
-		if (progressBar) {
-			const percentage = (video.currentTime / video.duration) * 100;
-			progressBar.value = percentage;
-		}
-	}
-
 	async function updateMedia() {
-		debug('updateMedia', media);
-	}
+		if (media.id) {
+			await API
 
-	let image: HTMLImageElement;
+	}
 
 	const resizePresets: { [key: string]: any } = {
 		original: { label: 'Original' },
@@ -65,16 +40,14 @@
 
 	// let hiddenCanvasOriginal: HTMLCanvasElement;
 	let hiddenImageOriginal: HTMLImageElement;
-	let hiddenImageResized: HTMLImageElement;
-	// // let hiddenImageCropped: HTMLImageElement;
-
-	// let hiddenThumbnailCanvas: HTMLCanvasElement;
-
-	// let hiddenImageResizedEdited: HTMLImageElement;
-	// let hiddenImageCroppedEdited: HTMLImageElement;
 
 	// Resize image
-	async function resizeImage(file: FileInterface, width: number, height: number, pad: boolean = false): Promise<FileInterface> {
+	async function resizeImage(
+		file: FileInterface,
+		width: number,
+		height: number,
+		pad: boolean = false
+	): Promise<FileInterface> {
 		// if (!$dbUser) throw new Error('No user');
 		const canvas = document.createElement('canvas');
 		const context = canvas.getContext('2d');
@@ -82,13 +55,6 @@
 		if (!file.file) throw new Error('File file not found');
 
 		debug('resizeImage', file, width, height);
-		// await new Promise((resolve, reject) => {
-		// 	hiddenImageOriginal.crossOrigin = 'anonymous'; // Add this line
-		// 	hiddenImageOriginal.onload = resolve;
-		// 	hiddenImageOriginal.onerror = reject;
-		// 	if (!file.url) throw new Error('No file URL');
-		// 	hiddenImageOriginal.src = file.url;
-		// });
 		const image = new Image();
 		const p = new Promise((resolve, reject) => {
 			image.onload = resolve;
@@ -141,22 +107,34 @@
 		debug('resizeOriginal', media, resize);
 
 		if (!media.original) throw new Error('Original media not found');
+		if (!media.original.file) throw new Error('Original media file not found');
 		if (!media.originalWidth || !media.originalHeight) throw new Error('Media orignal width/height not found');
 
 		const p = resizePresets[resize];
 		if (!p) throw new Error('Invalid resize preset');
 
 		const { pixels, long } = p;
+		let { width, height } = { width: media.originalWidth, height: media.originalHeight };
 		debug('resizeOriginal', p, pixels, long);
 		if (pixels) {
 			const ratio = Math.sqrt(pixels / (media.originalWidth * media.originalHeight));
-			media.resized = await resizeImage(media.original, media.originalWidth * ratio, media.originalHeight * ratio);
+			width = media.originalWidth * ratio;
+			height = media.originalHeight * ratio;
 		} else if (long) {
+
 			const ratio = long / Math.max(media.originalWidth, media.originalHeight);
-			media.resized = await resizeImage(media.original, media.originalWidth * ratio, media.originalHeight * ratio);
+			width = media.originalWidth * ratio;
+			height = media.originalHeight * ratio;
 		} else if (resize === 'custom') {
 			if (!resizeWidth || !resizeHeight) throw new Error('Custom resize width/height not found');
-			media.resized = await resizeImage(media.original, resizeWidth, resizeHeight);
+			width = resizeWidth;
+			height = resizeHeight;
+		}
+
+		if (width !== media.originalWidth || height !== media.originalHeight) {
+			media.resized = await resizeImage(media.original, width, height);
+			media.newResizedWidth = width;
+			media.newResizedHeight = height;
 		}
 	}
 
@@ -236,19 +214,6 @@
 
 		hiddenImageOriginal.src = media.original?.url ?? '';
 
-		hiddenImageResized.onload = () => {
-			debug('hiddenImageResized loaded');
-			if (
-				media.resizedWidth !== hiddenImageResized.naturalWidth ||
-				media.resizedHeight !== hiddenImageResized.naturalHeight
-			) {
-				debug('resized size changed?');
-				media.resizedWidth = hiddenImageResized.naturalWidth;
-				media.resizedHeight = hiddenImageResized.naturalHeight;
-			}
-			// Schedule thumbnail update without awaiting
-			updateThumbnail();
-		};
 	});
 
 	$: debug('media', media);
@@ -257,25 +222,13 @@
 	let titleUpdating = false;
 </script>
 
-<!-- Used for image resizing/cropping images -->
-<!-- <canvas bind:this={hiddenCanvasOriginal} class="hidden"></canvas> -->
 
-<!-- <canvas bind:this={hiddenThumbnailCanvas} class="hidden"></canvas> -->
-
-<img bind:this={hiddenImageResized} alt="decoy" class="hidden" />
-<!-- <img bind:this={hiddenImageCropped} src={media.cropped?.url} alt="decoy" class="hidden" /> -->
-
-<!-- Images after possible edits -->
-<!-- <img bind:this={hiddenImageResizedEdited} src={media.resized?.url} alt="decoy" class="hidden" />
-<img bind:this={hiddenImageCroppedEdited} src={media.cropped?.url} alt="decoy" class="hidden" /> -->
-
-<div class="grid h-full max-h-full min-h-full shrink-0 grow grid-cols-[auto,min-content,min-content] grid-rows-1 gap-1">
+<div class="flex h-[100vh] max-h-full min-h-full shrink-0 grow">
 	<!-- <div class="flex h-full max-h-full min-h-0 shrink flex-col items-start p-2"> -->
 	<img
 		src={displayedImageURL}
 		alt={media.title}
-		class="pixilated m-auto h-full max-h-full min-h-full shrink grow justify-self-center border object-contain p-1 align-middle"
-		class:hidden={!originalLoaded} />
+		class="pixilated ml-auto h-full max-h-full min-h-full shrink grow justify-self-center object-contain align-middle" />
 	<img
 		bind:this={hiddenImageOriginal}
 		alt="decoy"
@@ -284,9 +237,9 @@
 		class="pixilated m-auto h-full max-h-full min-h-full shrink grow justify-self-center border object-contain p-1 align-middle" />
 
 	<!-- </div> -->
-	<div class="divider divider-horizontal"></div>
+	<div class="divider divider-horizontal mx-1 grow-0 px-1"></div>
 
-	<div class="m-1 flex flex-col gap-1">
+	<div class="m-1 flex grow-0 flex-col gap-1 items-end">
 		<div class="flex items-baseline justify-start gap-2">
 			<p class="label mr-auto">Title</p>
 			{#if titleUpdating}
@@ -318,31 +271,30 @@
 				{/each}
 			</select>
 		</div>
-		{#if resize !== 'custom'}
-			<div class="flex items-baseline justify-between gap-2">
+		{#if resize === 'custom'}
+			<div class="flex items-center justify-between gap-2">
 				<p class="label">Resolution</p>
 				<div class="flex w-48 items-baseline justify-between gap-2">
 					<input
 						type="number"
 						class="input input-sm input-bordered w-full shrink"
-						placeholder="Width"
+						placeholder="W"
 						bind:value={resizeWidth} />
 					x
-					<input
-						type="number"
-						class="input input-sm input-bordered w-full"
-						placeholder="Height"
-						bind:value={resizeHeight} />
+					<input type="number" class="input input-sm input-bordered w-full" placeholder="H" bind:value={resizeHeight} />
 				</div>
 			</div>
+			<button class="btn btn-outline btn-sm w-fit align-self-end" on:click={resizeOriginal}><Check /></button>
 		{/if}
 
 		<div class="mt-auto flex flex-col items-end justify-self-end">
 			<img src={media.thumbnail?.url} alt="preview" class="h-32 w-32 border object-contain" />
 			<p class="">{media.filename}</p>
-			<p>Original size: {hiddenImageOriginal?.naturalWidth}x{hiddenImageOriginal?.naturalHeight}</p>
-			<p>Resized size: {hiddenImageResized?.naturalWidth}x{hiddenImageResized?.naturalHeight}</p>
+			<!-- <p>Original size: {hiddenImageOriginal?.naturalWidth}x{hiddenImageOriginal?.naturalHeight}</p>
+			<p>Resized size: {hiddenImageResized?.naturalWidth}x{hiddenImageResized?.naturalHeight}</p> -->
 			<p>Media original size: {media.originalWidth}x{media.originalHeight}</p>
+			<p>Media resized size: {media.resizedWidth}x{media.resizedHeight}</p>
+			<p>Media new resized size: {media.newResizedWidth}x{media.newResizedHeight}</p>
 		</div>
 	</div>
 

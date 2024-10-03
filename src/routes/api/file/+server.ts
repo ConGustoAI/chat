@@ -1,16 +1,13 @@
 // src/routes/upload/+server.js
-import { env as envPrivate } from '$env/dynamic/private';
 import { env as envPublic } from '$env/dynamic/public';
 import { DBupsertFile } from '$lib/db/utils';
 
 import { error, json } from '@sveltejs/kit';
 
-import { s3 } from '$lib/s3';
+import { getUploadURL, s3 } from '$lib/files';
 
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dbg from 'debug';
-const debug = dbg('app:upload');
+const debug = dbg('app:api:file');
 
 export async function POST({ request, locals: { dbUser }, url }) {
 	if (!dbUser) error(401, 'Unauthorized');
@@ -41,16 +38,7 @@ export async function POST({ request, locals: { dbUser }, url }) {
 		file
 	})) as FileInterface;
 
-	if (uploadurl) {
-		const fileCommand = new PutObjectCommand({
-			Bucket: envPrivate.AWS_UPLOAD_BUCKET_NAME,
-			Key: `upload/${insertedFile.id}`,
-			ContentType: file.mimeType,
-			ContentLength: file.size
-		});
-
-		insertedFile.uploadURL = await getSignedUrl(s3, fileCommand, { expiresIn: 3600 })
-	}
+	if (uploadurl) file.uploadURL = await getUploadURL(insertedFile);
 
 	debug('POST %o -> %o', insertedFile.id, insertedFile);
 	return json(insertedFile);

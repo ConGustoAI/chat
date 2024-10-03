@@ -108,7 +108,7 @@
 			</div>
 		{/each}
 	</div>
-	<div class="divider h-4 w-full shrink-0"></div>
+	<div class="divider my-0 w-full shrink-0"></div>
 {/if}
 
 <div
