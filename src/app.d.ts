@@ -182,6 +182,21 @@ declare global {
 		filename: string;
 		type: 'image' | 'audio' | 'video';
 
+		originalWidth?: number;
+		originalHeight?: number;
+		originalDuration?: number;
+
+		resizedWidth?: number;
+		resizedHeight?: number;
+
+		cropStartX?: number;
+		cropStartY?: number;
+		cropEndX?: number;
+		cropEndY?: number;
+
+		trimStart?: number;
+		trimEnd?: number;
+
 		originalID?: string;
 		resizedID?: string;
 		croppedID?: string;
@@ -191,37 +206,42 @@ declare global {
 
 		// From relations
 		user?: UserInterface;
-		orignal?: FileInterface;
+		original?: FileInterface;
 		resized?: FileInterface;
 		cropped?: FileInterface;
+		thumbnail?: FileInterface;
+
+		// Used by the frontend
+		newResizedWidth?: number;
+		newResizedHeight?: number;
+
+		newCropStartX?: number;
+		newCropStartY?: number;
+		newCropEndX?: number;
+		newCropEndY?: number;
+
+		newTrimStart?: number;
+		newTrimEnd?: number;
 	}
 
 	interface FileInterface {
 		id?: string;
 		userID: string;
 
-		fileName: string;
 		size: number;
 		mimeType: string;
+		isThumbnail?: boolean;
 
-		fileKey?: string;
-		hasPreview?: boolean;
-		previewSize?: number;
-		previewMimeType?: string;
-
-
-		// mediaID?: string;
-		// width?: number;
-		// height?: number;
-		// duration?: number;
-		// createdAt?: Date;
-		// updatedAt?: Date;
+		status?: 'progress' | 'ok' | 'failed' | null;
 
 		// Not in the database
 		file?: File;  // A freshly selected file will have a file object.
 		url?: string; // A file that has been uploaded will have a URL.
 
-		uploadStatus?: null | 'pending' | 'uploading' |  'uploaded' | 'failed';
+
+		uploadURL?: string;
+
+		// uploadStatus?: null | 'pending' | 'uploading' |  'uploaded' | 'failed';
 		uploadProgress?: number;
 		uploadError?: string;
 		uploading?: boolean;

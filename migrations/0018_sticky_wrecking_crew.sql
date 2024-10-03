@@ -1,0 +1,1 @@
+ALTER TYPE "upload_status" ADD VALUE 'deleted';

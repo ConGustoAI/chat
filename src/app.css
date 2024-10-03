@@ -80,6 +80,18 @@
 	display: initial !important;
 }
 
+
+input.tab:checked + .tab-content,
+:is(.tab-active, [aria-selected="true"]) + .tab-content {
+    display: flex;
+	flex-direction: column;
+}
+input.tab:checked + .tab-content,
+:is(.tab-active, [aria-selected="true"]) + .tab-content {
+    display: flex;
+	flex-direction: column;
+}
+
 /* .katex-display {
 	margin-left: 0;
 }

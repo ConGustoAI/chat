@@ -37,9 +37,22 @@
 		}
 	}
 	debug('media', media);
-	if (media.file) debug(URL.createObjectURL(media.file));
+	// if (media.file) debug(URL.createObjectURL(media.file));
 
 	let isHovered = false;
+
+	let thumbnailURL: string;
+	$: {
+		if (media.thumbnail?.file) {
+			thumbnailURL = URL.createObjectURL(media.thumbnail.file);
+		} else if (media.resized?.file) {
+			thumbnailURL = URL.createObjectURL(media.resized.file);
+		} else if (media.original?.file) {
+			thumbnailURL = URL.createObjectURL(media.original.file);
+		}
+	}
+
+
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -62,8 +75,10 @@
 			class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
 			value={0}
 			max={100}></progress>
+	{:else if media.type === 'audio'}
+		TODO: Audio
 	{:else}
-		<img src={URL.createObjectURL(media)} alt={media.name} class=" object-contain" />
+		<img src={thumbnailURL} alt={media.filename} class="object-contain h-32 w-32 border grow" />
 	{/if}
 
 	<label class="absolute right-1 top-1 z-30">

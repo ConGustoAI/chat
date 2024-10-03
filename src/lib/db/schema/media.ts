@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgEnum, pgTable, real, text, timestamp, uuid, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, real, text, timestamp, uuid, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { fileTable } from './file';
 import { usersTable } from './users';
 
@@ -14,22 +14,32 @@ export const mediaTable = pgTable('media', {
 	filename: text('filename').notNull(),
 	type: mediaTypes('type').notNull(),
 
+	originalWidth: integer('width'),
+	originalHeight: integer('height'),
+	originalDuration: real('duration'),
+
+	resizedWidth: integer('resized_width'),
+	resizedHeight: integer('resized_height'),
+
 	// // For images and videos
 	// // Crop in %, stays constant across resizes.
-	// cropStartX: real('crop_start_x'),
-	// cropStartY: real('crop_start_y'),
-	// cropEndX: real('crop_end_x'),
-	// cropEndY: real('crop_end_y'),
+	cropStartX: real('crop_start_x'),
+	cropStartY: real('crop_start_y'),
+	cropEndX: real('crop_end_x'),
+	cropEndY: real('crop_end_y'),
 
 	// // For video and audio
-	// trimStart: real('duration_start'),
-	// trimEnd: real('duration_end'),
+	trimStart: real('duration_start'),
+	trimEnd: real('duration_end'),
 
 	originalID: uuid('original_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
-	// We keep the resized uncropped image to be able to show the crop area.
+	// We keep the resized uncropped image/video to be able to show the crop area for re-crop.
 	resizedID: uuid('resized_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
+	// Cropped image, trimmed audio, both for video.
 	croppedID: uuid('cropped_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
 
+	// Thumbnail - small image, audio waveform, video thumbnail, possibly gif.
+	thumbnailID: uuid('thumbnail_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
@@ -64,10 +74,11 @@ export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 	cropped: one(fileTable, {
 		fields: [mediaTable.croppedID],
 		references: [fileTable.id]
+	}),
+	thumbnail: one(fileTable, {
+		fields: [mediaTable.thumbnailID],
+		references: [fileTable.id]
 	})
-
-
-
 
 	// files: many(fileTable)
 	// messages: many(messageMediaTable)

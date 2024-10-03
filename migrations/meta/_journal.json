@@ -113,6 +113,41 @@
       "when": 1727509106026,
       "tag": "0015_silly_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1727560453421,
+      "tag": "0016_overconfident_revanche",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1727767596576,
+      "tag": "0017_closed_luminals",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1727777118214,
+      "tag": "0018_sticky_wrecking_crew",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1727860727327,
+      "tag": "0019_magenta_wolverine",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1727912665544,
+      "tag": "0020_flashy_turbo",
+      "breakpoints": true
     }
   ]
 }

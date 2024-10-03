@@ -9,40 +9,36 @@
 	const debug = dbg('app:ui:components:MediaCarousel');
 
 	let media: MediaInterface[] = [];
-	let newMedia: MediaInterface[] = []
+	let newMedia: MediaInterface[] = [];
 
 	// We use this element to get the natural width/height of the image.
 	let fakeImage: HTMLImageElement;
 
 	// // Used for testing
-	// function makeFakeImage(): MediaInterface {
-	// 	// fakeImage.src = `https://cataas.com/cat?d=${Math.floor(Math.random() * 1000)}`;
-	// 	fakeImage.src = `/cat.jpg`;
+	function makeFakeImage(): MediaInterface {
+		// fakeImage.src =
+		// fakeImage.src = `/cat.jpg`;
 
-	// 	return {
-	// 		userID: 'anon',
-	// 		filename: 'cat.jpg',
-	// 		type: 'image',
-	// 		title: 'Cat',
-	// 		orignal: {
-	// 			mimeType: 'image/jpeg',
-	// 			mediaID: 'fake',
-	// 			userID: 'anon',
-	// 			filesize: 1024*1024,
-	// 			width: fakeImage.naturalWidth,
-	// 			height: fakeImage.naturalHeight,
-	// 			url: fakeImage.src,
-	// 		}
-	// 	}
-	// }
+		return {
+			userID: 'anon',
+			filename: 'cat.jpg',
+			type: 'image',
+			title: 'Cat',
+			original: {
+				mimeType: 'image/jpeg',
+				userID: 'anon',
+				size: 1024 * 1024,
+				url: `https://cataas.com/cat?d=${Math.floor(Math.random() * 1000)}`
+			}
+		};
+	}
 
 	onMount(() => {
 		debug('onMount');
-		// newMedia = [makeFakeImage()];
+		newMedia = [makeFakeImage()];
 	});
 
-
-	let dialog: HTMLDialogElement;
+	// let dialog: HTMLDialogElement;
 
 	function typeFromMimeType(mimeType: string): 'image' | 'video' | 'audio' {
 		if (mimeType.startsWith('image/')) return 'image';
@@ -54,22 +50,19 @@
 	function fileToMedia(file: File): MediaInterface {
 		if (!$dbUser) throw new Error('User not logged in');
 
-		fakeImage.src = URL.createObjectURL(file);
+		// fakeImage.src = URL.createObjectURL(file);
 
 		return {
 			userID: $dbUser.id,
 			title: file.name,
 			filename: file.name,
 			type: typeFromMimeType(file.type),
-			orignal: {
+			original: {
 				mimeType: file.type,
-				mediaID: file.name,
+				size: file.size,
 				userID: $dbUser.id,
-				filesize: file.size,
-				width: fakeImage.naturalWidth,
-				height: fakeImage.naturalHeight,
 				url: URL.createObjectURL(file),
-				file: file,
+				file: file
 			}
 		};
 	}
@@ -82,7 +75,7 @@
 		if (input.files) {
 			newMedia = Array.from(input.files).map(fileToMedia);
 			debug('newMedia', newMedia);
-			dialog?.showModal();
+			// dialog?.showModal();
 		}
 	}
 
@@ -100,12 +93,26 @@
 	// on:dragover={handleDragOver}
 </script>
 
+{#if newMedia}
+	<div class="tabs tabs-lifted h-full min-h-full w-full items-start bg-base-200 grow ">
+		{#each newMedia as m, i}
+			<input
+				type="radio"
+				name="my_tabs_1"
+				role="tab"
+				class="tab text-nowrap"
+				aria-label="{i + 1}: {m.title}"
+				checked={i === 0} />
+			<div role="tabpanel" class="tab-content h-full max-h-full min-h-full w-full grow">
+				<MediaEditor bind:media={m} on:change={() => {debug("change!")}}/>
+			</div>
+		{/each}
+	</div>
+	<div class="divider h-4 w-full shrink-0"></div>
+{/if}
 
-<img bind:this={fakeImage} src="" alt="cat" class="h-full w-full object-contain hidden" />
-
-<!-- on:drop={handleDrop} -->
 <div
-	class="carousel carousel-center w-full space-x-4 rounded-box bg-base-200 p-4"
+	class="carousel carousel-center h-fit w-full shrink-0 space-x-4 bg-base-200 p-4"
 	role="region"
 	aria-label="Image upload area">
 	<!-- Clickable box for file upload -->
@@ -119,34 +126,17 @@
 	<input id="fileInput" type="file" class="hidden" on:change={handleFileChange} multiple />
 
 	<!-- Display uploaded images or videos -->
-	<!-- {#each media ? Array.from(media) : [] as m }
+	{#each newMedia ? Array.from(newMedia) : [] as m }
 		<div class="carousel-item">
 			<MediaPreview media={m} />
 		</div>
-	{/each} -->
+	{/each}
 </div>
-
+<!-- </div> -->
+<!--
 <dialog
 	bind:this={dialog}
 	id="my_modal_1"
 	class="modal fixed inset-1 flex h-full w-full flex-col items-center justify-center bg-red-100 opacity-10"
 	open={newMedia.length > 0}>
-
-	<div role="tablist" class="grid-cols-99 tabs tabs-lifted h-2/3 max-h-[66.6%] w-2/3 items-start bg-blue-600">
-		{#if newMedia}
-			{#each Array.from(newMedia) as m, i}
-				<input
-					type="radio"
-					name="my_tabs_1"
-					role="tab"
-					class="tab text-nowrap"
-					aria-label={m.title}
-					checked={i === 0} />
-				<div role="tabpanel" class="tab-content h-full min-h-0 bg-gray-600 p-1">
-					<MediaEditor bind:media={m} />
-				</div>
-			{/each}
-		{/if}
-	</div>
-
-</dialog>
+</dialog> -->

@@ -1,22 +1,21 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { usersTable } from './users';
+
+// 'deleted' is not used in the database and unly returned by the API after a files has been deleted.
+export const uploadStatus = pgEnum('upload_status', ['progress', 'ok', 'failed', 'deleted']);
 
 export const fileTable = pgTable('file', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	// mediaID: uuid('media_id')
-	// 	.references(() => mediaTable.id, { onDelete: 'cascade' })
-	// 	.notNull(),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 
-	fileName: text('file_name').notNull(),
 	size: integer('size').notNull(),
 	mimeType: text('mime_type').notNull(),
-	hasPreview: boolean('preview').default(false),
-	previewSize: integer('preview_size'),
-	previewMimeType: text('preview_mime_type'),
+	isThumbnail: boolean('is_thumbnail'),
+
+	status: uploadStatus('status'),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updateAt: timestamp('update_at').notNull().defaultNow()
