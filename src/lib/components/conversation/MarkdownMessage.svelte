@@ -145,9 +145,11 @@
 				onClick: `
 
 								const preElement = this.parentElement.nextElementSibling;
-								console.log('copyButton', preElement);
+								// console.log('copyButton', preElement);
 								if (preElement) {
-									navigator.clipboard.writeText(preElement.childNodes[0].textContent);
+									const text = preElement.childNodes[0].textContent;
+									// console.log(\`copyButton '\${text}'\` );
+									navigator.clipboard.writeText(text.trim());
 								}`
 			},
 			[copySVG]
