@@ -147,7 +147,7 @@
 								const preElement = this.parentElement.nextElementSibling;
 								console.log('copyButton', preElement);
 								if (preElement) {
-									navigator.clipboard.writeText(preElement.childNodes[0].textContent;
+									navigator.clipboard.writeText(preElement.childNodes[0].textContent);
 								}`
 			},
 			[copySVG]
