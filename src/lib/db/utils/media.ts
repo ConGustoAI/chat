@@ -76,3 +76,4 @@ export async function DBdeleteMedia({ dbUser, id }: { dbUser?: UserInterface; id
 
 	return res[0];
 }
+

@@ -6,10 +6,6 @@
 
 	let progressBar: HTMLProgressElement;
 
-	function isVideo(file: File) {
-		return file.type.startsWith('video/');
-	}
-
 	// Handle video seek based on mouse position
 	function handleVideoSeek(event: MouseEvent) {
 		const video = event.currentTarget as HTMLVideoElement;
@@ -50,6 +46,7 @@
 		} else if (media.original?.file) {
 			thumbnailURL = URL.createObjectURL(media.original.file);
 		}
+		debug('thumbnailURL', thumbnailURL);
 	}
 
 

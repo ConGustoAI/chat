@@ -9,3 +9,4 @@ export * from './message';
 export * from './hide';
 
 export * from './file';
+export * from './media';

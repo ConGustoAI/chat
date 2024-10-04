@@ -6,6 +6,7 @@
 	import dbg from 'debug';
 	import { on } from 'events';
 	import { onMount } from 'svelte';
+	import { resizeImage } from '$lib/media_utils';
 	const debug = dbg('app:ui:components:MediaCarousel');
 
 	let media: MediaInterface[] = [];
@@ -33,9 +34,12 @@
 		};
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		debug('onMount');
-		newMedia = [makeFakeImage()];
+		// newMedia = [makeFakeImage()];
+		// await populateMedia(newMedia[0]);
+		// newMedia = newMedia
+		// debug('newMedia', newMedia);
 	});
 
 	// let dialog: HTMLDialogElement;
@@ -47,12 +51,12 @@
 		throw new Error('Unknown media type');
 	}
 
-	function fileToMedia(file: File): MediaInterface {
+	async function fileToMedia(file: File): Promise<MediaInterface> {
 		if (!$dbUser) throw new Error('User not logged in');
 
 		// fakeImage.src = URL.createObjectURL(file);
 
-		return {
+		const m: MediaInterface = {
 			userID: $dbUser.id,
 			title: file.name,
 			filename: file.name,
@@ -61,19 +65,82 @@
 				mimeType: file.type,
 				size: file.size,
 				userID: $dbUser.id,
-				url: URL.createObjectURL(file),
 				file: file
 			}
 		};
+
+		await populateMedia(m);
+		return m;
+	}
+
+	async function populateFile(file: FileInterface) {
+		if (!file.file && !file.url) {
+			throw new Error('FileInterface must have either file or url');
+		}
+
+		if (!file.file && file.url) {
+			try {
+				const response = await fetch(file.url);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				const blob = await response.blob();
+				file.file = new File([blob], file.url.split('/').pop() || 'file', { type: file.mimeType });
+			} catch (error) {
+				console.error('Error fetching file:', error);
+				throw new Error('Failed to fetch file from URL');
+			}
+		}
+
+		if (!file.url && file.file) {
+			file.url = URL.createObjectURL(file.file);
+		}
+	}
+
+	async function populateMedia(media: MediaInterface) {
+		if (!media.original) throw new Error('MediaInterface must have an original file');
+		if (media.original) await populateFile(media.original);
+		if (media.thumbnail) await populateFile(media.thumbnail);
+		if (media.resized) await populateFile(media.resized);
+		if (media.cropped) await populateFile(media.cropped);
+
+		if ((!media.originalWidth || !media.originalHeight) && media.original?.file) {
+			const img = new Image();
+			await new Promise<void>((resolve, reject) => {
+				img.onload = () => {
+					media.originalWidth = img.naturalWidth;
+					media.originalHeight = img.naturalHeight;
+					URL.revokeObjectURL(img.src);
+					resolve();
+				};
+				img.onerror = (error) => {
+					URL.revokeObjectURL(img.src);
+					reject(new Error('Failed to load image: ' + error));
+				};
+				if (media.original?.file) {
+					img.src = URL.createObjectURL(media.original.file);
+				} else {
+					reject(new Error('No original file available'));
+				}
+			});
+		}
+
+		if (media.resizedWidth && media.resizedHeight && !media.resized) {
+			media.resized = await resizeImage(media.original, media.resizedWidth, media.resizedHeight);
+		}
+
+		if (!media.thumbnail) {
+			media.thumbnail = await resizeImage(media.original, 128, 128);
+		}
 	}
 
 	// Handle file input change
-	function handleFileChange(event: Event) {
+	async function handleFileChange(event: Event) {
 		const input = event.target as HTMLInputElement;
 
 		debug('input.files', input.files);
 		if (input.files) {
-			newMedia = Array.from(input.files).map(fileToMedia);
+			newMedia = await Promise.all(Array.from(input.files).map(fileToMedia));
 			debug('newMedia', newMedia);
 			// dialog?.showModal();
 		}
@@ -93,8 +160,9 @@
 	// on:dragover={handleDragOver}
 </script>
 
-{#if newMedia}
-	<div class="tabs tabs-lifted h-full min-h-full w-full items-start bg-base-200 grow ">
+<!-- {#if newMedia} -->
+{#if false}
+	<div class="tabs tabs-lifted h-full min-h-full w-full grow items-start bg-base-200">
 		{#each newMedia as m, i}
 			<input
 				type="radio"
@@ -104,7 +172,11 @@
 				aria-label="{i + 1}: {m.title}"
 				checked={i === 0} />
 			<div role="tabpanel" class="tab-content h-full max-h-full min-h-full w-full grow">
-				<MediaEditor bind:media={m} on:change={() => {debug("change!")}}/>
+				<MediaEditor
+					bind:media={m}
+					on:change={() => {
+						debug('change!');
+					}} />
 			</div>
 		{/each}
 	</div>
@@ -126,11 +198,13 @@
 	<input id="fileInput" type="file" class="hidden" on:change={handleFileChange} multiple />
 
 	<!-- Display uploaded images or videos -->
-	{#each newMedia ? Array.from(newMedia) : [] as m }
-		<div class="carousel-item">
-			<MediaPreview media={m} />
-		</div>
-	{/each}
+	{#if newMedia.length > 0}
+		{#each newMedia as m}
+			<div class="carousel-item">
+				<MediaPreview media={m} />
+			</div>
+		{/each}
+	{/if}
 </div>
 <!-- </div> -->
 <!--

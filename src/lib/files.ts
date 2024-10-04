@@ -104,3 +104,4 @@ export async function deleteFile(file: FileInterface) {
 
 	await s3.send(deleteCommand);
 }
+

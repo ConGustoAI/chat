@@ -1,3 +1,4 @@
+import { fileTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:file');
@@ -36,4 +37,16 @@ export async function APIdeleteFile(id: string) {
     const data = (await res.json()) as FileInterface;
     debug('deleteFile -> %o', data);
     return data;
+}
+
+
+export function FileInterfaceFilter(file: FileInterface) {
+    const allowedKeys = Object.keys(fileTable.$inferInsert);
+    const excludedKeys = ['updatedAt', 'createdAt'];
+
+    const filteredFile= Object.fromEntries(
+        Object.entries(file).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+    );
+
+    return filteredFile as FileInterface;
 }

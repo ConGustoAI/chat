@@ -1,5 +1,5 @@
 import type { ProviderType } from '@prisma/client';
-import { User, Session } from 'lucia';
+import { Session, User } from 'lucia';
 
 declare global {
 	namespace App {
@@ -111,7 +111,7 @@ declare global {
 	interface HiddenItemInterface {
 		userID: string;
 		id: string; // Can refer to assistants/providers/models/apikeys.
-		createAt?: Date;
+		createdAt?: Date;
 		updatedAt?: Date;
 	}
 
@@ -138,8 +138,12 @@ declare global {
 		topK?: number;
 		deleted?: boolean;
 		prompt?: PromptInterface;
+
+		// Don't send to the backend.
 		updatedAt?: Date;
 		createdAt?: Date;
+
+		// Used by the frontend, not in the database.
 		markdownCache?: string; // This is only used in the frontend, not saved to the database.
 	}
 
@@ -170,9 +174,13 @@ declare global {
 		tokensOut?: number;
 		tokensInCost?: number;
 		tokensOutCost?: number;
-		messages?: MessageInterface[];
+
+		// Don't send to the backend.
 		updatedAt?: Date;
 		createdAt?: Date;
+
+		// from relations, not in database.
+		messages?: MessageInterface[];
 	}
 
 	interface MediaInterface {
@@ -204,8 +212,9 @@ declare global {
 		createdAt?: Date;
 		updatedAt?: Date;
 
-		// From relations
-		user?: UserInterface;
+		// Don't send to the backend.
+
+		// From relations, not in database.
 		original?: FileInterface;
 		resized?: FileInterface;
 		cropped?: FileInterface;
@@ -234,10 +243,13 @@ declare global {
 
 		status?: 'progress' | 'ok' | 'failed' | null;
 
-		// Not in the database
-		file?: File;  // A freshly selected file will have a file object.
-		url?: string; // A file that has been uploaded will have a URL.
+		// Don't send to the backend.
 
+		createAt?: Date;
+		updateAt?: Date;
+
+		file?: File; // A freshly selected file will have a file object.
+		url?: string; // A file that has been uploaded will have a URL.
 
 		uploadURL?: string;
 
@@ -246,7 +258,6 @@ declare global {
 		uploadError?: string;
 		uploading?: boolean;
 	}
-
 }
 
 export {};

@@ -73,3 +73,6 @@ export async function DBdeleteFile({ dbUser, id }: { dbUser?: UserInterface; id:
 
 	return res[0];
 }
+
+
+

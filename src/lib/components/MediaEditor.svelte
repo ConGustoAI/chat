@@ -4,6 +4,10 @@
 	import { onMount } from 'svelte';
 
 	import dbg from 'debug';
+	import { APIupsertMedia, MediaInterfaceFilter } from '$lib/api';
+	import { mediaTable } from '$lib/db/schema';
+	import { resizeImage } from '$lib/media_utils';
+
 	const debug = dbg('app:ui:components:MediaPreview');
 
 	export let media: MediaInterface;
@@ -14,24 +18,22 @@
 	}
 
 	async function updateMedia() {
-		if (media.id) {
-			await API
-
+		media = await APIupsertMedia(MediaInterfaceFilter(media));
 	}
 
 	const resizePresets: { [key: string]: any } = {
-		original: { label: 'Original' },
-		xs: { pixels: 128 * 128, label: 'Same pixels as 128x128' },
-		sm: { pixels: 256 * 256, label: 'Same pixels as 256x256' },
-		md: { pixels: 512 * 512, label: 'Same pixels as 512x512' },
-		lg: { pixels: 1024 * 1024, label: 'Same pixels as 1024x1024' },
-		xl: { pixels: 2048 * 2048, label: 'Same pixels as 2048x2048' },
-		'long-xs': { long: 256, label: 'Long side to 128' },
-		'long-sm': { long: 512, label: 'Long side to 256' },
-		'long-md': { long: 1024, label: 'Long side to 512' },
-		'long-lg': { long: 2048, label: 'Long side to 1024' },
-		'long-xl': { long: 4096, label: 'Long side to 2048' },
-		custom: { label: 'Custom' }
+		"original": { label: 'Original' },
+		"xs": { pixels: 128 * 128, label: '0.016 MP (~ 128x128)' },
+		"sm": { pixels: 256 * 256, label: '0.065 MP (~ 256x256)' },
+		"md": { pixels: 512 * 512, label: '0.25 MP (~ 512x512)' },
+		"lg": { pixels: 1024 * 1024, label: '1 MP (~ 1024x1024)' },
+		"xl": { pixels: 2048 * 2048, label: '4 MP (~ 2048x2048)' },
+		'long-xs': { long: 256, label: 'Long side to 128px' },
+		'long-sm': { long: 512, label: 'Long side to 256px' },
+		'long-md': { long: 1024, label: 'Long side to 512px' },
+		'long-lg': { long: 2048, label: 'Long side to 1024px' },
+		'long-xl': { long: 4096, label: 'Long side to 2048px' },
+		"custom": { label: 'Custom' }
 	};
 
 	let resize = 'original';
@@ -40,68 +42,6 @@
 
 	// let hiddenCanvasOriginal: HTMLCanvasElement;
 	let hiddenImageOriginal: HTMLImageElement;
-
-	// Resize image
-	async function resizeImage(
-		file: FileInterface,
-		width: number,
-		height: number,
-		pad: boolean = false
-	): Promise<FileInterface> {
-		// if (!$dbUser) throw new Error('No user');
-		const canvas = document.createElement('canvas');
-		const context = canvas.getContext('2d');
-		if (!context) throw new Error('Canvas context not found');
-		if (!file.file) throw new Error('File file not found');
-
-		debug('resizeImage', file, width, height);
-		const image = new Image();
-		const p = new Promise((resolve, reject) => {
-			image.onload = resolve;
-			image.onerror = reject;
-		});
-		image.src = URL.createObjectURL(file.file); // file.file is the File object
-		debug('image', image);
-		await p;
-
-		canvas.width = width;
-		canvas.height = height;
-
-		if (pad) {
-			context.fillStyle = 'black';
-			context.fillRect(0, 0, width, height);
-
-			const aspectRatio = image.width / image.height;
-			let drawWidth = width;
-			let drawHeight = height;
-			let offsetX = 0;
-			let offsetY = 0;
-
-			if (width / height > aspectRatio) {
-				drawWidth = height * aspectRatio;
-				offsetX = (width - drawWidth) / 2;
-			} else {
-				drawHeight = width / aspectRatio;
-				offsetY = (height - drawHeight) / 2;
-			}
-
-			context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-		} else {
-			context.drawImage(image, 0, 0, width, height);
-		}
-
-		const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg'));
-		if (!blob) throw new Error('Blob is null');
-		const resizedFile = new File([blob], 'resized', { type: 'image/jpeg' });
-		debug('blob', blob);
-		return {
-			userID: $dbUser?.id ?? 'anon',
-			url: URL.createObjectURL(blob),
-			mimeType: 'image/jpeg',
-			size: blob.size,
-			file: resizedFile
-		};
-	}
 
 	async function resizeOriginal() {
 		debug('resizeOriginal', media, resize);
@@ -121,7 +61,6 @@
 			width = media.originalWidth * ratio;
 			height = media.originalHeight * ratio;
 		} else if (long) {
-
 			const ratio = long / Math.max(media.originalWidth, media.originalHeight);
 			width = media.originalWidth * ratio;
 			height = media.originalHeight * ratio;
@@ -154,6 +93,7 @@
 	let updatingThumbnail = false;
 	let scheduledThumbailUpdate = false;
 	async function updateThumbnail() {
+		if (!media.original) throw new Error('Original media not found');
 		if (updatingThumbnail) {
 			scheduledThumbailUpdate = true;
 			return;
@@ -161,11 +101,11 @@
 
 		updatingThumbnail = true;
 		debug('updateThumbnail', media);
-		if (media.resized) {
-			media.thumbnail = await resizeImage(media.resized, 128, 128, true);
-		} else if (media.original) {
-			media.thumbnail = await resizeImage(media.original, 128, 128, true);
-		}
+		// if (media.resized) {
+		// 	media.thumbnail = await resizeImage(media.resized, 128, 128, true);
+		// } else if (media.original) {
+		media.thumbnail = await resizeImage(media.original, 128, 128, true);
+		// }
 		updatingThumbnail = false;
 		if (scheduledThumbailUpdate) {
 			scheduledThumbailUpdate = false;
@@ -213,15 +153,12 @@
 		};
 
 		hiddenImageOriginal.src = media.original?.url ?? '';
-
 	});
 
 	$: debug('media', media);
-	// $: debug('resizedImage', resizedImage);
 
 	let titleUpdating = false;
 </script>
-
 
 <div class="flex h-[100vh] max-h-full min-h-full shrink-0 grow">
 	<!-- <div class="flex h-full max-h-full min-h-0 shrink flex-col items-start p-2"> -->
@@ -239,7 +176,7 @@
 	<!-- </div> -->
 	<div class="divider divider-horizontal mx-1 grow-0 px-1"></div>
 
-	<div class="m-1 flex grow-0 flex-col gap-1 items-end">
+	<div class="m-1 flex grow-0 flex-col items-end gap-1">
 		<div class="flex items-baseline justify-start gap-2">
 			<p class="label mr-auto">Title</p>
 			{#if titleUpdating}
@@ -284,7 +221,7 @@
 					<input type="number" class="input input-sm input-bordered w-full" placeholder="H" bind:value={resizeHeight} />
 				</div>
 			</div>
-			<button class="btn btn-outline btn-sm w-fit align-self-end" on:click={resizeOriginal}><Check /></button>
+			<button class="align-self-end btn btn-outline btn-sm w-fit" on:click={resizeOriginal}><Check /></button>
 		{/if}
 
 		<div class="mt-auto flex flex-col items-end justify-self-end">

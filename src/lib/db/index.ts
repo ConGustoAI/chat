@@ -23,3 +23,7 @@ if (!env.DATABASE_URL) {
 debug('Connecting to database');
 const client = postgres(env.DATABASE_URL, { max: 5 });
 export const db = drizzle(client, { schema, logger });
+
+
+debug("keys", Object.keys(schema.mediaTable));
+// console.log("Media table keys:", Object.keys(schema.mediaTable.$inferInsert).join(", "));

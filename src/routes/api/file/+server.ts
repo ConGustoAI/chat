@@ -10,15 +10,15 @@ import dbg from 'debug';
 const debug = dbg('app:api:file');
 
 export async function POST({ request, locals: { dbUser }, url }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (!s3) error(500, 'S3 not configured');
-
 	const file: FileInterface = (await request.json()) as FileInterface;
 
 	// We want to upload a new file - update status and generate upload urls.
 	const uploadurl = url.searchParams.get('uploadurl') === 'true';
 
 	debug('POST <- %o', { file, uploadurl });
+
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!s3) error(500, 'S3 not configured');
 
 	// Note: The file size in the header might be wrong, this it just the fast path to give an error imm3diately.
 	const maxSize = envPublic.PUBLIC_MAX_FILE_SIZE_MB
