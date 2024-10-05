@@ -56,7 +56,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: romanEmpireEmojiEssayPromptID,
         userID: defaultsUUID,
-        conversationId: romanEmpireEmojiEssayID,
+        conversationID: romanEmpireEmojiEssayID,
         assistantName: "My Sonnet 3.5 raw",
         modelName: "claude-3-5-sonnet-20240620",
         role: "user",
@@ -65,7 +65,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: romanEmpireEmojiEssayResponseID,
         userID: defaultsUUID,
-        conversationId: romanEmpireEmojiEssayID,
+        conversationID: romanEmpireEmojiEssayID,
         assistantName: 'My Sonnet 3.5 raw',
         modelName: 'claude-3-5-sonnet-20240620',
         role: 'assistant',
@@ -76,7 +76,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: markdownFormulasPromptID,
         userID: defaultsUUID,
-        conversationId: markdownFormulasID,
+        conversationID: markdownFormulasID,
         assistantName: "Sonnet 3.5",
         modelName: "claude-3-5-sonnet-20240620",
         temperature: 1,
@@ -88,7 +88,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: markdownFormulasResponseID,
         userID: defaultsUUID,
-        conversationId: markdownFormulasID,
+        conversationID: markdownFormulasID,
         assistantName: 'Sonnet 3.5',
         modelName: 'claude-3-5-sonnet-20240620',
         temperature: 1,
@@ -102,7 +102,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: lastDigitsOfPiPromptID,
         userID: defaultsUUID,
-        conversationId: lastDigitsOfPiID,
+        conversationID: lastDigitsOfPiID,
         assistantName: "Sonnet 3.5",
         modelName: "claude-3-5-sonnet-20240620",
         temperature: 1,
@@ -114,7 +114,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: lastDigitsOfPiResponseID,
         userID: defaultsUUID,
-        conversationId: lastDigitsOfPiID,
+        conversationID: lastDigitsOfPiID,
         assistantName: "Sonnet 3.5",
         modelName: "claude-3-5-sonnet-20240620",
         temperature: 1,
