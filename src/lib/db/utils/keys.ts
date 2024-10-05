@@ -1,4 +1,4 @@
-import { undefineExtras } from '$lib/utils';
+import { apiKeyInterfaceFilter } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { db } from '..';
@@ -34,7 +34,7 @@ export async function DBupsertKey({ dbUser, key }: { dbUser?: UserInterface; key
 	if (key.userID != dbUser.id && (!dbUser.admin || key.userID !== defaultsUUID))
 		error(401, 'Tried to update a key that does not belong to the user');
 
-	key = undefineExtras(key);
+	key = apiKeyInterfaceFilter(key);
 	if (key.id) {
 		const update = await db
 			.update(apiKeysTable)

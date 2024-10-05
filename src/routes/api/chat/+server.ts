@@ -145,17 +145,16 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	// and I want to insert the messages and update the final conversation in parallel.
 	if (!conversation.id) conversation = (await DBupsertConversation({ dbUser, conversation })) as ConversationInterface;
 	if (!conversation.id) error(500, 'Failed to create conversation');
-	UM.conversationId = AM.conversationId = conversation.id;
+	UM.conversationID = AM.conversationID = conversation.id;
 	UM.userID = AM.userID = dbUser.id;
 
 	if (assistantData.model.provider.type === 'openai' && assistantData.model.name.startsWith('o1') && systemPrompt) {
 		inputMessages.unshift({
 			role: 'user',
-			content: [{ type: 'text', text: "SYSTEM PROMPT:\n" + systemPrompt }]
+			content: [{ type: 'text', text: 'SYSTEM PROMPT:\n' + systemPrompt }]
 		});
-		systemPrompt = "";
+		systemPrompt = '';
 	}
-
 
 	async function onFinish(
 		// I don't always love TypeScript
@@ -167,7 +166,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
 
 			// experimental_providerMetadata: { openai: { reasoningTokens: 128 } },
-			const reasoningTokens = (result.experimental_providerMetadata?.openai?.reasoningTokens) as number | undefined;
+			const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
 
 			AM.finishReason = result.finishReason;
 			AM.tokensIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
@@ -256,8 +255,6 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		}
 		await d.close();
 	}
-
-
 
 	try {
 		const result = await streamText({

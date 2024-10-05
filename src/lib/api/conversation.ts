@@ -1,8 +1,9 @@
+import { conversationsTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:conversation');
 
-
+// This can run on the backend or the frontend, so we pass fetch as an argument.
 export async function APIfetchPublicConversation(id: string, fetch: typeof window.fetch = window.fetch) {
 	debug('fetchPublicConversation %o', { id });
 
@@ -15,7 +16,6 @@ export async function APIfetchPublicConversation(id: string, fetch: typeof windo
 	return data;
 }
 
-
 export async function APIfetchConversations() {
 	debug('fetchConversations');
 
@@ -27,7 +27,7 @@ export async function APIfetchConversations() {
 	return data;
 }
 
-export async function APIfetchConversation(id: string | undefined) {
+export async function APIfetchConversation(id: string) {
 	debug('fetchConversation %o', { id });
 
 	if (!id) return { userID: '' } as ConversationInterface;
@@ -46,7 +46,7 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 	const res = await fetch('/api/conversation', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(conversation)
+		body: JSON.stringify(conversationInterfaceFilter(conversation))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update conversation: ${await res.text()}`);
@@ -55,7 +55,7 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 	return data;
 }
 
-export async function APIdeleteConversation(ids: string[]) {
+export async function APIdeleteConversations(ids: string[]) {
 	debug('deleteConversation %o', ids);
 	const res = await fetch(`/api/conversation`, {
 		method: 'DELETE',
@@ -67,4 +67,16 @@ export async function APIdeleteConversation(ids: string[]) {
 	const data = (await res.json()) as ConversationInterface;
 	debug('deleteConversation -> %o', data);
 	return data;
+}
+
+export function conversationInterfaceFilter(conversation: ConversationInterface) {
+	const allowedKeys = Object.keys(conversationsTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredConversation = Object.fromEntries(
+		Object.entries(conversation).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredConversation as ConversationInterface;
 }

@@ -1,3 +1,4 @@
+import { providersTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:provider');
@@ -18,7 +19,7 @@ export async function APIupsertProvider(provider: ProviderInterface) {
 	const res = await fetch('/api/provider', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(provider)
+		body: JSON.stringify(providerInterfaceFilter(provider))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update provider: ${await res.text()}`);
@@ -39,4 +40,16 @@ export async function APIdeleteProvider(provider: ProviderInterface) {
 	const data = (await res.json()) as ProviderInterface;
 	debug('deleteProvider -> %o', data);
 	return data;
+}
+
+export function providerInterfaceFilter(provider: ProviderInterface) {
+	const allowedKeys = Object.keys(providersTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredProvider = Object.fromEntries(
+		Object.entries(provider).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredProvider as ProviderInterface;
 }

@@ -1,3 +1,4 @@
+import { messagesTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:message');
@@ -21,7 +22,7 @@ export async function APIupsertMessage(message: MessageInterface) {
 	const res = await fetch('/api/message', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(message)
+		body: JSON.stringify(messageInterfaceFilter(message))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update message: ${await res.text()}`);
@@ -42,4 +43,16 @@ export async function APIdeleteMessage(message: MessageInterface) {
 	const data = (await res.json()) as MessageInterface;
 	debug('deleteMessage -> %o', data);
 	return data;
+}
+
+export function messageInterfaceFilter(message: MessageInterface) {
+	const allowedKeys = Object.keys(messagesTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredMessage = Object.fromEntries(
+		Object.entries(message).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredMessage as MessageInterface;
 }

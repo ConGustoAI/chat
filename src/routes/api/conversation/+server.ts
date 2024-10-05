@@ -1,5 +1,5 @@
 import {
-	DBdeleteConversation,
+	DBdeleteConversations,
 	DBgetConversations,
 	DBgetDefaultConversations,
 	DBupsertConversation
@@ -10,7 +10,7 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:conversation');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }}) => {
+export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
 	let conversations;
 	if (!dbUser) {
 		conversations = await DBgetDefaultConversations();
@@ -36,7 +36,7 @@ export const DELETE: RequestHandler = async ({ request, locals: { dbUser } }) =>
 	const ids = (await request.json()) as string[];
 
 	debug('DELETE <- %o', ids);
-	const del = await DBdeleteConversation({ dbUser, ids });
+	const del = await DBdeleteConversations({ dbUser, ids });
 	debug('DELETE -> %o', del);
 
 	return json(del);

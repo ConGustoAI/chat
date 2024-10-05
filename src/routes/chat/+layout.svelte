@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { APIdeleteConversation, APIfetchConversations, APIfetchKeys, APIfetchModels, APIfetchProviders, APIupsertConversation, APIupsertMessage } from '$lib/api';
+	import {
+		APIdeleteConversations,
+		APIfetchConversations,
+		APIfetchKeys,
+		APIfetchModels,
+		APIfetchProviders,
+		APIupsertConversation,
+		APIupsertMessage
+	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import {
-	apiKeys,
+		apiKeys,
 		assistants,
 		chatDataLoading,
 		chatStreaming,
@@ -190,7 +198,7 @@
 
 						userMessage = {
 							...userMessage,
-							conversationId: newConversation.id
+							conversationID: newConversation.id
 						};
 
 						$conversation.messages[$conversation.messages.length - 2] = await APIupsertMessage(userMessage);
@@ -208,7 +216,7 @@
 							temperature: $assistants[$conversation.assistant ?? 'unknown']?.temperature ?? 0,
 							topP: $assistants[$conversation.assistant ?? 'unknown']?.topP ?? 0,
 							topK: $assistants[$conversation.assistant ?? 'unknown']?.topK ?? 0,
-							conversationId: newConversation.id
+							conversationID: newConversation.id
 						};
 
 						$conversation.messages[$conversation.messages.length - 1] = await APIupsertMessage(assistantMessage);
@@ -246,14 +254,16 @@
 	async function deleteConversations(ids: string[]) {
 		$conversationOrder = $conversationOrder.filter((c) => !ids.includes(c));
 		if (dbUser) {
-			const del = await APIdeleteConversation(ids);
+			const del = await APIdeleteConversations(ids);
 			if (!del.id) throw new Error('Failed to delete the conversation.');
 		}
 	}
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
-	<div class="flex h-full w-full shrink-0 flex-col gap-2 bg-base-200 p-2 md:w-56 items-center justify-start" class:hidden={!$sidebarOpen}>
+	<div
+		class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 md:w-56"
+		class:hidden={!$sidebarOpen}>
 		<div class="join flex w-full">
 			<button
 				class="border- btn btn-outline join-item h-full grow"

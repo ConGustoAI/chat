@@ -1,3 +1,4 @@
+import { modelsTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:model');
@@ -27,7 +28,7 @@ export async function APIupsertModel(model: ModelInterface) {
 	const res = await fetch('/api/model', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(model)
+		body: JSON.stringify(modelInterfaceFilter(model))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update model: ${await res.text()}`);
@@ -48,4 +49,16 @@ export async function APIdeleteModel(model: ModelInterface) {
 	const data = (await res.json()) as ModelInterface;
 	debug('deleteModel -> %o', data);
 	return data;
+}
+
+export function modelInterfaceFilter(model: ModelInterface) {
+	const allowedKeys = Object.keys(modelsTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredModel = Object.fromEntries(
+		Object.entries(model).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredModel as ModelInterface;
 }

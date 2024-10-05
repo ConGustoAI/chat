@@ -1,4 +1,4 @@
-import { undefineExtras } from '$lib/utils';
+import { userInterfaceFilter } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '../index';
@@ -30,7 +30,7 @@ export async function DBupdateUser({ dbUser, updatedUser }: { dbUser?: UserInter
 	if (dbUser.id !== updatedUser.id) error(400, 'User ID mismatch');
 	if (!dbUser.admin && updatedUser.admin) error(403, "You can't just make yourself admin lol");
 
-	updatedUser = undefineExtras(updatedUser);
+	updatedUser = userInterfaceFilter(updatedUser);
 	const update = await db.update(usersTable).set(updatedUser).where(eq(usersTable.id, updatedUser.id)).returning();
 
 	if (!update.length) error(500, 'Failed to update user');

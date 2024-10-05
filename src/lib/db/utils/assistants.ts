@@ -1,4 +1,4 @@
-import { undefineExtras } from '$lib/utils';
+import { assistantInterfaceFilter } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { db } from '..';
@@ -41,7 +41,7 @@ export async function DBupsertsAssistant({
 	if (assistant.userID != dbUser.id && (!dbUser.admin || assistant.userID !== defaultsUUID))
 		error(401, 'Tried to delete an assistant that does not belong to the user');
 
-	assistant = undefineExtras(assistant);
+	assistant = assistantInterfaceFilter(assistant);
 	if (assistant.id) {
 		const update = await db
 			.update(assistantsTable)

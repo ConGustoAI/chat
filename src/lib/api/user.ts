@@ -1,3 +1,4 @@
+import { usersTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:user');
@@ -17,7 +18,7 @@ export async function APIupdateUser(user: UserInterface) {
 	const res = await fetch('/api/user', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(user)
+		body: JSON.stringify(userInterfaceFilter(user))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update user: ${await res.text()}`);
@@ -37,4 +38,16 @@ export async function APIdeleteUser() {
 	const data = await res.json();
 	debug('deleteUser -> %o', data);
 	return data;
+}
+
+export function userInterfaceFilter(user: UserInterface) {
+	const allowedKeys = Object.keys(usersTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredUser = Object.fromEntries(
+		Object.entries(user).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredUser as UserInterface;
 }

@@ -1,8 +1,8 @@
-import { undefineExtras } from '$lib/utils';
+import { providerInterfaceFilter } from '$lib/api';
+import { error } from '@sveltejs/kit';
 import { and, eq, or } from 'drizzle-orm';
 import { db } from '..';
 import { defaultsUUID, providersTable } from '../schema';
-import { error } from '@sveltejs/kit';
 
 export async function DBgetProviders({ dbUser }: { dbUser?: UserInterface }) {
 	// Note: If the user is not authorized, we only return the default providers.
@@ -30,7 +30,7 @@ export async function DBupsertProvider({ dbUser, provider }: { dbUser?: UserInte
 	if (provider.userID != dbUser.id && (!dbUser.admin || provider.userID !== defaultsUUID))
 		error(401, 'Tried to delete a provider that does not belong to the user');
 
-	provider = undefineExtras(provider);
+	provider = providerInterfaceFilter(provider);
 	if (provider.id) {
 		const update = await db
 			.update(providersTable)

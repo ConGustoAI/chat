@@ -1,4 +1,5 @@
-import { trimLineLength, undefineExtras } from '$lib/utils';
+import { conversationInterfaceFilter } from '$lib/api';
+import { trimLineLength } from '$lib/utils';
 import { error } from '@sveltejs/kit';
 import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import { db } from '../index';
@@ -31,7 +32,7 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 	return conversation;
 }
 
-export function dbGetPublicConversation({ id }: { id: string }) {
+export function DBGetPublicConversation({ id }: { id: string }) {
 	return db.query.conversationsTable.findFirst({
 		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.public, true)),
 		with: {
@@ -125,7 +126,7 @@ export async function DBupsertConversation({
 	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
 		error(401, 'Tried to update a conversation that does not belong to the user');
 
-	conversation = undefineExtras(conversation);
+	conversation = conversationInterfaceFilter(conversation);
 	if (conversation.summary) conversation.summary = trimLineLength(conversation.summary, 128);
 
 	if (conversation.id) {
@@ -139,7 +140,6 @@ export async function DBupsertConversation({
 				tokensOutCost: sql`${conversationsTable.tokensOutCost} + ${tokensOutCost ?? 0}`,
 				tokensReasoning: sql`${conversationsTable.tokensReasoning} + ${tokensReasoning ?? 0}`,
 				tokensReasoningCost: sql`${conversationsTable.tokensReasoningCost} + ${tokensReasoningCost ?? 0}`
-
 			})
 			.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
 			.returning();
@@ -166,7 +166,7 @@ export async function DBupsertConversation({
 	return insert[0];
 }
 
-export async function DBdeleteConversation({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
+export async function DBdeleteConversations({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	if (!Array.isArray(ids) || ids.length === 0) error(400, 'At least one conversation ID is required');
 

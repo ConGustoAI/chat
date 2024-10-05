@@ -74,7 +74,7 @@
 		// We have to inser one by one to make sure the order is set correctly.
 		for (const m of clone.messages ?? []) {
 			delete m.id;
-			m.conversationId = insertedConversation.id;
+			m.conversationID = insertedConversation.id;
 			m.userID = $dbUser.id;
 			m.order = undefined;
 			m.createdAt = undefined;

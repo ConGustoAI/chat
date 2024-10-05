@@ -14,7 +14,7 @@ export const messagesTable = pgTable('messages', {
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	order: serial('order'),
-	conversationId: uuid('conversation_id')
+	conversationID: uuid('conversation_id')
 		.references(() => conversationsTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	assistantID: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
@@ -47,7 +47,7 @@ export const messagesTable = pgTable('messages', {
 
 export const messageTableRelations = relations(messagesTable, ({ one, many }) => ({
 	conversation: one(conversationsTable, {
-		fields: [messagesTable.conversationId],
+		fields: [messagesTable.conversationID],
 		references: [conversationsTable.id]
 	}),
 	media: many(messageMediaTable),

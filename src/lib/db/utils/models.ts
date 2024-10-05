@@ -1,4 +1,4 @@
-import { undefineExtras } from '$lib/utils';
+import { modelInterfaceFilter } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
@@ -31,7 +31,7 @@ export async function DBupsertModel({ dbUser, model }: { dbUser?: UserInterface;
 	if (model.userID != dbUser.id && (!dbUser.admin || model.userID !== defaultsUUID))
 		error(401, 'Tried to update a model that does not belong to the user');
 
-	model = undefineExtras(model);
+	model = modelInterfaceFilter(model);
 	if (model.id) {
 		const update = await db
 			.update(modelsTable)

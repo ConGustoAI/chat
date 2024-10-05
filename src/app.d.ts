@@ -1,5 +1,5 @@
 import type { ProviderType } from '@prisma/client';
-import {  User, Session} from 'lucia'
+import { User, Session } from 'lucia';
 
 declare global {
 	namespace App {
@@ -115,13 +115,11 @@ declare global {
 		updatedAt?: Date;
 	}
 
-
-
 	interface MessageInterface {
 		id?: string;
 		userID: string;
 		order?: number;
-		conversationId?: string;
+		conversationID?: string;
 		assistantID?: string;
 		assistantName?: string;
 		model?: string;

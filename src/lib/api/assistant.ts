@@ -1,3 +1,4 @@
+import { assistantsTable } from '$lib/db/schema';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:assistant');
@@ -26,7 +27,6 @@ export async function APIfetchDefaultAssistant(id?: string) {
 	return data;
 }
 
-
 export async function APIfetchAssistants() {
 	debug('fetchAssistants');
 	const res = await fetch('/api/assistant');
@@ -52,7 +52,7 @@ export async function APIupsertAssistant(assistant: AssistantInterface) {
 	const res = await fetch('/api/assistant', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(assistant)
+		body: JSON.stringify(assistantInterfaceFilter(assistant))
 	});
 
 	if (!res.ok) throw new Error(`Failed to update assistant: ${await res.text()}`);
@@ -73,4 +73,16 @@ export async function APIdeleteAssistant(assistant: AssistantInterface) {
 	const del = (await res.json()) as AssistantInterface;
 	debug('deleteAssistant -> %o', del);
 	return del;
+}
+
+export function assistantInterfaceFilter(assistant: AssistantInterface) {
+	const allowedKeys = Object.keys(assistantsTable);
+
+	const excludedKeys = ['updatedAt', 'createdAt'];
+
+	const filteredAssistant = Object.fromEntries(
+		Object.entries(assistant).filter(([key]) => allowedKeys.includes(key) && !excludedKeys.includes(key))
+	);
+
+	return filteredAssistant as AssistantInterface;
 }
