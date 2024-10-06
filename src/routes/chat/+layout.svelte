@@ -292,7 +292,7 @@
 		<ChatHistory {deleteConversations} />
 	</div>
 
-	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen} />
+	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen}></div>
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle />
@@ -305,7 +305,7 @@
 						loading={i === $conversation.messages.length - 1 && $chatStreaming}
 						{submitConversation} />
 				{/each}
-				<div class="mb-20 w-full" />
+				<div class="mb-20 w-full"></div>
 			{:else if !$conversation?.id}
 				<div
 					class=" m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
@@ -339,7 +339,7 @@
 			{/if}
 		</div>
 
-		<div class="divider w-full" />
+		<div class="divider w-full"></div>
 
 		<div class="navbar m-2 h-fit shrink-0 grow-0 py-0">
 			<div class="navbar-start max-w-fit">

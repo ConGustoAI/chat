@@ -85,7 +85,7 @@
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">
-	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
+	<div class="loading absolute top-1" class:hidden={status !== 'saving'}></div>
 	<div class="absolute top-1" class:hidden={status !== 'saved'}>
 		<Check />
 	</div>

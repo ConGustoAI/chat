@@ -17,7 +17,7 @@
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 	<div tabindex={0} class={cn(disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
-			<div class="loading loading-sm" />
+			<div class="loading loading-sm"></div>
 			<slot />
 		{:else}
 			<Trash2 {size} />

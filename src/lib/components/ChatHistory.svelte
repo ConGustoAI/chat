@@ -169,7 +169,7 @@
 		checked={!!selectedConversations.length && selectedConversations.length === datedConversation.allFiltered.length} />
 	{#if selectedConversations.length}
 		{#if deleting}
-			<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform" />
+			<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform"></span>
 		{:else}
 			<DeleteButton
 				class="dropdown-right absolute right-3 top-1/2 z-10 -translate-y-1/2"
@@ -294,4 +294,4 @@
 		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations />
 	{/if}
 </ul>
-<div class="grow" />
+<div class="grow"></div>

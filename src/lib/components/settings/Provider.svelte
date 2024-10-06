@@ -183,7 +183,7 @@
 	}}
 	disabled={status === 'copying'}>
 	{#if status === 'copying'}
-		<div class="loading" />
+		<div class="loading"></div>
 	{:else}
 		<Copy />
 	{/if}
@@ -233,7 +233,7 @@
 		status = null;
 	}}>
 	{#if status === 'hiding'}
-		<div class="loading" />
+		<div class="loading"></div>
 	{:else if $hiddenItems.has(provider.id ?? '') && allowHiding}
 		<EyeOff />
 	{:else}
@@ -252,7 +252,7 @@
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">
-	<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
+	<div class="loading absolute top-1" class:hidden={status !== 'saving'}></div>
 	<div class="absolute" class:hidden={status !== 'saved'}>
 		<Check />
 	</div>
@@ -294,7 +294,7 @@
 				{newChildUserID}
 				{allowHiding} />
 		{/if}
-		<div class="divider col-span-full w-full" />
+		<div class="divider col-span-full w-full"></div>
 	</div>
 {/if}
 
@@ -319,6 +319,6 @@
 
 			<ApiKeysGrid {provider} edit={editDefaultChildren} showCustom={false} showDefault={true} {newChildUserID} />
 		{/if}
-		<div class="divider w-full" />
+		<div class="divider w-full"></div>
 	</div>
 {/if}

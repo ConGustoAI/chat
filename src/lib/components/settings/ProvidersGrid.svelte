@@ -53,7 +53,7 @@
 <div class="flex w-full flex-col gap-4">
 	<div
 		class="grid w-full grid-cols-[min-content,10rem,8rem,8rem,auto,6rem,6rem,min-content,min-content,0] items-center gap-4 gap-y-2">
-		<div />
+		<div></div>
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>
 		<div class="font-bold">
@@ -66,11 +66,11 @@
 			</InfoPopup>
 		</div>
 		<div class="font-bold">Base URL</div>
-		<div />
-		<div />
+		<div></div>
+		<div></div>
 		<div class="font-bold">Hide</div>
 		<div class="font-bold">Delete</div>
-		<div />
+		<div></div>
 
 		{#each Object.entries($providers) as [i, provider]}
 			{#if (showDefault && provider.userID === defaultsUUID) || (showCustom && provider.userID !== defaultsUUID)}
@@ -95,7 +95,7 @@
 					await addProvider();
 				}}>
 				{#if addingProvider}
-					<div class="loading" />
+					<div class="loading"></div>
 				{:else}
 					<Plus />
 				{/if}

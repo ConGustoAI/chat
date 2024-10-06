@@ -68,7 +68,7 @@
 	{#if provider.type === 'google'}
 		<div class="label-test">Gemini safety sensitivity (all categories)</div>
 	{:else}
-		<div />
+		<div></div>
 	{/if}
 
 	<input
@@ -99,7 +99,7 @@
 			statusChanged();
 		}} />
 
-	<div />
+	<div></div>
 
 	<input
 		type="range"
@@ -160,6 +160,6 @@
 			</div>
 		</div>
 	{:else}
-		<div />
+		<div></div>
 	{/if}
 </div>

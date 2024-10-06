@@ -57,8 +57,8 @@
 	<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
 		<span class="text-sm">Key label</span>
 		<span class="text-sm">Key</span>
-		<span />
-		<span />
+		<span></span>
+		<span></span>
 
 		{#each Object.entries($apiKeys) as [id, key]}
 			{#if key.providerID === provider.id && ((showDefault && key.userID === defaultsUUID) || (showCustom && key.userID !== defaultsUUID))}
@@ -73,7 +73,7 @@
 				await addKey();
 			}}>
 			{#if addingKey}
-				<div class="loading" />
+				<div class="loading"></div>
 			{:else}
 				<Plus />
 			{/if}

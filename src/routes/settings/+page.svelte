@@ -66,7 +66,7 @@
 				<a class="btn btn-outline" href="/login/pwreset" data-sveltekit-reload>Change Password</a>
 			</div>
 			<div class="relative self-start">
-				<div class="loading absolute top-1" class:hidden={status !== 'saving'} />
+				<div class="loading absolute top-1" class:hidden={status !== 'saving'}></div>
 				<div class="absolute" class:hidden={status !== 'saved'}>
 					<Check />
 				</div>

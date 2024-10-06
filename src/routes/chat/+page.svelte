@@ -16,7 +16,10 @@
 		$conversation = newConversation($dbUser, oldAssistantId, $assistants);
 	}
 
-	$: fetchConversation($page.params.chat);
+	$effect(() => {
+		fetchConversation($page.params.chat);
+	});
+	// $: fetchConversation($page.params.chat);
 </script>
 
 <MetaTag title="Congusto Chat" url={$page.url.href}/>

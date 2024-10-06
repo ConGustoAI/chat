@@ -75,15 +75,15 @@
 
 <div class="mb-10 flex w-full flex-col gap-4">
 	<div class="grid w-full grid-cols-[min-content,10rem,15rem,12rem,auto,6rem,4rem,4rem,0] gap-4 gap-y-2">
-		<div />
+		<div></div>
 		<div class="font-bold">Name</div>
 		<div class="font-bold">Model</div>
 		<div class="font-bold">API key</div>
 		<div class="font-bold">Descripton</div>
-		<div />
+		<div></div>
 		<div class="font-bold">Hide</div>
 		<div class="font-bold">Delete</div>
-		<div />
+		<div></div>
 
 		{#each Object.entries($assistants) as [i, assistant]}
 			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
@@ -98,7 +98,7 @@
 					await addAssistant();
 				}}>
 				{#if addingAssistant}
-					<div class="loading" />
+					<div class="loading"></div>
 				{:else}
 					<Plus />
 				{/if}

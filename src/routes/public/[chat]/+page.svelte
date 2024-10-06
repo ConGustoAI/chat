@@ -51,7 +51,7 @@
 				{#each data.conversation.messages as m}
 					<ChatMessage bind:message={m} isPublic={true} submitConversation={async () => {}} />
 				{/each}
-				<div class=" mb-20 w-full" />
+				<div class=" mb-20 w-full"></div>
 			{:else}
 				<div class="flex h-full flex-col items-center">
 					{#if !data.conversation}
@@ -74,7 +74,7 @@
 				</div>
 			{/if}
 		</div>
-		<div class="divider w-full" />
+		<div class="divider w-full"></div>
 	</div>
 </main>
 

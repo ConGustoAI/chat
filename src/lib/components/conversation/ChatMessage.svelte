@@ -138,7 +138,7 @@
 <div class="relative flex items-start pt-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
 		{#if loading}
-			<div class="loading loading-ring loading-md" />
+			<div class="loading loading-ring loading-md"></div>
 		{:else if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
@@ -203,7 +203,7 @@
 							editingMessage = false;
 						}}>
 						{#if savingMessage}
-							<div class="loading" />
+							<div class="loading"></div>
 						{:else}
 							Save
 						{/if}

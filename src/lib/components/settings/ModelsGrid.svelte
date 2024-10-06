@@ -128,7 +128,7 @@
 			</div>
 			<div class="font-bold">Hide</div>
 			<div class="font-bold">Delete</div>
-			<div />
+			<div></div>
 
 			{#each modelsToShow as [id, model]}
 				<!-- {#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))} -->
@@ -144,7 +144,7 @@
 				await addModel();
 			}}>
 			{#if addingModel}
-				<div class="loading" />
+				<div class="loading"></div>
 			{:else}
 				<Plus />
 			{/if}
