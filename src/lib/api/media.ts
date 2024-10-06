@@ -18,7 +18,7 @@ export async function APIupsertMedia(media: MediaInterface) {
     const res = await fetch('/api/media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(media)
+        body: JSON.stringify(MediaInterfaceFilter(media))
     });
 
     if (!res.ok) throw new Error(`Failed to upsert media: ${await res.text()}`);
@@ -50,9 +50,8 @@ export async function APIdeleteMedia(id: string) {
 }
 
 
-
 export function MediaInterfaceFilter(media: MediaInterface) {
-    const allowedKeys = Object.keys(mediaTable.$inferInsert);
+    const allowedKeys = Object.keys(mediaTable);
 
     const excludedKeys = ['updatedAt', 'createdAt'];
 

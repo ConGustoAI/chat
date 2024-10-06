@@ -1,7 +1,7 @@
 import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { mediaTable } from './media';
 import { usersTable } from './users';
 import { modelsTable } from './models';
@@ -34,7 +34,9 @@ export const messagesTable = pgTable('messages', {
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),
-	media: uuid('media_id').references(() => mediaTable.id, { onDelete: 'set null' }),
+	media: uuid('media_id').references(() => mediaTable.id, { onDelete: 'set null' }).array().default(sql`ARRAY[]::uuid[]`),
+
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

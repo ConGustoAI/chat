@@ -1,7 +1,8 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgEnum, pgTable, real, text, timestamp, uuid, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, real, text, timestamp, uuid, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { fileTable } from './file';
 import { usersTable } from './users';
+import { conversationsTable } from './conversations';
 
 export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video']);
 
@@ -10,9 +11,12 @@ export const mediaTable = pgTable('media', {
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	conversationID: uuid('conversation_id').references(() => conversationsTable.id, { onDelete: 'set null' }),
+
 	title: text('title').notNull(),
 	filename: text('filename').notNull(),
 	type: mediaTypes('type').notNull(),
+	reuse: boolean('reuse').default(true),
 
 	originalWidth: integer('width'),
 	originalHeight: integer('height'),
@@ -48,16 +52,6 @@ export const mediaTable = pgTable('media', {
 		.$onUpdate(() => new Date())
 });
 
-// export const messageMediaTable = pgTable('message_media', {
-// 	messageId: uuid('message_id')
-// 		.references(() => messagesTable.id, { onDelete: 'cascade' })
-// 		.notNull(),
-// 	mediaId: uuid('media_id')
-// 		.references(() => mediaTable.id, { onDelete: 'cascade' })
-// 		.notNull(),
-// 	createdAt: timestamp('created_at').notNull().defaultNow().notNull().defaultNow()
-// });
-
 export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 	user: one(usersTable, {
 		fields: [mediaTable.userID],
@@ -79,15 +73,4 @@ export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 		fields: [mediaTable.thumbnailID],
 		references: [fileTable.id]
 	})
-
-	// files: many(fileTable)
-	// messages: many(messageMediaTable)
 }));
-
-// export const messageMediaTableRelations = relations(messageMediaTable, ({ one, many }) => ({
-// 	message: one(messagesTable, {
-// 		fields: [messageMediaTable.messageId],
-// 		references: [messagesTable.id]
-// 	}),
-// 	media: many(mediaTable)
-// }));

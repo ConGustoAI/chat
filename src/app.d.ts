@@ -145,6 +145,7 @@ declare global {
 
 		// Used by the frontend, not in the database.
 		markdownCache?: string; // This is only used in the frontend, not saved to the database.
+		media?: MediaInterface[];
 	}
 
 	interface PromptInterface {
@@ -179,8 +180,10 @@ declare global {
 		updatedAt?: Date;
 		createdAt?: Date;
 
-		// from relations, not in database.
+		// From relations, not in database.
 		messages?: MessageInterface[];
+		// All media for this conversation, including new media.
+		media? : MediaInterface[];
 	}
 
 	interface MediaInterface {
@@ -208,6 +211,7 @@ declare global {
 		originalID?: string;
 		resizedID?: string;
 		croppedID?: string;
+		thumbnailID?: string;
 
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -245,15 +249,14 @@ declare global {
 
 		// Don't send to the backend.
 
-		createAt?: Date;
-		updateAt?: Date;
+		createdAt?: Date;
+		updatedAt?: Date;
 
 		file?: File; // A freshly selected file will have a file object.
 		url?: string; // A file that has been uploaded will have a URL.
 
 		uploadURL?: string;
 
-		// uploadStatus?: null | 'pending' | 'uploading' |  'uploaded' | 'failed';
 		uploadProgress?: number;
 		uploadError?: string;
 		uploading?: boolean;

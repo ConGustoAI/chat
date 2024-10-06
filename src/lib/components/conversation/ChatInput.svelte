@@ -62,7 +62,7 @@
 <div class="relative flex h-fit w-full flex-col">
 	<Notification messageType="error" bind:message={chatError} />
 	{#if uploadOpen}
-		<div class="absolute bottom-8 mb-4 flex min-h-[80vh] max-h-[80vh] w-full flex-col bg-base-200">
+		<div class="absolute bottom-8 mb-4 flex max-h-[80vh] w-full flex-col bg-base-200">
 			<MediaCarousel />
 		</div>
 	{/if}

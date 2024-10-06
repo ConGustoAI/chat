@@ -1,5 +1,5 @@
 import { DBgetAllMedia, DBupsertMedia } from '$lib/db/utils';
-import { getDownloadURL } from '$lib/files';
+import { getDownloadURL } from '$lib/files_server';
 import { error, json } from '@sveltejs/kit';
 import dbg from 'debug';
 

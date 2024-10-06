@@ -7,7 +7,7 @@ import { getSignedUrl as getSignedS3Url } from '@aws-sdk/s3-request-presigner';
 
 import { error } from '@sveltejs/kit';
 import dbg from 'debug';
-const debug = dbg('app:s3');
+const debug = dbg('app:lib:files-server');
 
 export let s3: S3Client | undefined;
 
@@ -28,7 +28,7 @@ if (env.AWS_REGION || env.AWS_ACCESS_KEY_ID || env.AWS_SECRET_ACCESS_KEY || env.
 		}
 	};
 
-	debug("env", env)
+	debug('env', env);
 
 	// !!!! comment out for production, this leaks the secret key !!!!!
 	debug('S3 config: %o', s3Config);
@@ -104,4 +104,3 @@ export async function deleteFile(file: FileInterface) {
 
 	await s3.send(deleteCommand);
 }
-

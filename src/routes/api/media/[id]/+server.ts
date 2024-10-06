@@ -1,5 +1,5 @@
 import { DBgetMedia, DBdeleteMedia } from '$lib/db/utils';
-import { getDownloadURL } from '$lib/files';
+import { getDownloadURL } from '$lib/files_server';
 import { error, json } from '@sveltejs/kit';
 import dbg from 'debug';
 
@@ -17,7 +17,8 @@ export async function GET({ params: { id }, locals: { dbUser }, url }) {
 		if (media.original) (media.original as FileInterface).url = await getDownloadURL(media.original as FileInterface);
 		if (media.resized) (media.resized as FileInterface).url = await getDownloadURL(media.resized as FileInterface);
 		if (media.cropped) (media.cropped as FileInterface).url = await getDownloadURL(media.cropped as FileInterface);
-		if (media.thumbnail) (media.thumbnail as FileInterface).url = await getDownloadURL(media.thumbnail as FileInterface);
+		if (media.thumbnail)
+			(media.thumbnail as FileInterface).url = await getDownloadURL(media.thumbnail as FileInterface);
 	}
 
 	debug('GET %o -> %o', id, media);
@@ -32,7 +33,7 @@ export async function DELETE({ locals: { dbUser }, params: { id } }) {
 
 	const deletedMedia = await DBdeleteMedia({ dbUser, id });
 
-    // XXX Files are not deleted. Figure out if we will share files between media objects.
-    debug('DELETE -> %s', id);
+	// XXX Files are not deleted. Figure out if we will share files between media objects.
+	debug('DELETE -> %s', id);
 	return json(deletedMedia);
 }

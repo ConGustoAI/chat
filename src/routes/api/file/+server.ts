@@ -4,7 +4,7 @@ import { DBupsertFile } from '$lib/db/utils';
 
 import { error, json } from '@sveltejs/kit';
 
-import { getUploadURL, s3 } from '$lib/files';
+import { getUploadURL, s3 } from '$lib/files_server';
 
 import dbg from 'debug';
 const debug = dbg('app:api:file');
@@ -38,7 +38,7 @@ export async function POST({ request, locals: { dbUser }, url }) {
 		file
 	})) as FileInterface;
 
-	if (uploadurl) file.uploadURL = await getUploadURL(insertedFile);
+	if (uploadurl) insertedFile.uploadURL = await getUploadURL(insertedFile);
 
 	debug('POST %o -> %o', insertedFile.id, insertedFile);
 	return json(insertedFile);

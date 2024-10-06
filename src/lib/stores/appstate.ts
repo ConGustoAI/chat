@@ -20,3 +20,6 @@ export const chatStreaming = writable(false);
 
 export const sidebarOpen = writable(true);
 export const isMobile = writable(false);
+
+
+export const mediaToUpload = writable<MediaInterface[]>([]);

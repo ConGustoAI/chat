@@ -39,6 +39,10 @@
 
 	let thumbnailURL: string;
 	$: {
+		if (thumbnailURL) {
+			URL.revokeObjectURL(thumbnailURL);
+		}
+
 		if (media.thumbnail?.file) {
 			thumbnailURL = URL.createObjectURL(media.thumbnail.file);
 		} else if (media.resized?.file) {
@@ -76,6 +80,32 @@
 		TODO: Audio
 	{:else}
 		<img src={thumbnailURL} alt={media.filename} class="object-contain h-32 w-32 border grow" />
+		{#if media.original?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.original.uploadProgress} max={100}>
+				{media.original.uploadProgress}%
+			</progress>
+		{:else if media.original?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.original.uploadError}</p>
+		{/if}
+
+		{#if media.resized?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.resized?.uploadProgress} max={100}>
+				{media.resized?.uploadProgress}%
+			</progress>
+		{:else if media.resized?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.resized?.uploadError}</p>
+		{/if}
+
+		{#if media.thumbnail?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.thumbnail?.uploadProgress} max={100}>
+				{media.thumbnail?.uploadProgress}%
+			</progress>
+		{:else if media.thumbnail?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.thumbnail?.uploadError}</p>
+		{/if}
+
+
+
 	{/if}
 
 	<label class="absolute right-1 top-1 z-30">

@@ -8,7 +8,7 @@ export { default as Notification } from './Notification.svelte';
 export { default as InfoPopup } from './InfoPopup.svelte';
 export { default as MetaTag } from './MetaTag.svelte';
 
-export { default as MediaCarousel } from './MediaCarousel.svelte';
+export { default as MediaCarousel } from './UploadCarousel.svelte';
 export { default as MediaPreview } from './MediaPreview.svelte';
 export { default as MediaEditor } from './MediaEditor.svelte';
 

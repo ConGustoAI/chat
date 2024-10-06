@@ -18,7 +18,7 @@ export const fileTable = pgTable('file', {
 	status: uploadStatus('status'),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updateAt: timestamp('update_at').notNull().defaultNow()
+	updatedAt: timestamp('update_at').notNull().defaultNow()
 });
 
 export const imageFileTable = pgTable('file_image', {
@@ -36,7 +36,7 @@ export const imageFileTable = pgTable('file_image', {
 	height: integer('height').notNull(),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updateAt: timestamp('update_at').notNull().defaultNow()
+	updatedAt: timestamp('update_at').notNull().defaultNow()
 });
 
 export const fileTableRelations = relations(fileTable, ({ one }) => ({
