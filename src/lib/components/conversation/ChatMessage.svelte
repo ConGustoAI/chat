@@ -39,7 +39,6 @@
 
 		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
-
 		// Mark the rest as deleted.
 		const toDelete = $conversation.messages
 			.slice(currentIndex + 1)
@@ -185,7 +184,14 @@
 					bind:value={message.text}
 					on:keydown={inputKeyboardHandler} />
 				<div class="mt-2 flex w-full items-start justify-start gap-2">
-					<button class="btn btn-outline btn-sm" on:click={sendEditedMessage}> Save & Send </button>
+					<button
+						class="btn btn-outline btn-sm"
+						on:click={async () => {
+							editingMessage = false;
+							await sendEditedMessage();
+						}}>
+						Save & Send
+					</button>
 					<button
 						class="btn btn-outline btn-sm"
 						disabled={savingMessage}
@@ -217,7 +223,7 @@
 		{:else if markdown}
 			<MarkdownMessage {message} />
 		{:else}
-			<div class="whitespace-pre-wrap py-2 w-full break-all">{message.text}</div>
+			<div class="w-full whitespace-pre-wrap break-words py-2">{message.text}</div>
 		{/if}
 
 		{#if message.finishReason === 'content-filter'}
@@ -231,7 +237,14 @@
 		{#if !editingMessage}
 			<div class="absolute right-0 top-0 mr-2 flex w-fit items-center gap-2 text-base-content">
 				{#if message.createdAt && message.role !== 'assistant'}
-					{new Date(message.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
+					{new Date(message.createdAt).toLocaleString('en-GB', {
+						day: '2-digit',
+						month: 'short',
+						year: 'numeric',
+						hour: '2-digit',
+						minute: '2-digit',
+						hour12: false
+					})}
 				{/if}
 				{#if $dbUser?.showInfo && message.role == 'assistant' && message.id}
 					<div class="mr-2 flex gap-4 text-xs text-base-content">
