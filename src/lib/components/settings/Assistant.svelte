@@ -3,125 +3,131 @@
 	import { APIhideItem, APIunhideItem, APIupsertAssistant } from '$lib/api';
 	import { AssistantDetails, AssistantPrompt, DeleteButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { apiKeys, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { assert } from '$lib/utils';
 	import dbg from 'debug';
 	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 	const debug = dbg('app:ui:components:Assistant');
 
-	export let assistant: AssistantInterface;
-	export let deleteAssistant;
-	export let copyAssistant;
-	export let edit: boolean;
-	export let showDefault: boolean;
-	export let allowHiding = true;
+	let {
+		assistant = $bindable(),
+		deleteAssistant,
+		copyAssistant,
+		edit,
+		showDefault,
+		allowHiding = true
+	}: {
+		assistant: AssistantInterface;
+		deleteAssistant: (assistant: AssistantInterface) => void;
+		copyAssistant: (assistant: AssistantInterface) => void;
+		edit: boolean;
+		showDefault: boolean;
+		allowHiding?: boolean;
+	} = $props();
 
-	let status: string | null = null;
-	let statusMessage: string | null = null;
-	let updateTimer: number | NodeJS.Timeout;
+	let status: string | null | undefined = $state(null);
+	let errorMessage: string | null = $state(null);
+	let updateTimer: number | undefined | NodeJS.Timeout;
 
 	// Don't let the user navigate off if changes are unsaved
-	let hasUnsavedChanges = false;
 	beforeNavigate((navigation) => {
-		if (hasUnsavedChanges) {
+		if (status && status != 'saved') {
 			if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
 				navigation.cancel();
 			}
 		}
 	});
 
-	$: {
-		debounceAssistantUpdate();
-		hasUnsavedChanges = !!(status && status != 'saved');
-		assistant = assistant;
+	function updateAssistantNow() {
+		if (!A.dbUser) {
+			goto('/login', { invalidateAll: true });
+		}
+		if (status !== 'changed') return;
+		status = 'saving';
+		return APIupsertAssistant(assistant)
+			.then((res) => {
+				assert(!assistant.id || res.id == assistant.id, 'Assistant ID mismatch');
+				assistant.id = res.id;
+				status = 'saved';
+				updateTimer = setTimeout(() => {
+					status = null;
+				}, 2000);
+			})
+			.catch((e) => {
+				status = 'error';
+				errorMessage = e.message;
+			});
 	}
 
-	async function debounceAssistantUpdate() {
-		if (status === 'changed') {
-			clearTimeout(updateTimer);
-			updateTimer = setTimeout(() => {
-				if (!$dbUser) {
-					goto('/login', { invalidateAll: true });
-				}
-				status = 'saving';
-				APIupsertAssistant(assistant)
-					.then((res) => {
-						console.log('res', res);
-						status = 'saved';
-						assert(!assistant.id || assistant.id === res.id, "Returned assistant ID doesn't match");
-						assistant.id = res.id;
-						updateTimer = setTimeout(() => {
-							status = null;
-						}, 2000);
-					})
-					.catch((e) => {
-						status = 'error';
-						statusMessage = e.message;
-					})
-					.finally(() => {});
-			}, 750);
-		}
+	function debounceAssistantUpdate() {
+		debug('debounceAssistantUpdate');
+		clearTimeout(updateTimer);
+		updateTimer = setTimeout(updateAssistantNow, 750);
 	}
 
 	function statusChanged() {
 		debug('statusChanged');
-		if (assistant.images && assistant.model && !$models[assistant.model].images) {
+		if (assistant.images && assistant.model && !A.models[assistant.model].images) {
 			assistant.images = false;
 		}
-		if (assistant.audio && assistant.model && !$models[assistant.model].audio) {
+		if (assistant.audio && assistant.model && !A.models[assistant.model].audio) {
 			assistant.audio = false;
 		}
-		if (assistant.video && assistant.model && !$models[assistant.model].video) {
+		if (assistant.video && assistant.model && !A.models[assistant.model].video) {
 			assistant.video = false;
 		}
-		if (assistant.prefill && assistant.model && !$models[assistant.model].prefill) {
+		if (assistant.prefill && assistant.model && !A.models[assistant.model].prefill) {
 			assistant.prefill = false;
 		}
 
 		status = 'changed';
+		debounceAssistantUpdate();
 	}
 
-	let detailsToggled = false;
+	let detailsToggled = $state(false);
 
 	async function toggleHidden() {
-		if (!$dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 			return;
 		}
 
 		if (assistant.id && allowHiding) {
-			if ($hiddenItems.has(assistant.id)) {
+			if (A.hiddenItems.has(assistant.id)) {
 				await APIunhideItem(assistant.id);
-				$hiddenItems.delete(assistant.id);
+				A.hiddenItems.delete(assistant.id);
 			} else {
 				await APIhideItem(assistant.id);
-				$hiddenItems.add(assistant.id);
+				A.hiddenItems.add(assistant.id);
 			}
-			$hiddenItems = $hiddenItems;
+			A.hiddenItems = A.hiddenItems;
 		}
 	}
 
-	let yourProviders: typeof $providers;
-	let defaultProviders: typeof $providers;
-
-	$: yourProviders = Object.fromEntries(
-		Object.entries($providers).filter(
-			([pidx, provider]) => provider.userID === $dbUser?.id && !$hiddenItems.has(provider.id!)
+	let yourProviders = $derived(
+		Object.fromEntries(
+			Object.entries(A.providers).filter(
+				([pidx, provider]) => provider.userID === A.dbUser?.id && !A.hiddenItems.has(provider.id!)
+			)
 		)
 	);
-	$: defaultProviders = Object.fromEntries(
-		Object.entries($providers).filter(
-			([pidx, provider]) => provider.userID === defaultsUUID && !$hiddenItems.has(provider.id!)
+	let defaultProviders = $derived(
+		Object.fromEntries(
+			Object.entries(A.providers).filter(
+				([pidx, provider]) => provider.userID === defaultsUUID && !A.hiddenItems.has(provider.id!)
+			)
 		)
 	);
 
-	$: model = assistant.model ? $models[assistant.model] : null;
-	$: provider = model ? $providers[model.providerID] : null;
+	let model = $derived(assistant.model ? A.models[assistant.model] : null);
+	let provider = $derived(model ? A.providers[model.providerID] : null);
+
+	$inspect(status);
 </script>
 
 <button
 	class="btn btn-outline"
-	on:click={async () => {
+	onclick={async () => {
 		status = 'copying';
 		await copyAssistant(assistant);
 		status = null;
@@ -138,16 +144,28 @@
 	type="text"
 	class="input input-bordered w-full"
 	bind:value={assistant.name}
-	on:input={statusChanged}
+	oninput={statusChanged}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateAssistantNow();
+	}}
 	spellcheck="false"
 	disabled={!edit} />
 
-<select class="select select-bordered w-full" bind:value={assistant.model} on:change={statusChanged} disabled={!edit}>
+<select
+	class="select select-bordered w-full"
+	bind:value={assistant.model}
+	onchange={statusChanged}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateAssistantNow();
+	}}
+	disabled={!edit}>
 	{#if Object.keys(yourProviders).length}
 		<option disabled class="text-lg font-bold">Your providers</option>
 		{#each Object.entries(yourProviders) as [pidx, provider]}
-			{#each Object.entries($models) as [midx, model]}
-				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
+			{#each Object.entries(A.models) as [midx, model]}
+				{#if model.id && model.providerID === provider.id && !A.hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
 				{/if}
 			{/each}
@@ -157,8 +175,8 @@
 	{#if Object.keys(defaultProviders).length}
 		<option disabled class="text-lg font-bold">Default providers</option>
 		{#each Object.entries(defaultProviders) as [pidx, provider]}
-			{#each Object.entries($models) as [midx, model]}
-				{#if model.id && model.providerID === provider.id && !$hiddenItems.has(model.id)}
+			{#each Object.entries(A.models) as [midx, model]}
+				{#if model.id && model.providerID === provider.id && !A.hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
 				{/if}
 			{/each}
@@ -166,14 +184,22 @@
 	{/if}
 </select>
 
-<select class="select select-bordered" bind:value={assistant.apiKey} on:change={statusChanged} disabled={!edit}>
+<select
+	class="select select-bordered"
+	bind:value={assistant.apiKey}
+	onchange={statusChanged}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateAssistantNow();
+	}}
+	disabled={!edit}>
 	{#if assistant.model}
-		{@const model = $models[assistant.model]}
-		{@const provider = model ? $providers[model.providerID] : null}
+		{@const model = A.models[assistant.model]}
+		{@const provider = model ? A.providers[model.providerID] : null}
 		{#if provider}
 			<option value={defaultsUUID}>First available</option>
 
-			{#each Object.entries($apiKeys) as [kid, key]}
+			{#each Object.entries(A.apiKeys) as [kid, key]}
 				{#if key.providerID === model.providerID}
 					<option value={key.id}>{provider.name}/{key.label}</option>
 				{/if}
@@ -189,12 +215,16 @@
 	class="input input-bordered w-full"
 	bind:value={assistant.about}
 	spellcheck="false"
-	on:change={statusChanged}
+	oninput={statusChanged}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateAssistantNow();
+	}}
 	disabled={!edit} />
 
 <button
 	class="btn btn-outline w-full"
-	on:click={() => (detailsToggled = !detailsToggled)}
+	onclick={() => (detailsToggled = !detailsToggled)}
 	class:btn-active={detailsToggled}>
 	Details
 </button>
@@ -202,14 +232,14 @@
 <button
 	class="btn btn-outline"
 	disabled={status === 'hiding' || !allowHiding}
-	on:click={async () => {
+	onclick={async () => {
 		status = 'hiding';
 		await toggleHidden();
 		status = null;
 	}}>
 	{#if status === 'hiding'}
 		<div class="loading"></div>
-	{:else if $hiddenItems.has(assistant.id ?? '') && allowHiding}
+	{:else if A.hiddenItems.has(assistant.id ?? '') && allowHiding}
 		<EyeOff />
 	{:else}
 		<Eye />
@@ -233,7 +263,7 @@
 	</div>
 </div>
 <div class="col-span-full text-error" class:hidden={status !== 'error'}>
-	<span>{statusMessage}</span>
+	<span>{errorMessage}</span>
 </div>
 
 {#if detailsToggled && model && provider}
@@ -248,7 +278,7 @@
 			</div>
 		{/if}
 
-		<AssistantDetails bind:assistant {edit} {statusChanged} {model} {provider} />
-		<AssistantPrompt bind:assistant {edit} on:change={statusChanged} />
+		<AssistantDetails bind:assistant {edit} onchange={statusChanged} {model} {provider} />
+		<AssistantPrompt bind:assistant {edit} oninput={statusChanged} />
 	</div>
 {/if}

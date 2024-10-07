@@ -1,28 +1,30 @@
 <script lang="ts">
 	import '../app.css';
 
-	import { dbUser, hiddenItems } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { ModeWatcher, mode } from 'mode-watcher';
 
-	$: {
+	$effect(() => {
 		if ($mode === 'light') {
 			import('highlight.js/styles/github.min.css');
 		} else {
 			import('highlight.js/styles/github-dark.min.css');
 		}
-	}
+	});
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:layout');
 
-	export let data;
+	let { data, children } = $props();
 
-	$: $dbUser = data.dbUser;
-	$: $hiddenItems = data.hiddenItems;
+	$effect(() => {
+		A.dbUser = data.dbUser;
+		A.hiddenItems = data.hiddenItems;
+	});
 </script>
 
 <ModeWatcher />
 
-<slot />
+{@render children()}
 
 <!-- <pre>{JSON.stringify($dbUser , null, 2)}</pre> -->

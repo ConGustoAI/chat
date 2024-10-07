@@ -3,24 +3,25 @@
 	import { APIdeleteKey, APIupsertKey } from '$lib/api';
 	import { ApiKey } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { apiKeys, dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	import { Plus } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:components:ApiKeysGrid');
 
-	export let provider: ProviderInterface;
+	let { provider, edit, showDefault, showCustom, newChildUserID }: {
+		provider: ProviderInterface;
+		edit: boolean;
+		showDefault: boolean;
+		showCustom: boolean;
+		newChildUserID: string;
+	} = $props();
 
-	export let edit;
-	export let showDefault: boolean;
-	export let showCustom: boolean;
+	let addingKey = $state(false);
 
-	export let newChildUserID: string;
-
-	let addingKey = false;
 	async function addKey() {
 		debug('add key');
-		if (!$dbUser || !newChildUserID) {
+		if (!A.dbUser || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingKey = true;
@@ -30,25 +31,20 @@
 			label: provider.name + ' Key',
 			key: ''
 		});
-		apiKeys.update((current) => {
-			current[apiKey.id!] = apiKey;
-			return current;
-		});
+		A.apiKeys[apiKey.id!] = apiKey;
+
 		addingKey = false;
 		debug('new key', apiKey);
 	}
 
 	async function deleteKey(apiKey: ApiKeyInterface) {
 		debug('delete key', apiKey);
-		if (!$dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 		}
 
 		const del = await APIdeleteKey(apiKey);
-		apiKeys.update((current) => {
-			delete current[del.id!];
-			return current;
-		});
+		delete A.apiKeys[del.id!];
 		debug('delete key done', del);
 	}
 </script>
@@ -60,16 +56,17 @@
 		<span></span>
 		<span></span>
 
-		{#each Object.entries($apiKeys) as [id, key]}
+		{#each Object.entries(A.apiKeys) as [id, key]}
 			{#if key.providerID === provider.id && ((showDefault && key.userID === defaultsUUID) || (showCustom && key.userID !== defaultsUUID))}
-				<ApiKey bind:apiKey={key} {deleteKey} {edit} />
+
+				<ApiKey bind:apiKey={A.apiKeys[id]} {deleteKey} {edit} />
 			{/if}
 		{/each}
 	</div>
 	{#if edit}
 		<button
 			class="btn btn-outline min-h-fit w-fit"
-			on:click={async () => {
+			onclick={async () => {
 				await addKey();
 			}}>
 			{#if addingKey}

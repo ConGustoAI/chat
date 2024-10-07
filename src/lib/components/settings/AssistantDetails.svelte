@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { fixNumberInput } from '$lib/utils';
 
-	export let assistant: AssistantInterface;
-	export let model: ModelInterface|undefined;
-	export let provider: ProviderInterface;
-
-	export let edit;
-	export let statusChanged;
+	let { assistant = $bindable(), model, provider, edit, onchange }: {
+		assistant: AssistantInterface;
+		model: ModelInterface | undefined;
+		provider: ProviderInterface;
+		edit: boolean;
+		onchange: () => void;
+	} = $props();
 </script>
 
 <div
@@ -17,9 +18,9 @@
 			type="text"
 			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
 			bind:value={assistant.temperature}
-			on:change={(e) => {
+			onchange={(e) => {
 				fixNumberInput(e, 0, model?.maxTemp ?? 2);
-				statusChanged();
+				onchange();
 			}}
 			disabled={!edit} />
 	</div>
@@ -29,9 +30,9 @@
 			type="text"
 			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
 			bind:value={assistant.topP}
-			on:change={(e) => {
+			onchange={(e) => {
 				fixNumberInput(e, 0, 1);
-				statusChanged();
+				onchange();
 			}}
 			disabled={!edit} />
 	</div>
@@ -41,9 +42,9 @@
 			type="text"
 			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
 			bind:value={assistant.topK}
-			on:change={(e) => {
+			onchange={(e) => {
 				fixNumberInput(e, 0, 1000);
-				statusChanged();
+				onchange();
 			}}
 			disabled={!edit} />
 	</div>
@@ -54,9 +55,9 @@
 			type="text"
 			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
 			bind:value={assistant.maxTokens}
-			on:change={(e) => {
+			onchange={(e) => {
 				fixNumberInput(e, 0, model?.outputContext ?? 4096);
-				statusChanged();
+				onchange();
 			}}
 			disabled={!edit} />
 	</div>
@@ -80,9 +81,9 @@
 		min={0}
 		max={model?.maxTemp}
 		disabled={!edit}
-		on:change={(e) => {
+		onchange={(e) => {
 			fixNumberInput(e, 0, model?.maxTemp ?? 2);
-			statusChanged();
+			onchange();
 		}} />
 
 	<input
@@ -94,9 +95,9 @@
 		max={1}
 		step={0.01}
 		disabled={!edit}
-		on:change={(e) => {
+		onchange={(e) => {
 			fixNumberInput(e, 0, 1);
-			statusChanged();
+			onchange();
 		}} />
 
 	<div></div>
@@ -110,9 +111,9 @@
 		max={model?.outputContext ?? 4096}
 		step={1}
 		disabled={!edit}
-		on:change={(e) => {
+		onchange={(e) => {
 			fixNumberInput(e, 0, model?.outputContext ?? 4096);
-			statusChanged();
+			onchange();
 		}} />
 
 	<input
@@ -121,28 +122,28 @@
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.images}
 		disabled={!model?.images || !edit}
-		on:change={statusChanged} />
+		onchange={onchange} />
 	<input
 		type="checkbox"
 		id="audioCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.audio}
 		disabled={!model?.audio || !edit}
-		on:change={statusChanged} />
+		onchange={onchange} />
 	<input
 		type="checkbox"
 		id="videoCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.video}
 		disabled={!model?.video || !edit}
-		on:change={statusChanged} />
+		onchange={onchange} />
 	<input
 		type="checkbox"
 		id="prefillCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.prefill}
 		disabled={!model?.prefill || !edit}
-		on:change={statusChanged} />
+		onchange={onchange} />
 
 	{#if provider.type === 'google'}
 		<div class="flex flex-col items-center gap-4">
@@ -156,7 +157,7 @@
 					min={0}
 					max={3}
 					disabled={!edit}
-					on:change={statusChanged} />
+					onchange={onchange} />
 			</div>
 		</div>
 	{:else}

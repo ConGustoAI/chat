@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { AssistantGrid } from '$lib/components';
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:assistants');
 </script>
@@ -10,9 +10,9 @@
 
 	<div class="w-full">
 		<div class="divider w-full">Your assistants</div>
-		<AssistantGrid edit={true} newItemUserID={$dbUser?.id} />
+		<AssistantGrid edit={true} newItemUserID={A.dbUser?.id} />
 
 		<div class="divider w-full">Default assistants</div>
-		<AssistantGrid showDefault={true} edit={false} newItemUserID={$dbUser?.id} />
+		<AssistantGrid showDefault={true} edit={false} newItemUserID={A.dbUser?.id} />
 	</div>
 </div>

@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { GrowInput } from '$lib/components';
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	export let assistant: AssistantInterface;
-	export let edit: boolean;
+	let {
+		assistant = $bindable(),
+		edit,
+		oninput = () => {}
+	}: { assistant: AssistantInterface; edit: boolean; oninput: (event: Event) => void } = $props();
 
-	const dispatch = createEventDispatcher();
 </script>
 
 <div class="col-span-full flex flex-col">
@@ -24,15 +26,14 @@
 				class="checkbox checkbox-xs"
 				bind:checked={assistant.aboutUserFromUser}
 				id="aboutUserFromUser"
-				on:change
 				disabled={!edit} />
 		</div>
 	</div>
 
 	{#if assistant.aboutUserFromUser}
-		<GrowInput class="textarea-bordered w-full" value={$dbUser?.aboutUser ?? ''} on:change disabled={true} />
+		<GrowInput class="textarea-bordered w-full" value={A.dbUser?.aboutUser ?? ''} onchange={oninput} disabled={true} />
 	{:else}
-		<GrowInput class="textarea-bordered" bind:value={assistant.aboutUser} on:input={() => dispatch('change', {})} />
+		<GrowInput class="textarea-bordered" bind:value={assistant.aboutUser} {oninput} />
 	{/if}
 </div>
 
@@ -52,7 +53,7 @@
 				class="checkbox checkbox-xs"
 				bind:checked={assistant.assistantInstructionsFromUser}
 				id="instructionsFromUser"
-				on:change
+				onchange={oninput}
 				disabled={!edit} />
 		</div>
 	</div>
@@ -60,14 +61,14 @@
 	{#if assistant.assistantInstructionsFromUser}
 		<GrowInput
 			class="textarea-bordered w-full"
-			value={$dbUser?.assistantInstructions ?? ''}
-			on:input={() => dispatch('change', {})}
+			value={A.dbUser?.assistantInstructions ?? ''}
+			{oninput}
 			disabled={true} />
 	{:else}
 		<GrowInput
 			class="textarea-bordered w-full"
 			bind:value={assistant.assistantInstructions}
-			on:input={() => dispatch('change', {})}
+			{oninput}
 			disabled={!edit} />
 	{/if}
 </div>
@@ -80,6 +81,6 @@
 	<GrowInput
 		class="textarea-bordered"
 		bind:value={assistant.systemPrompt}
-		on:input={() => dispatch('change', {})}
+		{oninput}
 		disabled={!edit} />
 </div>

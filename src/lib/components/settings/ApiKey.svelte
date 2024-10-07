@@ -2,77 +2,93 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIupsertKey } from '$lib/api';
 	import { DeleteButton } from '$lib/components';
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { assert } from '$lib/utils';
 	import { Check } from 'lucide-svelte';
+	import dbg from 'debug';
+	const debug = dbg('app:lib:components:ApiKey');
 
-	export let apiKey: ApiKeyInterface;
-	export let edit: boolean = false;
-	export let deleteKey;
+	let {
+		apiKey = $bindable(),
+		edit = false,
+		deleteKey
+	}: {
+		apiKey: ApiKeyInterface;
+		edit?: boolean;
+		deleteKey: any;
+	} = $props();
+
+	let status: string|null|undefined = $state(null);
+	let errorMessage: string | null = $state(null);
+	let updateTimer: number | undefined | NodeJS.Timeout = $state(undefined);
+
 	// Don't let the user navigate off if changes are unsaved
-	let hasUnsavedChanges = false;
 	beforeNavigate((navigation) => {
-		if (hasUnsavedChanges) {
+		if (status && status != 'saved') {
 			if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
 				navigation.cancel();
 			}
 		}
 	});
 
-	let status: string | null = null;
-	let errorMessage: string | null = null;
-	let updateTimer: number | NodeJS.Timeout;
-
-	function debounceKeysUpdate() {
-		if (status === 'changed') {
-			clearTimeout(updateTimer);
-			updateTimer = setTimeout(() => {
-				status = 'saving';
-				if (!$dbUser) {
-					goto('/login', { invalidateAll: true });
-				}
-				APIupsertKey(apiKey)
-					.then((res) => {
-						status = 'saved';
-						console.log('res', res);
-						assert(!apiKey.id || res.id == apiKey.id, 'ID mismatch');
-						apiKey.id = res.id;
-						updateTimer = setTimeout(() => {
-							status = null;
-						}, 2000);
-					})
-					.catch((e) => {
-						status = 'error';
-						errorMessage = e.message;
-					});
-			}, 750);
+	function updateKeyNow() {
+		if (!A.dbUser) {
+			goto('/login', { invalidateAll: true });
 		}
+		if (status !== 'changed') return;
+		status = 'saving';
+		return APIupsertKey(apiKey)
+			.then((res) => {
+				assert(!apiKey.id || res.id == apiKey.id, 'API Key ID mismatch');
+				apiKey.id = res.id;
+				status = 'saved';
+				updateTimer = setTimeout(() => {
+					status = null;
+				}, 2000);
+			})
+			.catch((e) => {
+				status = 'error';
+				errorMessage = e.message;
+			});
 	}
 
-	function statusChanged() {
-		status = 'changed';
+	function debounceKeyUpdate() {
+		debug('debounceKeyUpdate');
+		clearTimeout(updateTimer);
+		updateTimer = setTimeout(updateKeyNow, 750);
 	}
 
-	$: {
-		debounceKeysUpdate();
-		hasUnsavedChanges = !!(status && status != 'saved');
-	}
+	$inspect(status);
 </script>
 
 <input
 	type="text"
 	class="input input-bordered"
 	bind:value={apiKey.label}
-	on:input={statusChanged}
+	oninput={() => {
+		status = 'changed';
+		debounceKeyUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateKeyNow();
+	}}
 	spellcheck="false"
-	disabled={!edit} />
+	disabled={!edit || status === 'deleting'} />
 <input
 	type="text"
 	class="input input-bordered"
 	bind:value={apiKey.key}
-	on:input={statusChanged}
+	oninput={() => {
+		status = 'changed';
+		debounceKeyUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateKeyNow();
+	}}
 	spellcheck="false"
-	disabled={!edit} />
+	disabled={!edit || status === 'deleting'} />
 
 <DeleteButton
 	btnClass="btn btn-outline"

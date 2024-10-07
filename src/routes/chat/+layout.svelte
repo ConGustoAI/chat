@@ -11,21 +11,7 @@
 	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import {
-		apiKeys,
-		assistants,
-		chatDataLoading,
-		chatStreaming,
-		conversation,
-		conversationOrder,
-		conversations,
-		dbUser,
-		hiddenItems,
-		isMobile,
-		models,
-		providers,
-		sidebarOpen
-	} from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte.js';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
 	import { ChevronUp, Star } from 'lucide-svelte';
@@ -38,73 +24,78 @@
 	// This will fetch the data eventually, but we are ok with the initial empty data.
 	onMount(async () => {
 		debug('dbUser changed, fetching data');
-		$chatDataLoading = true;
 
 		// Sidebar closed by default on small screens
 		if (window.innerWidth < 768) {
-			$sidebarOpen = false; // Open drawer on larger screens
-			$isMobile = true;
+			A.sidebarOpen = false; // Open drawer on larger screens
+			A.isMobile = true;
 		}
+		A.chatDataLoading = true;
+
 		const gotConvos = await APIfetchConversations().catch((e) => {
 			debug('Failed to fetch conversations:', e);
-			$chatDataLoading = false;
+			A.chatDataLoading = false;
 			return [];
 		});
 
-		$conversations = toIdMap(gotConvos);
-		$conversationOrder = Object.keys($conversations);
-		$chatDataLoading = false;
-		debug('done fetching data', { $conversation, $conversations, $conversationOrder });
+		A.conversations = toIdMap(gotConvos);
+		A.conversationOrder = Object.keys(A.conversations);
+		A.chatDataLoading = false;
+		// debug('done fetching data', {
+		// 	conversation: A.conversation,
+		// 	conversations: A.conversations,
+		// 	conversationOrder: A.conversationOrder
+		// });
 	});
 
-	export let data;
+	let { data, children } = $props();
 
-	dbUser.subscribe(async () => {
+	$effect(() => {
 		debug('dbUser changed, fetching data');
 
-		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
-			APIfetchProviders(),
-			APIfetchModels(),
-			APIfetchKeys()
-		]);
+		if (A.dbUser) {
+			Promise.all([APIfetchProviders(), APIfetchModels(), APIfetchKeys()]).then(
+				([fetchedProviders, fetchedModels, fetchedApiKeys]) => {
+					A.assistants = toIdMap(data.assistants);
+					A.providers = toIdMap(fetchedProviders);
+					A.models = toIdMap(fetchedModels);
+					A.apiKeys = toIdMap(fetchedApiKeys);
 
-		$assistants = toIdMap(data.assistants);
-		$providers = toIdMap(fetchedProviders);
-		$models = toIdMap(fetchedModels);
-		$apiKeys = toIdMap(fetchedApiKeys);
-
-		debug('Done fetching', {
-			assistants: $assistants,
-			providers: $providers,
-			models: $models,
-			dbUser: $dbUser,
-			apiKeys: Object.keys($apiKeys)
-		});
+					debug('Done fetching', {
+						assistants: A.assistants,
+						providers: A.providers,
+						models: A.models,
+						dbUser: A.dbUser,
+						apiKeys: Object.keys(A.apiKeys)
+					});
+				}
+			);
+		}
 	});
 
 	let abortController: AbortController | undefined = undefined;
 
 	async function submitConversation(toDelete?: string[]) {
-		debug('submitConversation', $conversation, toDelete);
+		debug('submitConversation', A.conversation, toDelete);
 
-		if (!$dbUser) {
+		if (!A.dbUser) {
 			debug('submitConversation', 'not logged in, redirecting to login');
 			await goto('/login');
 		}
 
-		$chatStreaming = true;
+		A.chatStreaming = true;
 
 		try {
-			if (!$conversation) throw new Error('The conversation is missing.');
-			if (!$conversation.assistant) throw new Error('No assistant assigned.');
-			if (!$conversation.messages) throw new Error('The conversation messages are missing.');
+			if (!A.conversation) throw new Error('The conversation is missing.');
+			if (!A.conversation.assistant) throw new Error('No assistant assigned.');
+			if (!A.conversation.messages) throw new Error('The conversation messages are missing.');
 
-			if ($dbUser?.assistant === defaultsUUID && $dbUser.lastAssistant !== $conversation.assistant) {
+			if (A.dbUser?.assistant === defaultsUUID && A.dbUser.lastAssistant !== A.conversation.assistant) {
 				// The database will be updated on the back-end.
-				$dbUser.lastAssistant = $conversation.assistant;
+				A.dbUser.lastAssistant = A.conversation.assistant;
 			}
 
-			const toSend = $conversation.messages;
+			const toSend = A.conversation.messages;
 
 			if (toSend.length < 2) throw new Error('The conversation should have at least 2 messages.');
 			if (toSend[toSend.length - 2].role !== 'user') throw new Error('The first message should be from the user.');
@@ -119,7 +110,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ conversation: $conversation, toDelete }),
+				body: JSON.stringify({ conversation: A.conversation, toDelete }),
 				signal: abortController.signal
 			});
 			debug('submitConversation POST: ', res);
@@ -132,12 +123,12 @@
 
 			for await (const { type, value } of readDataStream(reader)) {
 				debug('readDataStream', type, value);
-				if (!$conversation.messages) throw new Error('The conversation messages are missing??');
+				if (!A.conversation.messages) throw new Error('The conversation messages are missing??');
 				if (type === 'text') {
-					$conversation.messages[$conversation.messages.length - 1].text += value;
+					A.conversation.messages[A.conversation.messages.length - 1].text += value;
 					if (Date.now() - timestamp > 100) {
 						timestamp = Date.now();
-						$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
+						A.conversation.messages[A.conversation.messages.length - 1].markdownCache = undefined;
 					}
 				}
 				if (type === 'finish_message') {
@@ -150,28 +141,28 @@
 							if ('conversation' in dataPart) {
 								const dataConversation = dataPart.conversation as unknown as ConversationInterface;
 								// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
-								if ($conversation.id && $conversation.id != dataConversation.id)
+								if (A.conversation.id && A.conversation.id != dataConversation.id)
 									throw new Error('The conversation ID does not match.');
 
-								$conversation = { ...$conversation, ...dataConversation };
-								if (!$conversation.id) throw new Error('The conversation ID is missing.');
+								A.conversation = { ...A.conversation, ...dataConversation };
+								if (!A.conversation.id) throw new Error('The conversation ID is missing.');
 
-								if (!$conversations[$conversation.id]) {
+								if (!A.conversations[A.conversation.id]) {
 									// New conversation is not yet in the conversations dictionary.
-									$conversations[$conversation.id] = $conversation;
-									$conversationOrder = [$conversation.id!, ...$conversationOrder];
+									A.conversations[A.conversation.id] = A.conversation;
+									A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];
 								}
 							}
 							if ('userMessage' in dataPart) {
-								if (!$conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								if (!A.conversation.messages?.length) throw new Error('The conversation messages are missing??');
 								// TS is being silly a bit
-								$conversation.messages[$conversation.messages.length - 2] =
+								A.conversation.messages[A.conversation.messages.length - 2] =
 									dataPart.userMessage as unknown as MessageInterface;
 							}
 							if ('assistantMessage' in dataPart) {
-								if (!$conversation.messages?.length) throw new Error('The conversation messages are missing??');
+								if (!A.conversation.messages?.length) throw new Error('The conversation messages are missing??');
 								// TS is being silly a bit
-								$conversation.messages[$conversation.messages.length - 1] =
+								A.conversation.messages[A.conversation.messages.length - 1] =
 									dataPart.assistantMessage as unknown as MessageInterface;
 							}
 						}
@@ -182,8 +173,8 @@
 					// throw new Error(value);
 				}
 			}
-			if (!$conversation?.messages?.length) throw new Error('The conversation messages are missing??');
-			$conversation.messages[$conversation.messages.length - 1].markdownCache = undefined;
+			if (!A.conversation?.messages?.length) throw new Error('The conversation messages are missing??');
+			A.conversation.messages[A.conversation.messages.length - 1].markdownCache = undefined;
 		} catch (e) {
 			if (e instanceof Error) {
 				const E = e as Error;
@@ -191,42 +182,42 @@
 					// The conversation was aborted, and thus was not saved on the server side.
 					// We need to save the conversation and the messages locally and update it in the database.
 					debug('submitConversation', 'aborted');
-					if ($conversation && $conversation.messages && $conversation.messages?.length >= 2) {
-						let newConversation = await APIupsertConversation($conversation);
+					if (A.conversation && A.conversation.messages && A.conversation.messages?.length >= 2) {
+						let newConversation = await APIupsertConversation(A.conversation);
 
-						let userMessage = $conversation.messages[$conversation.messages.length - 2];
+						let userMessage = A.conversation.messages[A.conversation.messages.length - 2];
 
 						userMessage = {
 							...userMessage,
 							conversationID: newConversation.id
 						};
 
-						$conversation.messages[$conversation.messages.length - 2] = await APIupsertMessage(userMessage);
+						A.conversation.messages[A.conversation.messages.length - 2] = await APIupsertMessage(userMessage);
 
-						let assistantMessage = $conversation.messages[$conversation.messages.length - 1];
+						let assistantMessage = A.conversation.messages[A.conversation.messages.length - 1];
 
 						assistantMessage = {
 							...assistantMessage,
 							finishReason: 'aborted',
-							assistantID: $conversation.assistant,
-							assistantName: $assistants[$conversation.assistant ?? 'unknown']?.name ?? 'Unknown',
-							model: $assistants[$conversation.assistant ?? 'unknown']?.model ?? 'Unknown',
+							assistantID: A.conversation.assistant,
+							assistantName: A.assistants[A.conversation.assistant ?? 'unknown']?.name ?? 'Unknown',
+							model: A.assistants[A.conversation.assistant ?? 'unknown']?.model ?? 'Unknown',
 							modelName:
-								$models[$assistants[$conversation.assistant ?? 'unknown']?.model ?? 'unknown']?.name ?? 'Unknown',
-							temperature: $assistants[$conversation.assistant ?? 'unknown']?.temperature ?? 0,
-							topP: $assistants[$conversation.assistant ?? 'unknown']?.topP ?? 0,
-							topK: $assistants[$conversation.assistant ?? 'unknown']?.topK ?? 0,
+								A.models[A.assistants[A.conversation.assistant ?? 'unknown']?.model ?? 'unknown']?.name ?? 'Unknown',
+							temperature: A.assistants[A.conversation.assistant ?? 'unknown']?.temperature ?? 0,
+							topP: A.assistants[A.conversation.assistant ?? 'unknown']?.topP ?? 0,
+							topK: A.assistants[A.conversation.assistant ?? 'unknown']?.topK ?? 0,
 							conversationID: newConversation.id
 						};
 
-						$conversation.messages[$conversation.messages.length - 1] = await APIupsertMessage(assistantMessage);
+						A.conversation.messages[A.conversation.messages.length - 1] = await APIupsertMessage(assistantMessage);
 
-						$conversation = { ...$conversation, ...newConversation };
-						if (!$conversation.id) throw new Error('The conversation ID is missing.');
+						A.conversation = { ...A.conversation, ...newConversation };
+						if (!A.conversation.id) throw new Error('The conversation ID is missing.');
 
-						if (!$conversations[$conversation.id]) {
-							$conversations[$conversation.id] = $conversation;
-							$conversationOrder = [$conversation.id!, ...$conversationOrder];
+						if (!A.conversations[A.conversation.id]) {
+							A.conversations[A.conversation.id] = A.conversation;
+							A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];
 						}
 					}
 				} else {
@@ -235,7 +226,7 @@
 			}
 		} finally {
 			// This will also trigger the conversation summary.
-			$chatStreaming = false;
+			A.chatStreaming = false;
 			abortController = undefined;
 		}
 	}
@@ -244,16 +235,16 @@
 
 	async function NewChat(assistantId?: string) {
 		dropdownElement.open = false;
-		if ($isMobile) $sidebarOpen = false;
-		debug('NewChat', { assistantId, $assistants });
+		if (A.isMobile) A.sidebarOpen = false;
+		debug('NewChat', { assistantId, assistants: A.assistants });
 
-		$conversation = newConversation($dbUser, assistantId, $assistants);
+		A.conversation = newConversation(A.dbUser, assistantId, A.assistants);
 		await goto('/chat');
 	}
 
 	async function deleteConversations(ids: string[]) {
-		$conversationOrder = $conversationOrder.filter((c) => !ids.includes(c));
-		if (dbUser) {
+		A.conversationOrder = A.conversationOrder.filter((c) => !ids.includes(c));
+		if (A.dbUser) {
 			const del = await APIdeleteConversations(ids);
 			if (!del.id) throw new Error('Failed to delete the conversation.');
 		}
@@ -263,25 +254,25 @@
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
 	<div
 		class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 md:w-56"
-		class:hidden={!$sidebarOpen}>
+		class:hidden={!A.sidebarOpen}>
 		<div class="join flex w-full">
 			<button
 				class="border- btn btn-outline join-item h-full grow"
-				on:click={async () => await NewChat($dbUser?.assistant)}>New chat</button>
+				onclick={async () => await NewChat(A.dbUser?.assistant)}>New chat</button>
 			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
 				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
 				<ul class="menu dropdown-content z-[1] w-52 bg-base-300 p-2 shadow">
 					<div class="divider w-full py-2">Your assistants</div>
-					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
-						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" on:click={async () => await NewChat(assistant.id)}
+					{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+						{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+							<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 								>{assistant.name}</button>
 						{/if}
 					{/each}
 					<div class="divider w-full py-2">Default assistants</div>
-					{#each Object.entries($assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
-						{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" on:click={async () => await NewChat(assistant.id)}
+					{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
+						{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+							<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 								>{assistant.name}</button>
 						{/if}
 					{/each}
@@ -292,21 +283,21 @@
 		<ChatHistory {deleteConversations} />
 	</div>
 
-	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!$sidebarOpen}></div>
+	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!A.sidebarOpen}></div>
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle />
 
 		<div class="mb-auto w-full grow overflow-y-auto bg-transparent bg-opacity-10">
-			{#if $conversation?.messages}
-				{#each $conversation.messages as m, i}
+			{#if A.conversation?.messages}
+				{#each A.conversation.messages as m, i}
 					<ChatMessage
-						bind:message={m}
-						loading={i === $conversation.messages.length - 1 && $chatStreaming}
+						bind:message={A.conversation.messages[i]}
+						loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
 						{submitConversation} />
 				{/each}
 				<div class="mb-20 w-full"></div>
-			{:else if !$conversation?.id}
+			{:else if !A.conversation?.id}
 				<div
 					class=" m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
 					<div class="pointer-events-none flex flex-col font-bold grayscale" style="opacity:0.05">
@@ -330,7 +321,7 @@
 							GitHub
 						</span>
 					</a>
-					{#if !$dbUser}
+					{#if !A.dbUser}
 						<a href="/login" class="btn btn-outline mt-16 text-xl">
 							<p class="mx-2">Login to start chatting</p>
 						</a>
@@ -343,7 +334,7 @@
 
 		<div class="navbar m-2 h-fit shrink-0 grow-0 py-0">
 			<div class="navbar-start max-w-fit">
-				{#if !$sidebarOpen}
+				{#if !A.sidebarOpen}
 					<div class="btn btn-circle md:hidden" style="visibility: hidden;"></div>
 				{/if}
 			</div>
@@ -360,4 +351,4 @@
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
 <!-- <pre>{JSON.stringify({ conversations, data }, null, 2)}</pre> -->
-<slot />
+{@render children()}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
-	import { chatDataLoading, conversation, conversations } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:routes:chat:[id]');
 
@@ -12,28 +12,28 @@
 		}
 
 		// If the message is already loaded, use it.
-		if ($conversations[convId]) $conversation = $conversations[convId];
+		if (A.conversations[convId]) A.conversation = A.conversations[convId];
 		// If the conversation has no messages loaded, fetch them.
-		if (!$conversation?.messages) {
-			$chatDataLoading = true;
+		if (!A.conversation?.messages && !A.chatDataLoading) {
+			A.chatDataLoading = true;
 			let promise;
 			promise = APIfetchConversation(convId);
 
 			promise
 				.then((data) => {
-					$conversations[data.id!] = { ...$conversations[data.id!], ...data };
-					$conversation = $conversations[data.id!];
+					A.conversations[data.id!] = { ...A.conversations[data.id!], ...data };
+					A.conversation = A.conversations[data.id!];
 				})
 				.catch((e) => {
 					debug('Failed to fetch conversation:', e);
 				})
 				.finally(() => {
-					$chatDataLoading = false;
+					A.chatDataLoading = false;
 				});
 		}
 	}
 
-	$: fetchConversation($page.params.chat);
+	$effect(() => fetchConversation($page.params.chat));
 
 	// } else {
 	//     $conversation = newConversation($dbUser, $assistants);

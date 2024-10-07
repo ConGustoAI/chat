@@ -16,15 +16,16 @@ const config = {
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter()
 	},
-	vitePlugin:{
-		dynamicCompileOptions({filename}){
-		  if(filename.includes('node_modules')) {
-			return {runes: undefined} // or false, check what works
-		  } else {
-			return {runes: true}
-		  }
+	vitePlugin: {
+		dynamicCompileOptions({ filename }) {
+			if (filename.includes('node_modules')) {
+				return { runes: undefined }; // or false, check what works
+			}
 		}
-	  }
+	},
+	compilerOptions: {
+		runes: true
+	}
 };
 
 export default config;

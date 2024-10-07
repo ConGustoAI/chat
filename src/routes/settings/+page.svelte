@@ -4,13 +4,13 @@
 	import GrowInput from '$lib/components/GrowInput.svelte';
 	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { defaultsUUID } from '$lib/db/schema';
 
-	let assistants: AssistantInterface[] = [];
+	let assistants: AssistantInterface[] = $state([]);
 
-	let status: string | null = null;
-	let statusMessage: string | null = null;
+	let status: string | null = $state(null);
+	let statusMessage: string | null = $state(null);
 	let updateTimer: number | NodeJS.Timeout;
 
 	// Don't let the user navigate off if changes are unsaved
@@ -27,17 +27,17 @@
 		assistants = await APIfetchAssistants();
 	});
 
-	$: {
+	$effect(() => {
 		debounceUserUpdate();
 		hasUnsavedChanges = !!(status && status != 'saved');
-	}
+	});
 
 	function debounceUserUpdate() {
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				APIupdateUser($dbUser!)
+				APIupdateUser(A.dbUser!)
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -57,12 +57,12 @@
 	}
 </script>
 
-{#if $dbUser}
+{#if A.dbUser}
 	<section class="flex max-w-screen-md flex-col gap-2">
 		<div class="flex items-end gap-4">
 			<div class="flex flex-col gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
-				<p>{$dbUser.email}</p>
+				<p>{A.dbUser.email}</p>
 				<a class="btn btn-outline" href="/login/pwreset" data-sveltekit-reload>Change Password</a>
 			</div>
 			<div class="relative self-start">
@@ -82,14 +82,14 @@
 				<input
 					type="text"
 					class="input input-bordered w-full"
-					bind:value={$dbUser.name}
-					on:input={statusChanged}
+					bind:value={A.dbUser.name}
+					oninput={statusChanged}
 					spellcheck="false" />
 			</div>
 
 			<label class="flex flex-col">
 				<span class="text-sm">Default Assistant</span>
-				<select class="select select-bordered w-full" bind:value={$dbUser.assistant} on:change={statusChanged}>
+				<select class="select select-bordered w-full" bind:value={A.dbUser.assistant} onchange={statusChanged}>
 					<option value={defaultsUUID}>Last one used</option>
 					{#each assistants as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
@@ -103,16 +103,16 @@
 			<span class="text-sm">About you</span>
 			<GrowInput
 				class="textarea-bordered whitespace-pre-wrap text-wrap"
-				bind:value={$dbUser.aboutUser}
-				on:input={statusChanged} />
+				bind:value={A.dbUser.aboutUser}
+				oninput={statusChanged} />
 		</div>
 
 		<div class="flex flex-col">
 			<span class="text-sm">Instructions</span>
 			<GrowInput
 				class="textarea-bordered whitespace-pre-wrap text-wrap"
-				bind:value={$dbUser.assistantInstructions}
-				on:input={statusChanged} />
+				bind:value={A.dbUser.assistantInstructions}
+				oninput={statusChanged} />
 		</div>
 
 		<div class="divider w-full">Message Information</div>
@@ -125,28 +125,28 @@
 			<div class="flex items-center text-warning">Show cost above</div>
 			<div class="flex items-center text-error">Show cost above</div>
 
-			<input type="checkbox" class="checkbox" bind:checked={$dbUser.showEstimate} on:change={statusChanged} />
+			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showEstimate} onchange={statusChanged} />
 
-			<input type="checkbox" class="checkbox" bind:checked={$dbUser.showInfo} on:change={statusChanged} />
+			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showInfo} onchange={statusChanged} />
 			<input
 				type="number"
 				class="input input-bordered w-32"
-				bind:value={$dbUser.costShow}
-				on:input={statusChanged}
+				bind:value={A.dbUser.costShow}
+				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
 				class="input input-bordered w-32"
-				bind:value={$dbUser.costWarn1}
-				on:input={statusChanged}
+				bind:value={A.dbUser.costWarn1}
+				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
 				class="input input-bordered w-32"
-				bind:value={$dbUser.costWarn2}
-				on:input={statusChanged}
+				bind:value={A.dbUser.costWarn2}
+				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 		</div>

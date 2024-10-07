@@ -2,25 +2,33 @@
 	import { APIdeleteModel, APIupsertModel } from '$lib/api';
 	import { InfoPopup, Model } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { models, dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { Plus } from 'lucide-svelte';
 	import dbg from 'debug';
 	import { goto } from '$app/navigation';
 
 	const debug = dbg('app:ui:components:ModelsGrid');
 
-	export let provider: ProviderInterface;
-	export let edit;
-	export let showDefault: boolean;
-	export let showCustom: boolean;
-	export let allowHiding = true;
+	let {
+		provider,
+		edit,
+		showDefault,
+		showCustom,
+		allowHiding = true,
+		newChildUserID
+	}: {
+		provider: ProviderInterface;
+		edit: boolean;
+		showDefault: boolean;
+		showCustom: boolean;
+		allowHiding?: boolean;
+		newChildUserID: string;
+	} = $props();
 
-	export let newChildUserID: string;
-
-	let addingModel = false;
+	let addingModel = $state(false);
 	async function addModel() {
 		debug('add model');
-		if (!$dbUser || !newChildUserID) {
+		if (!A.dbUser || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingModel = true;
@@ -36,33 +44,28 @@
 			images: false,
 			prefill: false
 		});
-		models.update((current) => {
-			current[newModel.id!] = newModel;
-			return current;
-		});
+		A.models[newModel.id!] = newModel;
 		addingModel = false;
 		debug('new model', newModel);
 	}
 
 	async function deleteModel(model: ModelInterface) {
 		debug('delete model', model);
-		const user = $dbUser;
+		const user = A.dbUser;
 		if (!user) {
 			await goto('/login', { invalidateAll: true });
 		}
 		const del = await APIdeleteModel(model);
-		models.update((current) => {
-			delete current[del.id!];
-			return current;
-		});
+		delete A.models[del.id!];
 		debug('delete model done', del);
 	}
 
-	// {#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))}
-	$: modelsToShow = Object.entries($models).filter(
-		([id, model]) =>
-			model.providerID === provider.id &&
-			((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))
+	let modelsToShow = $derived(
+		Object.keys(A.models).filter(
+			(k) =>
+				A.models[k].providerID === provider.id &&
+				((showDefault && A.models[k].userID === defaultsUUID) || (showCustom && A.models[k].userID !== defaultsUUID))
+		)
 	);
 </script>
 
@@ -130,9 +133,9 @@
 			<div class="font-bold">Delete</div>
 			<div></div>
 
-			{#each modelsToShow as [id, model]}
+			{#each modelsToShow as m}
 				<!-- {#if model.providerID === provider.id && ((showDefault && model.userID === defaultsUUID) || (showCustom && model.userID !== defaultsUUID))} -->
-				<Model bind:model {deleteModel} {edit} {allowHiding} />
+				<Model bind:model={A.models[m]} {deleteModel} {edit} {allowHiding} />
 				<!-- {/if} -->
 			{/each}
 		</div>
@@ -140,7 +143,7 @@
 	{#if edit}
 		<button
 			class="btn btn-outline w-fit"
-			on:click={async () => {
+			onclick={async () => {
 				await addModel();
 			}}>
 			{#if addingModel}

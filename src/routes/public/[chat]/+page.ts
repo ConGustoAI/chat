@@ -1,6 +1,7 @@
 import { APIfetchPublicConversation } from '$lib/api';
 
 export const ssr = true;
+// export const csr = false;
 
 export const load = async ({ params, fetch }) => {
 	try {

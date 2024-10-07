@@ -1,40 +1,40 @@
 <script lang="ts">
 	import { defaultsUUID } from '$lib/db/schema';
-	import { apiKeys, assistants, conversation, dbUser, hiddenItems, models, providers } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 </script>
 
-{#if $conversation}
-	{#if !$conversation.id || $dbUser?.hacker}
-		<select class="select select-bordered select-sm" bind:value={$conversation.assistant}>
+{#if A.conversation}
+	{#if !A.conversation.id || A.dbUser?.hacker}
+		<select class="select select-bordered select-sm" bind:value={A.conversation.assistant}>
 			<option disabled>Your assistants</option>
-			{#each Object.entries($assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
-				{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
 			{/each}
 			<option disabled>Default assistants</option>
-			{#each Object.entries($assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
-				{#if !$hiddenItems.has(id) || $dbUser?.assistant === id}
+			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
+				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
 			{/each}
 		</select>
 	{:else}
-		<div class="text-lg">{$conversation.assistantName??""}</div>
+		<div class="text-lg">{A.conversation.assistantName??""}</div>
 	{/if}
 
-	{#if $conversation.assistant}
-		{@const assistant = $assistants[$conversation?.assistant ?? 'empty']}
-		{@const model = $models[assistant?.model ?? 'empty']}
-		{@const provider = $providers[model?.providerID ?? 'empty']}
-		{@const providerKey = Object.entries($apiKeys).find(([id, key]) => key.providerID === provider?.id)}
-		{@const assistantKey = Object.entries($apiKeys).find(([id, key]) => key.id === assistant?.apiKey)}
+	{#if A.conversation.assistant}
+		{@const assistant = A.assistants[A.conversation?.assistant ?? 'empty']}
+		{@const model = A.models[assistant?.model ?? 'empty']}
+		{@const provider = A.providers[model?.providerID ?? 'empty']}
+		{@const providerKey = Object.entries(A.apiKeys).find(([id, key]) => key.providerID === provider?.id)}
+		{@const assistantKey = Object.entries(A.apiKeys).find(([id, key]) => key.id === assistant?.apiKey)}
 
-		{#if assistant && $dbUser}
+		{#if assistant && A.dbUser}
 			{#if !model}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no model</span>
-					<a href="/settings/assistants/#{$conversation.assistant}" class="link">Edit assistant</a>
+					<a href="/settings/assistants/#{A.conversation.assistant}" class="link">Edit assistant</a>
 				</div>
 			{:else if !providerKey}
 				<div class="flex flex-col text-sm">
@@ -44,7 +44,7 @@
 			{:else if !assistantKey && assistant.apiKey !== defaultsUUID}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no API key</span>
-					<a href="/settings/assistants/#{$conversation.assistant}" class="link">Edit assistant</a>
+					<a href="/settings/assistants/#{A.conversation.assistant}" class="link">Edit assistant</a>
 				</div>
 			{/if}
 		{/if}

@@ -4,14 +4,27 @@
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:GrowInput');
 
-	export let value = '';
-	let className = ''; // Keep this as a local variable
-	export { className as class }; // Export it as 'class'
-	export let disabled = false;
-	export let spellcheck = false;
-	export let focused = false;
+	let {
+		value = $bindable(''),
+		class: className = '',
+		disabled = false,
+		spellcheck = false,
+		focused = $bindable(false),
+		oninput = () => {},
+		onkeydown = () => {},
+		onchange = () => {}
+	} = $props<{
+		value?: string;
+		class?: string;
+		disabled?: boolean;
+		spellcheck?: boolean;
+		focused?: boolean;
+		oninput?: (event: Event) => void;
+		onkeydown?: (event: KeyboardEvent) => void;
+		onchange?: (event: Event) => void;
+	}>();
 
-	let textBox: HTMLDivElement | null = null;
+	let textBox: HTMLDivElement | null = $state(null);
 
 	function handlePaste(event: ClipboardEvent) {
 		event.preventDefault();
@@ -22,9 +35,14 @@
 </script>
 
 {#if disabled}
-	<div class={cn('textarea h-fit min-h-10 w-full resize-none overflow-auto whitespace-pre-wrap py-2 text-base', className)}>{value}</div>
+	<div
+		class={cn(
+			'textarea h-fit min-h-10 w-full resize-none overflow-auto whitespace-pre-wrap py-2 text-base',
+			className
+		)}>
+		{value}
+	</div>
 {:else}
-	<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 	<div
 		tabindex={0}
 		role="textbox"
@@ -32,12 +50,12 @@
 		{spellcheck}
 		bind:this={textBox}
 		bind:innerText={value}
-		on:focus={() => focused = true}
-		on:blur={() => focused = false}
-		on:keydown
-		on:change
-		on:input
-		on:paste={handlePaste}
-		class={cn('textarea min-h-10 overflow-y-auto py-2 text-base whitespace-pre-wrap', className)}>
+		onfocus={() => (focused = true)}
+		onblur={() => (focused = false)}
+		onpaste={handlePaste}
+		{oninput}
+		{onkeydown}
+		{onchange}
+		class={cn('textarea min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
 	</div>
 {/if}

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import {chatStreaming, conversation} from '$lib/stores/appstate';
+	import { A} from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ConversationInfo');
 
 	function collectInfo(): Array<any> {
-		if (!$conversation || !$conversation.messages) return [];
+		if (!A.conversation || !A.conversation.messages) return [];
 
-		const assistantMessages = $conversation.messages.filter((m) => m.role === 'assistant');
+		const assistantMessages = A.conversation.messages.filter((m) => m.role === 'assistant');
 		const infoArray = [];
 
 		for (let i = 0; i < assistantMessages.length; i++) {
@@ -48,20 +48,24 @@
 		return infoArray;
 	}
 
-	let info: Array<any> = [];
-	$: if ($conversation?.id  && !$chatStreaming) info = collectInfo();
+	let info = $derived.by(() => {
+		if (A.conversation?.id && !A.chatStreaming) {
+			return collectInfo();
+		}
+		return [];
+	});
 </script>
 
 
-{#if $conversation?.id}
+{#if A.conversation?.id}
 
 <div class="card w-full overflow-auto rounded-none bg-base-300 p-4 shadow-xl">
 	<h3 class="card-title text-base">Conversation Stats</h3>
 	<div class="card-body w-full p-0">
 		{#if info.length}
         <div class="flex flex-col">
-			<span><strong>Tokens in:</strong> {$conversation.tokensIn ?? 'N/A'}</span>
-			<span><strong>Tokens out:</strong> {$conversation.tokensOut ?? 'N/A'}</span>
+			<span><strong>Tokens in:</strong> {A.conversation.tokensIn ?? 'N/A'}</span>
+			<span><strong>Tokens out:</strong> {A.conversation.tokensOut ?? 'N/A'}</span>
         </div>
 			{#each info as infoItem}
 				<div class="mb-2">

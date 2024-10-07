@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	export let items: { href: string; title: string }[];
-	export let adminItems: { href: string; title: string }[];
+	let {
+		items,
+		adminItems,
+		children
+	}: { items: { href: string; title: string }[]; adminItems: { href: string; title: string }[], children:any } = $props();
 </script>
 
 <div class="drawer lg:drawer-open">
 	<input id="my-drawer" type="checkbox" class="drawer-toggle" />
 	<div class="drawer-content">
-		<slot />
+		{@render children()}
 	</div>
 
 	<ul class="menu drawer-side h-auto p-4 pr-20 text-xl">

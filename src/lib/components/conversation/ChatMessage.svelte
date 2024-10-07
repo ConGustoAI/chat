@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { APIupsertMessage } from '$lib/api';
 	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
-	import { conversation, dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
@@ -10,19 +10,26 @@
 	import Notification from '../Notification.svelte';
 	const debug = dbg('app:ui:components:ChatMessage');
 
-	export let submitConversation: (toDelete: string[]) => Promise<void>;
-	export let message: MessageInterface;
-	export let isPublic = false;
-	export let loading: boolean = false;
+	let {
+		submitConversation,
+		message = $bindable(),
+		isPublic = false,
+		loading = false
+	}: {
+		submitConversation: (toDelete: string[]) => Promise<void>;
+		message: MessageInterface;
+		isPublic?: boolean;
+		loading?: boolean;
+	} = $props();
 
-	let chatError: string | undefined;
-	$: markdown = message.role === 'assistant';
+	let chatError: string | undefined = $state();
+	let markdown = $state(message.role === 'assistant');
 
-	let originalMessage: string;
-	let editingMessage = false;
-	let savingMessage = false;
+	let originalMessage = $state('');
+	let editingMessage = $state(false);
+	let savingMessage = $state(false);
 
-	let detailsOpen = false;
+	let detailsOpen = $state(false);
 
 	let summaryElement: HTMLElement;
 
@@ -33,21 +40,21 @@
 	}
 
 	async function sendEditedMessage() {
-		debug('sendEditedMessage', { $conversation, message });
+		debug('sendEditedMessage', { conversation: A.conversation, message });
 
-		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
+		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
-		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 		// Mark the rest as deleted.
-		const toDelete = $conversation.messages
+		const toDelete = A.conversation.messages
 			.slice(currentIndex + 1)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
-		$conversation.messages = $conversation.messages.slice(0, currentIndex + 1);
+		A.conversation.messages = A.conversation.messages.slice(0, currentIndex + 1);
 		if (message.role === 'user')
-			$conversation.messages.push({ userID: $conversation.userID, role: 'assistant', text: '' });
+			A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
@@ -58,12 +65,12 @@
 	}
 
 	async function updateMessage() {
-		debug('updateMessage', { $conversation, message });
+		debug('updateMessage', { conversation: A.conversation, message });
 
-		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
+		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
 		savingMessage = true;
-		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
 		await APIupsertMessage(message);
@@ -71,36 +78,36 @@
 	}
 
 	async function deleteMessage() {
-		debug('deleteMessage', { conversation, message });
+		debug('deleteMessage', { conversation: A.conversation, message });
 
-		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
+		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
-		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex === -1) return;
 
 		APIupsertMessage({ ...message, deleted: true });
-		$conversation.messages = [
-			...$conversation.messages.slice(0, currentIndex),
-			...$conversation.messages.slice(currentIndex + 1)
+		A.conversation.messages = [
+			...A.conversation.messages.slice(0, currentIndex),
+			...A.conversation.messages.slice(currentIndex + 1)
 		];
 	}
 
 	async function reGenerate() {
-		debug('reGenerate', { $conversation, message });
+		debug('reGenerate', { conversation: A.conversation, message });
 
-		if (!$conversation || !$conversation.messages || !$conversation.messages.length || !message) return;
+		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
-		const currentIndex = $conversation.messages?.findIndex((m) => m === message);
+		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
 		if (currentIndex < 1) return;
 
 		// Mark the rest as deleted.
-		const toDelete = $conversation.messages
+		const toDelete = A.conversation.messages
 			.slice(currentIndex)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
-		$conversation.messages = $conversation.messages.slice(0, currentIndex);
-		$conversation.messages.push({ userID: $conversation.userID, role: 'assistant', text: '' });
+		A.conversation.messages = A.conversation.messages.slice(0, currentIndex);
+		A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
@@ -113,7 +120,7 @@
 	}
 
 	async function inputKeyboardHandler(event: any) {
-		if (editingMessage && conversation && event instanceof KeyboardEvent) {
+		if (editingMessage && A.conversation && event instanceof KeyboardEvent) {
 			if (event.key === 'Enter' && event.ctrlKey) {
 				event.preventDefault();
 				message.markdownCache = undefined;
@@ -132,7 +139,7 @@
 		}
 	}
 
-	let inputFocus = false;
+	let inputFocus = $state(false);
 </script>
 
 <div class="relative flex items-start pt-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
@@ -146,13 +153,13 @@
 				<summary class="block cursor-pointer text-center">
 					<Computer />
 				</summary>
-				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<div class="dropdown-content z-40 ml-2" on:keydown={handleKeydown} tabindex="-1">
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="dropdown-content z-40 ml-2" onkeydown={handleKeydown} tabindex="-1">
 					<MessageInfo {message} />
 				</div>
 			</details>
 			{#if detailsOpen}
-				<button class="fixed inset-0 z-20" on:click|self={closeDetails}></button>
+				<button class="fixed inset-0 z-20" onclick={closeDetails} aria-label="Close modal"></button>
 			{/if}
 		{/if}
 	</div>
@@ -161,18 +168,18 @@
 		{#if editingMessage && !isPublic}
 			<div class="relative my-4 flex w-full flex-col items-start">
 				{#if inputFocus && message.role === 'user'}
-					{@const currentIndex = $conversation?.messages?.findIndex((m) => m === message) ?? -1}
+					{@const currentIndex = A.conversation?.messages?.findIndex((m) => m === message) ?? -1}
 					<div class="absolute -top-4 right-2 z-20 text-xs">
 						<CostEstimate
 							input={message.text}
-							messages={$conversation?.messages?.slice(
+							messages={A.conversation?.messages?.slice(
 								0,
-								currentIndex >= 0 ? currentIndex : $conversation.messages.length
+								currentIndex >= 0 ? currentIndex : A.conversation.messages.length
 							)} />
 					</div>
 				{/if}
 
-				{#if inputFocus && $conversation?.public}
+				{#if inputFocus && A.conversation?.public}
 					<div class="absolute -top-4 left-2 z-20 text-xs">
 						<span class="text-warning">Conversation is public</span>
 					</div>
@@ -182,11 +189,11 @@
 					class="textarea-bordered w-full"
 					bind:focused={inputFocus}
 					bind:value={message.text}
-					on:keydown={inputKeyboardHandler} />
+					onkeydown={inputKeyboardHandler} />
 				<div class="mt-2 flex w-full items-start justify-start gap-2">
 					<button
 						class="btn btn-outline btn-sm"
-						on:click={async () => {
+						onclick={async () => {
 							editingMessage = false;
 							await sendEditedMessage();
 						}}>
@@ -195,7 +202,7 @@
 					<button
 						class="btn btn-outline btn-sm"
 						disabled={savingMessage}
-						on:click={async () => {
+						onclick={async () => {
 							savingMessage = true;
 							message.markdownCache = undefined;
 							await updateMessage();
@@ -210,7 +217,7 @@
 					</button>
 					<button
 						class="btn btn-outline btn-sm"
-						on:click={() => {
+						onclick={() => {
 							message.text = originalMessage;
 							editingMessage = false;
 						}}>
@@ -246,7 +253,7 @@
 						hour12: false
 					})}
 				{/if}
-				{#if $dbUser?.showInfo && message.role == 'assistant' && message.id}
+				{#if A.dbUser?.showInfo && message.role == 'assistant' && message.id}
 					<div class="mr-2 flex gap-4 text-xs text-base-content">
 						<span>{message.assistantName} (T={message.temperature}, P={message.topP}, K={message.topK}) </span>
 						<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
@@ -255,13 +262,13 @@
 
 				<!-- {message.order} -->
 				{#if message.role == 'assistant' && !isPublic}
-					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" on:click={reGenerate}><Repeat size={15} /></button>
+					<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" onclick={reGenerate}><Repeat size={15} /></button>
 				{/if}
 
-				{#if (message.role !== 'assistant' || !$dbUser || $dbUser.hacker) && !isPublic}
+				{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublic}
 					<button
 						class="btn btn-ghost btn-xs rounded-md p-0 px-1"
-						on:click={() => {
+						onclick={() => {
 							editingMessage = !editingMessage;
 							if (editingMessage) {
 								originalMessage = message.text;
@@ -270,7 +277,7 @@
 				{/if}
 				<button
 					class="btn btn-ghost btn-xs rounded-md p-0"
-					on:click={() => {
+					onclick={() => {
 						navigator.clipboard.writeText(message.text);
 					}}><Copy size={15} /></button>
 				{#if !isPublic}
@@ -280,10 +287,10 @@
 						deleteAction={deleteMessage}
 						size={15} />
 				{/if}
-				{#if !$dbUser || $dbUser.hacker || isPublic}
+				{#if !A.dbUser || A.dbUser.hacker || isPublic}
 					<button
 						class="btn btn-ghost btn-outline btn-xs rounded-md p-0 px-1"
-						on:click={() => {
+						onclick={() => {
 							markdown = !markdown;
 						}}>{markdown ? 'md' : 'raw'}</button>
 				{/if}

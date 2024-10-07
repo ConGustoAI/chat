@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
-	import { conversationOrder, conversations } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { Link, Star, ArrowDownFromLine, ChevronDown } from 'lucide-svelte';
 	import { slide, scale, fly } from 'svelte/transition';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ChatHistory');
 
-	export let deleteConversations: (id: string[]) => Promise<void>;
+	let { deleteConversations }: { deleteConversations: (id: string[]) => Promise<void> } = $props();
 
-	let seach: string | undefined;
-	let searchAMP: string | undefined;
+	let search = $state<string | undefined>(undefined);
+	let searchAMP = $state<string | undefined>(undefined);
 
-	let searchOptionsOpen = false;
-	let searchAMPFocused = false;
+	let searchOptionsOpen = $state(false);
+	let searchAMPFocused = $state(false);
 
-	let searchPublic = false;
-	let searchPrivate = false;
+	let searchPublic = $state(false);
+	let searchPrivate = $state(false);
 
-	let searchStarred = false;
-	let searchUnstarred = false;
+	let searchStarred = $state(false);
+	let searchUnstarred = $state(false);
 
 	function splitConversations(
 		conversatonIds: string[],
@@ -45,7 +45,7 @@
 
 		const filteredConversations = [];
 		for (const c of conversatonIds) {
-			const conversation = $conversations[c];
+			const conversation = A.conversations[c];
 
 			const conversationAMP =
 				(conversation.assistantName ?? 'unknown') +
@@ -69,11 +69,11 @@
 		}
 
 		for (const c of filteredConversations) {
-			if (!$conversations[c].updatedAt) {
+			if (!A.conversations[c].updatedAt) {
 				unknownConversations.push(c);
 				continue;
 			}
-			const date = new Date($conversations[c].updatedAt);
+			const date = new Date(A.conversations[c].updatedAt);
 			if (
 				date.getDate() === today.getDate() &&
 				date.getMonth() === today.getMonth() &&
@@ -116,7 +116,7 @@
 		const p: { [key: string]: boolean } = {};
 		const a: { [key: string]: boolean } = {};
 		for (const c of conversationIds) {
-			const conversation = $conversations[c];
+			const conversation = A.conversations[c];
 
 			if (conversation?.modelName) m[conversation.modelName] = true;
 			if (conversation?.providerName) p[conversation.providerName] = true;
@@ -125,19 +125,19 @@
 		return [...Object.keys(a), ...Object.keys(m), ...Object.keys(p)];
 	}
 
-	$: datedConversation = splitConversations(
-		$conversationOrder,
-		seach,
+	let datedConversation = $derived(splitConversations(
+		A.conversationOrder,
+		search,
 		searchAMP,
 		searchPublic,
 		searchPrivate,
 		searchStarred,
 		searchUnstarred
-	);
-	$: historyAMPOptions = findModelsProvidersAssistants(datedConversation.allFiltered);
+	));
+	let historyAMPOptions = $derived(findModelsProvidersAssistants(datedConversation.allFiltered));
 
-	let selectedConversations: string[] = [];
-	let deleting = false;
+	let selectedConversations: string[] = $state([]);
+	let deleting = $state(false);
 
 	export function selectAll(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -156,7 +156,7 @@
 			deleting = false;
 		}
 		selectedConversations = [];
-		seach = '';
+		search = '';
 		deleting = false;
 	}
 </script>
@@ -165,7 +165,7 @@
 	<input
 		type="checkbox"
 		class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
-		on:change={(e) => selectAll(e)}
+		onchange={(e) => selectAll(e)}
 		checked={!!selectedConversations.length && selectedConversations.length === datedConversation.allFiltered.length} />
 	{#if selectedConversations.length}
 		{#if deleting}
@@ -183,14 +183,14 @@
 		type="text"
 		placeholder="Search chats..."
 		class="input input-bordered min-h-12 w-full pl-12"
-		bind:value={seach} />
+		bind:value={search} />
 </div>
 
 <div class="divider w-full grow-0">
 	<button
 		class="btn-outline mx-0 flex h-4 w-fit items-center rounded-full border px-4"
 		class:rotate-180={searchOptionsOpen}
-		on:click={() => (searchOptionsOpen = !searchOptionsOpen)}>
+		onclick={() => (searchOptionsOpen = !searchOptionsOpen)}>
 		<ChevronDown size={12} />
 	</button>
 </div>
@@ -201,8 +201,8 @@
 			type="text"
 			class="input input-sm input-bordered"
 			placeholder="Assistant/Provider/Model"
-			on:focus={() => (searchAMPFocused = true)}
-			on:blur={() => {
+			onfocus={() => (searchAMPFocused = true)}
+			onblur={() => {
 				setTimeout(() => {
 					searchAMPFocused = false;
 				}, 1000);
@@ -215,7 +215,7 @@
 				{#each historyAMPOptions as option}
 					<button
 						class="btn btn-ghost cursor-pointer text-nowrap px-4 py-2 text-start"
-						on:click={() => (searchAMP = option)}>
+						onclick={() => (searchAMP = option)}>
 						{option}
 					</button>
 				{/each}
@@ -229,7 +229,7 @@
 					id="oplyPublic"
 					class="checkbox"
 					bind:checked={searchPublic}
-					on:change={() => (searchPrivate = false)} />
+					onchange={() => (searchPrivate = false)} />
 			</div>
 			<div class="flex items-center gap-2">
 				<label for="oplyPrivate">
@@ -243,7 +243,7 @@
 					id="oplyPrivate"
 					class="checkbox"
 					bind:checked={searchPrivate}
-					on:change={() => (searchPublic = false)} />
+					onchange={() => (searchPublic = false)} />
 			</div>
 		</div>
 		<div class="flex gap-6 p-2">
@@ -254,7 +254,7 @@
 					id="oplyStarred"
 					class="checkbox"
 					bind:checked={searchStarred}
-					on:change={() => (searchUnstarred = false)} />
+					onchange={() => (searchUnstarred = false)} />
 			</div>
 			<div class="flex items-center gap-2">
 				<label for="oplyUnstarred">
@@ -267,7 +267,7 @@
 					id="oplyUnstarred"
 					class="checkbox"
 					bind:checked={searchUnstarred}
-					on:change={() => (searchStarred = false)} />
+					onchange={() => (searchStarred = false)} />
 			</div>
 		</div>
 	</div>

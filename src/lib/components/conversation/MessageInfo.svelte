@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { assistants, providers, models } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 
-	export let message: MessageInterface;
-	$: provider = $providers[$models[message.model ?? 'unknown']?.providerID ?? 'Unknown'];
+	let { message }: { message: MessageInterface } = $props();
+	let provider = $derived(A.providers[A.models[message.model ?? 'unknown']?.providerID ?? 'Unknown']);
 </script>
 
 <div class="flex w-max max-w-md flex-col whitespace-pre-line rounded-sm bg-base-300 p-2 lg:max-w-screen-md">
@@ -23,7 +23,7 @@
 	<div>
 		<span>Assistant:</span>
 		{#if message.assistantName}
-			{#if $assistants[message.assistantID ?? 'unknown']}
+			{#if A.assistants[message.assistantID ?? 'unknown']}
 				<a class="link" href="/settings/assistants/#{message.assistantID}">{message.assistantName}</a>
 			{:else}
 				{message.assistantName} <span class="text-warning">[Unavailable]</span>

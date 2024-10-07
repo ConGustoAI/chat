@@ -1,11 +1,10 @@
 <script lang="ts">
-	export let messageType: 'error' | 'warning' | 'info' | 'success';
-	export let message: string | undefined;
+	let { messageType, message = $bindable(undefined) }: { messageType: 'error' | 'warning' | 'info' | 'success', message?: string } = $props();
 </script>
 
 <button
 	class="text-{messageType} self-start"
-	on:click={() => {
+	onclick={() => {
 		message = '';
 	}}
 	>{message ?? ''}

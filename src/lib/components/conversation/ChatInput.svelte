@@ -1,44 +1,48 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { CostEstimate, GrowInput, Notification } from '$lib/components';
-	import { chatStreaming, conversation } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
-	export let submitConversation: (toDelete?: string[]) => Promise<void>;
-	export let cancelConversation: () => void;
+	let {
+		submitConversation,
+		cancelConversation
+	}: {
+		submitConversation: (toDelete?: string[]) => Promise<void>;
+		cancelConversation: () => void;
+	} = $props();
 
-	let input: string;
-	let chatError: string | undefined;
+	let input = $state('');
+	let chatError: string | undefined = $state(undefined);
 
 	async function onSubmit() {
-		debug('onSubmit', { input, $conversation });
+		debug('onSubmit', { input, connversation: A.conversation });
 		if (!input) return;
-		if (!$conversation) return;
-		if (!$conversation.summary) $conversation.summary = trimLineLength(input, 128);
+		if (!A.conversation) return;
+		if (!A.conversation.summary) A.conversation.summary = trimLineLength(input, 128);
 
-		$conversation.messages = [
-			...($conversation.messages ?? []),
-			{ userID: $conversation.userID, role: 'user', text: input },
-			{ userID: $conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
+		A.conversation.messages = [
+			...(A.conversation.messages ?? []),
+			{ userID: A.conversation.userID, role: 'user', text: input },
+			{ userID: A.conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
 		];
 
 		let savedInput = input;
 		input = '';
-
 
 		try {
 			// This modifieds the messages and sets the conversaion id if it was not set.
 			await submitConversation();
 			input = '';
 			chatError = undefined;
-			await goto(`/chat/${$conversation.id}`);
+			await goto(`/chat/${A.conversation.id}`);
 		} catch (e: unknown) {
 			debug('onSubmit error', e);
-			$conversation.messages = $conversation.messages.slice(0, -2);
+			A.conversation.messages = A.conversation.messages.slice(0, -2);
 			if (e instanceof Error) {
 				chatError = e.message;
 			} else {
@@ -49,13 +53,13 @@
 	}
 
 	async function inputKeyboardHandler(event: any) {
-		if (!$chatStreaming && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
+		if (!A.chatStreaming && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
 			await onSubmit();
 		}
 	}
 
-	let inputFocus = false;
+	let inputFocus = $state(false);
 </script>
 
 <div class="flex h-fit w-full flex-col">
@@ -66,7 +70,7 @@
 			<div class="absolute -top-4 right-2 z-20 text-xs">
 				<CostEstimate {input} />
 			</div>
-			{#if $conversation?.public}
+			{#if A.conversation?.public}
 				<div class="absolute -top-4 left-2 z-20 text-xs">
 					<span class="text-warning">Conversation is public</span>
 				</div>
@@ -75,8 +79,8 @@
 		<GrowInput
 			bind:focused={inputFocus}
 			bind:value={input}
-			on:keydown={inputKeyboardHandler}
-			disabled={$chatStreaming}
+			onkeydown={inputKeyboardHandler}
+			disabled={A.chatStreaming}
 			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
 		<div class="absolute bottom-1 left-2">
 			<button class="btn btn-circle btn-sm" disabled={true}>
@@ -84,9 +88,9 @@
 			</button>
 		</div>
 		<div class="absolute bottom-1 right-2">
-			{#if $chatStreaming}
+			{#if A.chatStreaming}
 				<div class="relative">
-					<button class="btn btn-sm" on:click={cancelConversation}>
+					<button class="btn btn-sm" onclick={cancelConversation}>
 						<div class="relative">
 							<StopCircle />
 							<span class="absolute inset-0 flex items-center justify-center">
@@ -96,7 +100,7 @@
 					</button>
 				</div>
 			{:else}
-				<button class="btn btn-sm rounded-md" disabled={$chatStreaming} on:click={onSubmit}>
+				<button class="btn btn-sm rounded-md" disabled={A.chatStreaming} onclick={onSubmit}>
 					<Send size={20} />
 				</button>
 			{/if}

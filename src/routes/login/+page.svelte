@@ -3,23 +3,23 @@
 
 	// import { applyAction, enhance } from '$app/forms';
 	import { env } from '$env/dynamic/public';
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { goto } from '$app/navigation';
 	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import Google from '$lib/components/icons/Google.svelte';
 
-	export let form;
-	$: console.log({ form });
+	let  {form }= $props();
+	$inspect(form);
 
-	if ($dbUser) {
+	if (A.dbUser) {
 		goto('/login/logout', { invalidateAll: true });
 	}
 
-	let isLogin = true;
+	let isLogin = $state(true);
 
 	// let EmailSpinning = false;
-	let loginGoogleSpinning = false;
-	let loginGithubSpinning = false;
+	let loginGoogleSpinning = $state(false);
+	let loginGithubSpinning = $state(false);
 
 	function toggleMode() {
 		isLogin = !isLogin;
@@ -119,7 +119,7 @@
 			<button
 				formaction="?/google"
 				class="btn btn-outline text-xl"
-				on:click={() => {
+				onclick={() => {
 					loginGoogleSpinning = true;
 				}}>
 				{#if loginGoogleSpinning}
@@ -134,7 +134,7 @@
 			<button
 				formaction="?/github"
 				class="btn btn-outline text-xl"
-				on:click={() => {
+				onclick={() => {
 					loginGithubSpinning = true;
 				}}>
 				{#if loginGithubSpinning}

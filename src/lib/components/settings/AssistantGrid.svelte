@@ -2,24 +2,24 @@
 	import { APIdeleteAssistant, APIupsertAssistant } from '$lib/api';
 	import { Assistant } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { assistants, dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { Plus } from 'lucide-svelte';
 
 	import dbg from 'debug';
 	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:AssistantGrid');
 
-	export let edit = false;
-	export let allowHiding = true;
+	let { edit = false, allowHiding = true, showDefault = false, newItemUserID = defaultsUUID }: {
+		edit?: boolean;
+		allowHiding?: boolean;
+		showDefault?: boolean;
+		newItemUserID?: string;
+	} = $props();
 
-	// Either show the users assistnts or the default assistants.
-	export let showDefault = false;
-	export let newItemUserID = defaultsUUID;
-
-	let addingAssistant = false;
+	let addingAssistant = $state(false);
 	async function addAssistant() {
 		debug('add assistant');
-		if (!dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingAssistant = true;
@@ -33,17 +33,14 @@
 			topP: 0,
 			assistantInstructionsFromUser: true
 		});
-		assistants.update((current) => {
-			current[newAssistant.id!] = newAssistant;
-			return current;
-		});
+		A.assistants[newAssistant.id!] = newAssistant;
 		addingAssistant = false;
 		debug('new assistant', newAssistant);
 	}
 
 	async function copyAssistant(assistant: AssistantInterface) {
 		debug('copy assistant', assistant);
-		if (!dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 		}
 		const newAssistant = await APIupsertAssistant({
@@ -52,23 +49,17 @@
 			name: assistant.name + ' (copy)',
 			userID: newItemUserID
 		});
-		assistants.update((current) => {
-			current[newAssistant.id!] = newAssistant;
-			return current;
-		});
+		A.assistants[newAssistant.id!] = newAssistant;
 		debug('copy assistant done', newAssistant);
 	}
 
 	async function deleteAssistant(assistant: AssistantInterface) {
 		debug('delete assistant', assistant);
-		if (!dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 		}
 		const del = await APIdeleteAssistant(assistant);
-		assistants.update((current) => {
-			delete current[del.id!];
-			return current;
-		});
+		delete A.assistants[del.id!];
 		debug('delete assistant done', del);
 	}
 </script>
@@ -85,16 +76,16 @@
 		<div class="font-bold">Delete</div>
 		<div></div>
 
-		{#each Object.entries($assistants) as [i, assistant]}
+		{#each Object.entries(A.assistants) as [i, assistant]}
 			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
-				<Assistant bind:assistant {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding} />
+				<Assistant bind:assistant={A.assistants[i]} {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding} />
 			{/if}
 		{/each}
 		{#if edit}
 			<button
 				class="btn btn-outline col-start-2 w-fit"
 				disabled={addingAssistant}
-				on:click={async () => {
+				onclick={async () => {
 					await addAssistant();
 				}}>
 				{#if addingAssistant}

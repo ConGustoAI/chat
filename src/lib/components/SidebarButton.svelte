@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { ArrowLeftSquare, ArrowRightSquare } from 'lucide-svelte';
-	import { sidebarOpen } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 </script>
 
-<button class="btn btn-circle rounded-xl" on:click={() => ($sidebarOpen = !$sidebarOpen)}>
-	{#if $sidebarOpen}
+<button class="btn btn-circle rounded-xl" onclick={() => (A.sidebarOpen = !A.sidebarOpen)}>
+	{#if A.sidebarOpen}
 		<ArrowLeftSquare />
 	{:else}
 		<ArrowRightSquare />

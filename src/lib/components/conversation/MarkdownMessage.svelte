@@ -19,7 +19,7 @@
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:MarkdownMessage');
 
-	export let message: MessageInterface;
+	let { message }: { message: MessageInterface } = $props();
 
 	import type { Element, Root } from 'hast';
 	import { visit } from 'unist-util-visit';

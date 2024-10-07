@@ -2,32 +2,41 @@
 	import { APIupsertProvider } from '$lib/api';
 	import { InfoPopup, Provider } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { dbUser, providers } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { Plus } from 'lucide-svelte';
 
 	import dbg from 'debug';
 	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:ProviderGrid');
 
-	export let edit = false;
-	export let allowHiding = true;
+	let {
+		edit = false,
+		allowHiding = true,
+		showDefault,
+		showCustom,
+		showDefaultChildren,
+		showCustomChildren,
+		editDefaultChildren,
+		editCustomChildren,
+		newProviderUserID,
+		newChildUserID
+	}: {
+		edit?: boolean;
+		allowHiding?: boolean;
+		showDefault: boolean;
+		showCustom: boolean;
+		showDefaultChildren: boolean;
+		showCustomChildren: boolean;
+		editDefaultChildren: boolean;
+		editCustomChildren: boolean;
+		newProviderUserID: string;
+		newChildUserID: string;
+	} = $props();
 
-	export let showDefault: boolean;
-	export let showCustom: boolean;
-	export let showDefaultChildren: boolean;
-	export let showCustomChildren: boolean;
-	export let editDefaultChildren: boolean;
-	export let editCustomChildren: boolean;
-
-	// When adding a new provider, it can be assigned to a user or be a default provider.
-	export let newProviderUserID: string;
-	// Same for the children (models/api keys) of the provider.
-	export let newChildUserID: string;
-
-	let addingProvider = false;
+	let addingProvider = $state(false);
 	async function addProvider() {
 		debug('add provider');
-		if (!$dbUser || !newProviderUserID) {
+		if (!A.dbUser || !newProviderUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 
@@ -41,10 +50,7 @@
 		});
 		debug('new provider', newProvider);
 
-		providers.update((current) => {
-			current[newProvider.id!] = newProvider;
-			return current;
-		});
+		A.providers[newProvider.id!] = newProvider;
 
 		addingProvider = false;
 	}
@@ -72,10 +78,10 @@
 		<div class="font-bold">Delete</div>
 		<div></div>
 
-		{#each Object.entries($providers) as [i, provider]}
+		{#each Object.entries(A.providers) as [i, provider]}
 			{#if (showDefault && provider.userID === defaultsUUID) || (showCustom && provider.userID !== defaultsUUID)}
 				<Provider
-					bind:provider
+					bind:provider={A.providers[i]}
 					{edit}
 					{allowHiding}
 					{showDefaultChildren}
@@ -91,7 +97,7 @@
 			<button
 				class="btn btn-outline col-start-2 w-fit"
 				disabled={addingProvider || !edit}
-				on:click={async () => {
+				onclick={async () => {
 					await addProvider();
 				}}>
 				{#if addingProvider}

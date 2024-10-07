@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { MetaTags } from 'svelte-meta-tags';
 
-	export let title: string;
-	export let description: string = "";
-	export let url: string | undefined = undefined;
-	export let image_url: string | undefined = undefined;
-	export let image_width = 1200;
-	export let image_height = 630;
+	let {
+		title,
+		description = "",
+		url = undefined,
+		image_url = undefined,
+		image_width = 1200,
+		image_height = 630
+	}: {
+		title: string;
+		description?: string;
+		url?: string;
+		image_url?: string;
+		image_width?: number;
+		image_height?: number;
+	} = $props();
 	// export let article_published_time: string | undefined = undefined;
 	// export let article_author: string | undefined = undefined;
 	// export let article_publisher: string | undefined = undefined;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SidebarNav } from '$lib/components';
-	import { apiKeys, assistants, dbUser, models, providers } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte.js';
 	import { ArrowLeftCircle } from 'lucide-svelte';
 
 	import dbg from 'debug';
@@ -10,32 +10,31 @@
 	import { toIdMap } from '$lib/utils.js';
 	const debug = dbg('app:ui:settings:layout');
 
+	let { data, children } = $props();
 
-	export let data;
+	// A.dbUser.subscribe(async () => {
 
-	dbUser.subscribe(async () => {
+	$effect(() => {
 		debug('dbUser changed, fetching data');
+		if (A.dbUser) {
+			Promise.all([APIfetchProviders(), APIfetchModels(), APIfetchKeys()]).then(
+				([fetchedProviders, fetchedModels, fetchedApiKeys]) => {
+					A.assistants = toIdMap(data.assistants);
+					A.providers = toIdMap(fetchedProviders);
+					A.models = toIdMap(fetchedModels);
+					A.apiKeys = toIdMap(fetchedApiKeys);
 
-		const [fetchedProviders, fetchedModels, fetchedApiKeys] = await Promise.all([
-			APIfetchProviders(),
-			APIfetchModels(),
-			APIfetchKeys()
-		]);
-
-		$assistants = toIdMap(data.assistants);
-		$providers = toIdMap(fetchedProviders);
-		$models = toIdMap(fetchedModels);
-		$apiKeys = toIdMap(fetchedApiKeys);
-
-		debug('Done fetching', {
-			assistants: $assistants,
-			providers: $providers,
-			models: $models,
-			dbUser: $dbUser,
-			apiKeys: Object.keys($apiKeys)
-		});
+					debug('Done fetching', {
+						assistants: A.assistants,
+						providers: A.providers,
+						models: A.models,
+						dbUser: A.dbUser,
+						apiKeys: Object.keys(A.apiKeys)
+					});
+				}
+			);
+		}
 	});
-
 
 	const sidebarNavItems = [
 		{
@@ -73,14 +72,14 @@
 	];
 </script>
 
-<div class="max-w-screen h-screen overflow-auto flex flex-col p-5 pb-16">
+<div class="max-w-screen flex h-screen flex-col overflow-auto p-5 pb-16">
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat
 	</a>
 
-	<SidebarNav items={sidebarNavItems} adminItems={$dbUser?.admin ? adminSidebarItems : []}>
+	<SidebarNav items={sidebarNavItems} adminItems={A.dbUser?.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
-			<slot />
+			{@render children()}
 		</div>
 	</SidebarNav>
 </div>

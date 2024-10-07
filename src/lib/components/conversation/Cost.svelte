@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 
-	export let total: number;
+	let { total }: { total: number } = $props();
 
-	$: costShow = ($dbUser?.costShow ?? -1) < 0 ? +Infinity : ($dbUser?.costShow ?? +Infinity);
-	$: costWarn1 = ($dbUser?.costWarn1 ?? -1) < 0 ? +Infinity : ($dbUser?.costWarn1 ?? +Infinity);
-	$: costWarn2 = ($dbUser?.costWarn2 ?? -1) < 0 ? +Infinity : ($dbUser?.costWarn2 ?? +Infinity);
+	let costShow = $derived((A.dbUser?.costShow ?? -1) < 0 ? +Infinity : (A.dbUser?.costShow ?? +Infinity));
+	let costWarn1 = $derived((A.dbUser?.costWarn1 ?? -1) < 0 ? +Infinity : (A.dbUser?.costWarn1 ?? +Infinity));
+	let costWarn2 = $derived((A.dbUser?.costWarn2 ?? -1) < 0 ? +Infinity : (A.dbUser?.costWarn2 ?? +Infinity));
 
-	$: color = total > costWarn2 ? 'text-error' : total > costWarn1 ? 'text-warning' : '';
+	let color = $derived(total > costWarn2 ? 'text-error' : total > costWarn1 ? 'text-warning' : '');
 </script>
 
 {#if total > costShow || total > costWarn1 || total > costWarn2}

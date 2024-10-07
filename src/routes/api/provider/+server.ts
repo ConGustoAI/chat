@@ -15,9 +15,9 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 	return json(updatedProvider);
 };
 
-export const GET: RequestHandler = async ({ locals: { user } }) => {
+export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
 	debug('GET');
-	const providers = await DBgetProviders({ dbUser: user });
+	const providers = await DBgetProviders({ dbUser });
 	debug('GET -> %o', providers);
 
 	return json(providers);

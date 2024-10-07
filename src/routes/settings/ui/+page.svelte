@@ -15,6 +15,6 @@
 
 <label class="flex cursor-pointer gap-2">
 	<Sun />
-	<input type="checkbox" checked={$theme === "dark"} on:click={cycleTheme} class="toggle theme-controller" />
+	<input type="checkbox" checked={$theme === "dark"} onclick={cycleTheme} class="toggle theme-controller" />
 	<Moon />
 </label>

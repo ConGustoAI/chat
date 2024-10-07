@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { MetaTag } from '$lib/components';
-	import { assistants, conversation, dbUser } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { newConversation } from '$lib/utils';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:routes:chat:new');
@@ -12,13 +12,14 @@
 			return;
 		}
 		// If the previous conversation was a new conversation, keep the assistant ID.
-		const oldAssistantId = $conversation?.id ? undefined : $conversation?.assistant;
-		$conversation = newConversation($dbUser, oldAssistantId, $assistants);
+		const oldAssistantId = A.conversation?.id ? undefined : A.conversation?.assistant;
+		A.conversation = newConversation(A.dbUser, oldAssistantId, A.assistants);
 	}
 
-	$effect(() => {
-		fetchConversation($page.params.chat);
-	});
+	// $effect(() => {
+	// 	fetchConversation($page.params.chat);
+	// });
+
 	// $: fetchConversation($page.params.chat);
 </script>
 

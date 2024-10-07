@@ -2,7 +2,7 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIdeleteProvider, APIhideItem, APIunhideItem, APIupsertModel, APIupsertProvider } from '$lib/api';
 	import { defaultsUUID, providerTypes } from '$lib/db/schema';
-	import { apiKeys, dbUser, providers, models, hiddenItems } from '$lib/stores/appstate';
+	import { A } from '$lib/appstate.svelte';
 	import { assert, capitalize } from '$lib/utils';
 	import { Check, Copy, Eye, EyeOff, Trash2 } from 'lucide-svelte';
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
@@ -11,28 +11,35 @@
 	import { page } from '$app/stores';
 	const debug = dbg('app:ui:components:Provider');
 
-	export let provider: ProviderInterface;
+	let {
+		provider = $bindable(),
+		edit,
+		allowHiding = true,
+		showDefaultChildren,
+		showCustomChildren,
+		editDefaultChildren,
+		editCustomChildren,
+		newChildUserID,
+		newProviderUserID
+	}: {
+		provider: ProviderInterface;
+		edit: boolean;
+		allowHiding?: boolean;
+		showDefaultChildren: boolean;
+		showCustomChildren: boolean;
+		editDefaultChildren: boolean;
+		editCustomChildren: boolean;
+		newChildUserID: string;
+		newProviderUserID: string;
+	} = $props();
 
-	export let edit: boolean;
-	export let allowHiding = true;
-
-	export let showDefaultChildren: boolean;
-	export let showCustomChildren: boolean;
-
-	export let editDefaultChildren: boolean;
-	export let editCustomChildren: boolean;
-
-	export let newChildUserID: string;
-	export let newProviderUserID: string;
-
-	let status: string | null = null;
-	let statusMessage: string | null = null;
-	let updateTimer: number | NodeJS.Timeout;
+	let status: string|null|undefined = $state(null);
+	let errorMessage: string | null = $state(null);
+	let updateTimer: number | NodeJS.Timeout | undefined;
 
 	// Don't let the user navigate off if changes are unsaved
-	let hasUnsavedChanges = false;
 	beforeNavigate((navigation) => {
-		if (hasUnsavedChanges) {
+		if (status && status != 'saved') {
 			if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
 				navigation.cancel();
 			}
@@ -43,41 +50,36 @@
 		return { value: type, label: type };
 	});
 
-	$: {
-		debounceProviderUpdate();
-		hasUnsavedChanges = !!(status && status != 'saved');
-		provider = provider;
+	function updateProviderNow() {
+		if (!A.dbUser) {
+			goto('/login', { invalidateAll: true });
+		}
+		if (status !== 'changed') return;
+		status = 'saving';
+		return APIupsertProvider(provider)
+			.then((res) => {
+				assert(!provider.id || res.id == provider.id, 'provider ID mismatch');
+				provider.id = res.id;
+				status = 'saved';
+				updateTimer = setTimeout(() => {
+					status = null;
+				}, 2000);
+			})
+			.catch((e) => {
+				status = 'error';
+				errorMessage = e.message;
+			});
 	}
 
 	function debounceProviderUpdate() {
-		if (status === 'changed') {
-			clearTimeout(updateTimer);
-			updateTimer = setTimeout(() => {
-				if (!$dbUser) {
-					goto('/login', { invalidateAll: true });
-				}
-				status = 'saving';
-				APIupsertProvider(provider)
-					.then((res) => {
-						status = 'saved';
-						assert(!provider.id || provider.id === res.id, "Returned provider ID doesn't match");
-						provider.id = res.id;
-						updateTimer = setTimeout(() => {
-							status = null;
-						}, 2000);
-					})
-					.catch((e) => {
-						status = 'error';
-						statusMessage = e.message;
-					})
-					.finally(() => {});
-			}, 750);
-		}
+		debug('debounceProviderUpdate');
+		clearTimeout(updateTimer);
+		updateTimer = setTimeout(updateProviderNow, 750);
 	}
 
 	async function copyProvider(provider: ProviderInterface) {
 		debug('copy provider', provider);
-		if (!$dbUser || !newProviderUserID || !newChildUserID) {
+		if (!A.dbUser || !newProviderUserID || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 
@@ -93,9 +95,9 @@
 		// Copy all models associated with the provider.
 		// If the new provider is a default provider, only copy the default models.
 		// If the new provider is a user provider, copy both default and user models.
-		Object.entries($models).forEach(([modelId, model]) => {
+		Object.entries(A.models).forEach(([modelId, model]) => {
 			if (model.providerID === provider.id) {
-				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === $dbUser?.id)) {
+				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === A.dbUser?.id)) {
 					newModels.push({
 						...model,
 						id: undefined,
@@ -107,76 +109,66 @@
 		});
 
 		const insertedModels = await Promise.all(newModels.map((m) => APIupsertModel(m)));
-		models.update((current) => {
-			insertedModels.forEach((m) => {
-				current[m.id!] = m;
-			});
-			return current;
+		insertedModels.forEach((m) => {
+			A.models[m.id!] = m;
 		});
-		providers.update((current) => {
-			current[newProvider.id!] = newProvider;
-			return current;
-		});
+		A.providers[newProvider.id!] = newProvider;
 		debug('copy provider done', { newProvider, newModels });
 	}
 
 	async function deleteProvider(provider: ProviderInterface) {
 		debug('delete provider', provider);
-		if (!$dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 		}
 
 		const del = await APIdeleteProvider(provider);
 		debug('delete provider', del);
-		providers.update((current) => {
-			delete current[del.id!];
-			return current;
-		});
+		delete A.providers[del.id!];
 	}
 
 	async function toggleHidden() {
-		if (!$dbUser) {
+		if (!A.dbUser) {
 			await goto('/login', { invalidateAll: true });
 			return;
 		}
 
 		if (provider.id && allowHiding) {
-			if ($hiddenItems.has(provider.id)) {
+			if (A.hiddenItems.has(provider.id)) {
 				await APIunhideItem(provider.id);
-				$hiddenItems.delete(provider.id);
+				A.hiddenItems.delete(provider.id);
 			} else {
 				await APIhideItem(provider.id);
-				$hiddenItems.add(provider.id);
+				A.hiddenItems.add(provider.id);
 			}
-			$hiddenItems = $hiddenItems;
+			A.hiddenItems = A.hiddenItems;
 		}
 	}
 
-	function statusChanged() {
-		status = 'changed';
-	}
+	let showApiKeys = $state(false);
+	let showModels = $state(false);
+	$effect(() => {
+		showApiKeys = $page.url.hash == `#${provider.id}/keys`;
+		showModels = $page.url.hash == `#${provider.id}/models`;
+	});
 
-	let showApiKeys = false;
-	let showModels = false;
-	debug(provider, $page.url.hash);
-	$: if ($page.url.hash == `#${provider.id}/keys`) showApiKeys = true;
-	$: if ($page.url.hash == `#${provider.id}/models`) showModels = true;
-
-	$: streamUsage = provider.type !== 'openai' || provider.openAIStreamUsage;
+	let streamUsage = $derived(provider.type !== 'openai' || provider.openAIStreamUsage);
 
 	function streamUsageChanged(e: Event) {
 		if (provider.type === 'openai') {
 			provider.openAIStreamUsage = (e.target as HTMLInputElement).checked;
-			statusChanged();
+			status = 'changed';
+			debounceProviderUpdate();
 		}
 	}
 
+	$inspect(status);
 </script>
 
 <button
 	id="#{provider.id}"
 	class="btn btn-outline"
-	on:click={async () => {
+	onclick={async () => {
 		status = 'copying';
 		await copyProvider(provider);
 		status = null;
@@ -193,10 +185,28 @@
 	type="text"
 	class="input input-bordered w-full"
 	bind:value={provider.name}
-	on:input={statusChanged}
+	oninput={() => {
+		status = 'changed';
+		debounceProviderUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateProviderNow();
+	}}
 	spellcheck="false"
 	disabled={!edit} />
-<select class="select select-bordered w-full" bind:value={provider.type} on:change={statusChanged} disabled={!edit}>
+<select
+	class="select select-bordered w-full"
+	bind:value={provider.type}
+	onchange={() => {
+		status = 'changed';
+		debounceProviderUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateProviderNow();
+	}}
+	disabled={!edit}>
 	{#each types as type}
 		<option value={type.value}>{capitalize(type.label)}</option>
 	{/each}
@@ -207,34 +217,41 @@
 	class="checkbox"
 	disabled={!edit || provider.type !== 'openai'}
 	checked={streamUsage}
-	on:change={streamUsageChanged} />
+	onchange={streamUsageChanged} />
 
 <input
 	type="text"
 	class="input input-bordered w-full"
 	bind:value={provider.baseURL}
 	spellcheck="false"
-	on:change={statusChanged}
+	oninput={() => {
+		status = 'changed';
+		debounceProviderUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateProviderNow();
+	}}
 	disabled={!edit} />
 
-<button class="btn btn-outline w-full" class:btn-active={showApiKeys} on:click={() => (showApiKeys = !showApiKeys)}>
+<button class="btn btn-outline w-full" class:btn-active={showApiKeys} onclick={() => (showApiKeys = !showApiKeys)}>
 	API Keys
 </button>
-<button class="btn btn-outline w-full" class:btn-active={showModels} on:click={() => (showModels = !showModels)}>
+<button class="btn btn-outline w-full" class:btn-active={showModels} onclick={() => (showModels = !showModels)}>
 	Models
 </button>
 
 <button
 	class="btn btn-outline"
 	disabled={status === 'hiding' || !allowHiding}
-	on:click={async () => {
+	onclick={async () => {
 		status = 'hiding';
 		await toggleHidden();
 		status = null;
 	}}>
 	{#if status === 'hiding'}
 		<div class="loading"></div>
-	{:else if $hiddenItems.has(provider.id ?? '') && allowHiding}
+	{:else if A.hiddenItems.has(provider.id ?? '') && allowHiding}
 		<EyeOff />
 	{:else}
 		<Eye />
@@ -258,7 +275,7 @@
 	</div>
 </div>
 <div class="col-span-full text-error" class:hidden={status !== 'error'}>
-	<span>{statusMessage}</span>
+	<span>{errorMessage}</span>
 </div>
 
 {#if showModels}
@@ -305,7 +322,7 @@
 			<ApiKeysGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} />
 		{/if}
 
-		{#if showDefaultChildren && (Object.entries($apiKeys).filter(([k, v]) => v.providerID === provider.id && v.userID === defaultsUUID).length || editDefaultChildren)}
+		{#if showDefaultChildren && (Object.entries(A.apiKeys).filter(([k, v]) => v.providerID === provider.id && v.userID === defaultsUUID).length || editDefaultChildren)}
 			<div class="divider w-full">
 				{provider.name}: Default API Keys
 			</div>

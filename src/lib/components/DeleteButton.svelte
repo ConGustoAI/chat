@@ -2,26 +2,30 @@
 	import { cn } from '$lib/utils';
 	import { Trash2 } from 'lucide-svelte';
 
-	export let deleteAction: () => Promise<void> | void;
-	export let size = 15;
-	export let btnClass = '';
-	let className = '';
-	export { className as class };
+	let { deleteAction, size = 15, btnClass = '', class: className = '', disabled = false, children } = $props<{
+		deleteAction: () => Promise<void> | void;
+		size?: number;
+		btnClass?: string;
+		class?: string;
+		disabled?: boolean;
+		children?: any;
+	}>();
 
-	export let disabled = false;
-	let deleting = false;
-	let button: HTMLButtonElement;
+	let deleting = $state(false);
+	let button = $state<HTMLButtonElement | null>(null);
 </script>
 
 <div class={cn('dropdown', className)}>
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div tabindex={0} class={cn(disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
+			<!-- svelte-ignore slot_element_deprecated -->
 			<div class="loading loading-sm"></div>
-			<slot />
+			{@render children?.()}
 		{:else}
 			<Trash2 {size} />
-			<slot />
+			{@render children?.()}
 		{/if}
 	</div>
 
@@ -30,10 +34,10 @@
 			<button
 				bind:this={button}
 				class="btn btn-sm bg-primary btn-outline text-nowrap rounded-md"
-				on:click={async () => {
+				onclick={async () => {
 					disabled = true;
 					deleting = true;
-					button.blur();
+					button?.blur();
 					await deleteAction();
 					disabled = false;
 					deleting = false;
