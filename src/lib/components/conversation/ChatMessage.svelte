@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { APIupsertMessage } from '$lib/api';
+	import { APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
@@ -14,19 +15,21 @@
 		submitConversation,
 		message = $bindable(),
 		isPublic = false,
-		loading = false
+		loading = false,
+		editingMessage = $bindable(false)
 	}: {
 		submitConversation: (toDelete: string[]) => Promise<void>;
 		message: MessageInterface;
 		isPublic?: boolean;
 		loading?: boolean;
+		editingMessage?: boolean;
 	} = $props();
 
 	let chatError: string | undefined = $state();
 	let markdown = $state(message.role === 'assistant');
 
 	let originalMessage = $state('');
-	let editingMessage = $state(false);
+	// let editingMessage = $state(edit);
 	let savingMessage = $state(false);
 
 	let detailsOpen = $state(false);
@@ -66,8 +69,16 @@
 
 	async function updateMessage() {
 		debug('updateMessage', { conversation: A.conversation, message });
-
+		let newConversation = false;
 		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
+
+		if (!A.conversation.id) {
+			A.conversation = { ...A.conversation, ...(await APIupsertConversation(A.conversation)) };
+			for (const m of A.conversation.messages || []) {
+				m.conversationID = A.conversation.id;
+			}
+			newConversation = true;
+		}
 
 		savingMessage = true;
 		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
@@ -75,6 +86,7 @@
 
 		await APIupsertMessage(message);
 		savingMessage = false;
+		if (newConversation) await goto(`/chat/${A.conversation.id}`);
 	}
 
 	async function deleteMessage() {

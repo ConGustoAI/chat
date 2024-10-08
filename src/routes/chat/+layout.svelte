@@ -14,7 +14,7 @@
 	import { A } from '$lib/appstate.svelte.js';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp, Star } from 'lucide-svelte';
+	import { ChevronUp, Star, Plus } from 'lucide-svelte';
 
 	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import dbg from 'debug';
@@ -233,10 +233,11 @@
 		}
 	}
 
-	let dropdownElement: HTMLDetailsElement;
+	let assistantSelectDropdown: HTMLDetailsElement;
+	let addMessageDropdown: HTMLDetailsElement | undefined = $state();
 
 	async function NewChat(assistantId?: string) {
-		dropdownElement.open = false;
+		assistantSelectDropdown.open = false;
 		if (A.isMobile) A.sidebarOpen = false;
 		debug('NewChat', { assistantId, assistants: A.assistants });
 
@@ -251,6 +252,24 @@
 			if (!del.id) throw new Error('Failed to delete the conversation.');
 		}
 	}
+
+	async function addMessage(role: 'user' | 'assistant') {
+		debug('addMessage', role);
+
+		if (!A.conversation) return;
+		if (!A.conversation.messages) A.conversation.messages = [];
+
+		A.conversation?.messages?.push({
+			userID: A.dbUser?.id ?? 'unknown',
+			role,
+			text: ''
+		});
+
+		if (addMessageDropdown) addMessageDropdown.open = false;
+		editLastMessage = true;
+	}
+
+	let editLastMessage = $state(false);
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
@@ -259,11 +278,11 @@
 		class:hidden={!A.sidebarOpen}>
 		<div class="join flex w-full">
 			<button
-				class="border- btn btn-outline join-item h-full grow"
+				class="btn btn-outline join-item btn-sm h-full grow"
 				onclick={async () => await NewChat(A.dbUser?.assistant)}>New chat</button>
-			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={dropdownElement}>
-				<summary class="btn btn-outline join-item mx-1 p-1"><ChevronUp class="rotate-180" /></summary>
-				<ul class="menu dropdown-content z-[1] w-52 bg-base-300 p-2 shadow">
+			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={assistantSelectDropdown}>
+				<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
+				<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
 					<div class="divider w-full py-2">Your assistants</div>
 					{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 						{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
@@ -289,19 +308,42 @@
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle />
-
-		<div class="mb-auto w-full grow overflow-y-auto bg-transparent bg-opacity-10">
+		<div class="mb-auto flex w-full grow flex-col justify-start overflow-y-auto bg-transparent bg-opacity-10">
 			{#if A.conversation?.messages}
 				{#each A.conversation.messages as m, i}
-					<ChatMessage
-						bind:message={A.conversation.messages[i]}
-						loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
-						{submitConversation} />
+					{#if i == A.conversation.messages.length - 1}
+						<ChatMessage
+							bind:message={A.conversation.messages[i]}
+							loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
+							{submitConversation}
+							bind:editingMessage={editLastMessage} />
+					{:else}
+						<ChatMessage
+							bind:message={A.conversation.messages[i]}
+							loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
+							{submitConversation} />
+					{/if}
 				{/each}
+			{/if}
+			{#if A.dbUser?.hacker}
+				<div class="flex w-full flex-col items-end justify-end">
+					<div class="divider w-full grow-0"></div>
+					<details class="dropdown dropdown-left h-full" bind:this={addMessageDropdown}>
+						<summary class="btn btn-outline btn-xs mx-2 mt-2 rounded-md p-1"><Plus size={14} /></summary>
+						<ul class="menu dropdown-content z-[20] w-fit text-nowrap rounded-md bg-base-200 p-2 shadow">
+							<button class="btn btn-ghost btn-sm rounded" onclick={() => addMessage('user')}>New user message</button>
+							<button class="btn btn-ghost btn-sm" onclick={() => addMessage('assistant')}
+								>New assistant message</button>
+						</ul>
+					</details>
+				</div>
+			{/if}
+			{#if A.conversation?.messages}
 				<div class="mb-20 w-full"></div>
-			{:else if !A.conversation?.id}
+			{/if}
+			{#if !A.conversation?.messages && !A.conversation?.id}
 				<div
-					class=" m-auto flex h-full w-full select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
+					class="m-auto flex w-full grow select-none flex-col items-center justify-center gap-6 justify-self-center lg:w-1/3">
 					<div class="pointer-events-none flex flex-col font-bold grayscale" style="opacity:0.05">
 						<img class="w-[50%] max-w-[200px] self-center" src="/favicon.png" alt="Congusto" />
 						<p class="w-fit text-nowrap text-[5vw] md:text-[3vw]">Congusto Chat</p>

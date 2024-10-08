@@ -62,7 +62,7 @@
 
 	let inputFocus = $state(false);
 
-	let prefillEnabled = $state(true);
+	let prefillEnabled = $state(false);
 	let prefill = $state('');
 	let prefillAvailable = $state(false);
 

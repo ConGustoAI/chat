@@ -84,7 +84,7 @@
 	}
 </script>
 
-<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-100">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-200">
 	<!-- navbar-start -->
 	<div class="flex min-w-0 shrink-0 gap-2">
 		{#if isPublic}
@@ -172,3 +172,4 @@
 		{/if}
 	</div>
 </div>
+<div class="divider m-0 w-full "></div>
