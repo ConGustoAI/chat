@@ -23,7 +23,7 @@
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
 	onMount(async () => {
-		debug('dbUser changed, fetching data');
+		debug('Mounted, fetching data');
 
 		// Sidebar closed by default on small screens
 		if (window.innerWidth < 768) {
@@ -41,17 +41,17 @@
 		A.conversations = toIdMap(gotConvos);
 		A.conversationOrder = Object.keys(A.conversations);
 		A.chatDataLoading = false;
-		// debug('done fetching data', {
-		// 	conversation: A.conversation,
-		// 	conversations: A.conversations,
-		// 	conversationOrder: A.conversationOrder
-		// });
+		debug('done fetching data', {
+			conversation: A.conversation,
+			conversations: A.conversations,
+			conversationOrder: A.conversationOrder
+		});
 	});
 
 	let { data, children } = $props();
 
 	$effect(() => {
-		debug('dbUser changed, fetching data');
+		debug('dbUser changed, fetching data', A.dbUser);
 
 		if (A.dbUser) {
 			Promise.all([APIfetchProviders(), APIfetchModels(), APIfetchKeys()]).then(
@@ -72,6 +72,8 @@
 			);
 		}
 	});
+
+	$inspect(A.dbUser);
 
 	let abortController: AbortController | undefined = undefined;
 

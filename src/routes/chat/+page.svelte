@@ -7,6 +7,8 @@
 	import { onMount } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:new');
 
+	let { data } = $props();
+
 	function fetchConversation(convId: string) {
 		if (convId) {
 			debug('Expected a new conversation, but got an existing one:', convId);
@@ -14,7 +16,7 @@
 		}
 		// If the previous conversation was a new conversation, keep the assistant ID.
 		const oldAssistantId = A.conversation?.id ? undefined : A.conversation?.assistant;
-		A.conversation = newConversation(A.dbUser, oldAssistantId, A.assistants);
+		A.conversation = newConversation(data.dbUser, oldAssistantId, A.assistants);
 	}
 
 	onMount(() => {
@@ -22,4 +24,4 @@
 	});
 </script>
 
-<MetaTag title="Congusto Chat" url={$page.url.href}/>
+<MetaTag title="Congusto Chat" url={$page.url.href} />

@@ -19,6 +19,9 @@
 
 	$effect(() => {
 		A.dbUser = data.dbUser;
+	});
+
+	$effect(() => {
 		A.hiddenItems = data.hiddenItems;
 	});
 </script>
