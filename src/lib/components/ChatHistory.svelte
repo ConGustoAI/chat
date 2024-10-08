@@ -186,7 +186,7 @@
 		deleting = false;
 	}
 
-	let searchFocused = $state(true);
+	let searchFocused = $state(false);
 </script>
 
 <div>

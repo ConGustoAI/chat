@@ -4,7 +4,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
-	import { Send, StopCircle, Upload } from 'lucide-svelte';
+	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -28,11 +28,12 @@
 		A.conversation.messages = [
 			...(A.conversation.messages ?? []),
 			{ userID: A.conversation.userID, role: 'user', text: input },
-			{ userID: A.conversation.userID, role: 'assistant', text: '' } // TODO: Allow prefill
+			{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
 		];
 
 		let savedInput = input;
 		input = '';
+		prefill = '';
 
 		try {
 			// This modifieds the messages and sets the conversaion id if it was not set.
@@ -60,50 +61,82 @@
 	}
 
 	let inputFocus = $state(false);
+
+	let prefillEnabled = $state(true);
+	let prefill = $state('');
+	let prefillAvailable = $state(false);
+
+	$effect(() => {
+		if (A.assistants[A.conversation?.assistant ?? '']?.prefill) prefillAvailable = true;
+		else {
+			prefillEnabled = false;
+			prefillAvailable = false;
+		}
+	});
 </script>
 
-<div class="flex h-fit w-full flex-col">
+<div class="flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
 
-	<div class="relative h-fit w-full">
-		{#if inputFocus}
-			<div class="absolute -top-4 right-2 z-20 text-xs">
-				<CostEstimate {input} />
-			</div>
-			{#if A.conversation?.public}
-				<div class="absolute -top-4 left-2 z-20 text-xs">
-					<span class="text-warning">Conversation is public</span>
-				</div>
-			{/if}
-		{/if}
-		<GrowInput
-			bind:focused={inputFocus}
-			bind:value={input}
-			onkeydown={inputKeyboardHandler}
-			disabled={A.chatStreaming}
-			class="textarea-bordered h-fit max-h-96 whitespace-pre-wrap text-wrap  px-12" />
-		<div class="absolute bottom-1 left-2">
-			<button class="btn btn-circle btn-sm" disabled={true}>
-				<Upload style="disabled" size={20} />
+	<div class="grid grid-cols-[min-content,auto] items-center gap-0.5">
+		<div class="tooltip tooltip-right z-[200]" data-tip={prefillAvailable? "Start assistant message": "Prefill not available for this assistant"}>
+			<button
+				class="row-span-2 w-6 p-0"
+				class:-rotate-90={!prefillEnabled}
+				onclick={() => (prefillEnabled = !prefillEnabled)}
+				disabled={!prefillAvailable}>
+				<ChevronDown />
 			</button>
 		</div>
-		<div class="absolute bottom-1 right-2">
-			{#if A.chatStreaming}
-				<div class="relative">
-					<button class="btn btn-sm" onclick={cancelConversation}>
-						<div class="relative">
-							<StopCircle />
-							<span class="absolute inset-0 flex items-center justify-center">
-								<span class="loading loading-spinner loading-md"></span>
-							</span>
-						</div>
-					</button>
+		<div class="relative h-full w-full">
+			{#if inputFocus}
+				<div class="absolute -top-4 right-2 z-20 text-xs">
+					<CostEstimate {input} />
 				</div>
-			{:else}
-				<button class="btn btn-sm rounded-md" disabled={A.chatStreaming} onclick={onSubmit}>
-					<Send size={20} />
-				</button>
+				{#if A.conversation?.public}
+					<div class="absolute -top-4 left-2 z-20 text-xs">
+						<span class="text-warning">Conversation is public</span>
+					</div>
+				{/if}
 			{/if}
+			<GrowInput
+				bind:focused={inputFocus}
+				bind:value={input}
+				onkeydown={inputKeyboardHandler}
+				disabled={A.chatStreaming}
+				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
+			<div class="absolute bottom-1 left-2">
+				<button class="btn btn-circle btn-sm" disabled={true}>
+					<Upload style="disabled" size={20} />
+				</button>
+			</div>
+			<div class="absolute bottom-1 right-2">
+				{#if A.chatStreaming}
+					<div class="relative">
+						<button class="btn btn-sm" onclick={cancelConversation}>
+							<div class="relative">
+								<StopCircle />
+								<span class="absolute inset-0 flex items-center justify-center">
+									<span class="loading loading-spinner loading-md"></span>
+								</span>
+							</div>
+						</button>
+					</div>
+				{:else}
+					<button class="btn btn-sm rounded-md" disabled={A.chatStreaming} onclick={onSubmit}>
+						<Send size={20} />
+					</button>
+				{/if}
+			</div>
 		</div>
+		{#if prefillEnabled}
+			<div class="col-start-2">
+				<GrowInput
+					bind:value={prefill}
+					onkeydown={inputKeyboardHandler}
+					disabled={A.chatStreaming}
+					class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap" />
+			</div>
+		{/if}
 	</div>
 </div>
