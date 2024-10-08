@@ -4,12 +4,13 @@
 	import { Link, Star, ArrowDownFromLine, ChevronDown } from 'lucide-svelte';
 	import { slide, scale, fly } from 'svelte/transition';
 	import dbg from 'debug';
+	import { APISearchConversations } from '$lib/api';
 	const debug = dbg('app:ui:components:ChatHistory');
 
 	let { deleteConversations }: { deleteConversations: (id: string[]) => Promise<void> } = $props();
 
-	let search = $state<string | undefined>(undefined);
-	let searchAMP = $state<string | undefined>(undefined);
+	let search: string | undefined = $state(undefined);
+	let searchAMP: string | undefined = $state(undefined);
 
 	let searchOptionsOpen = $state(false);
 	let searchAMPFocused = $state(false);
@@ -20,9 +21,22 @@
 	let searchStarred = $state(false);
 	let searchUnstarred = $state(false);
 
+	let eagerSearchConversations: string[] = $state([]);
+	let eagerSearchGoing = $state(false);
+
+	async function eagerSearch() {
+		if (search) {
+			eagerSearchGoing = true;
+			eagerSearchConversations = await APISearchConversations(search);
+			eagerSearchGoing = false;
+		} else {
+			eagerSearchConversations = [];
+		}
+	}
 	function splitConversations(
 		conversatonIds: string[],
 		value: string | undefined,
+		eagerSearchConversations: string[],
 		amp: string | undefined,
 		searchPublic: boolean,
 		searchPrivate: boolean,
@@ -42,6 +56,7 @@
 		const lastWeekConversations = [];
 		const lastMonthConversations = [];
 		const unknownConversations = [];
+		const fromMessages = [];
 
 		const filteredConversations = [];
 		for (const c of conversatonIds) {
@@ -55,7 +70,14 @@
 				(conversation.modelName ?? 'unknown');
 
 			// Summary match
-			if (value && !conversation.summary?.toLowerCase().includes(value.toLowerCase())) continue;
+			if (value && !conversation.summary?.toLowerCase().includes(value.toLowerCase())) {
+				if (!eagerSearchConversations.includes(c)) {
+					continue;
+				} else {
+					fromMessages.push(c);
+				}
+			}
+
 			// Match assistant/model/provider
 			if (amp && !conversationAMP.toLowerCase().includes(amp.toLowerCase())) continue;
 
@@ -107,15 +129,16 @@
 			lastWeek: lastWeekConversations,
 			lastMonth: lastMonthConversations,
 			unknown: unknownConversations,
-			allFiltered: filteredConversations
+			allFiltered: filteredConversations,
+			fromMessages
 		};
 	}
 
-	function findModelsProvidersAssistants(conversationIds: string[]) {
+	function findModelsProvidersAssistants(conversationIDs: string[]) {
 		const m: { [key: string]: boolean } = {};
 		const p: { [key: string]: boolean } = {};
 		const a: { [key: string]: boolean } = {};
-		for (const c of conversationIds) {
+		for (const c of conversationIDs) {
 			const conversation = A.conversations[c];
 
 			if (conversation?.modelName) m[conversation.modelName] = true;
@@ -125,21 +148,24 @@
 		return [...Object.keys(a), ...Object.keys(m), ...Object.keys(p)];
 	}
 
-	let datedConversation = $derived(splitConversations(
-		A.conversationOrder,
-		search,
-		searchAMP,
-		searchPublic,
-		searchPrivate,
-		searchStarred,
-		searchUnstarred
-	));
+	let datedConversation = $derived(
+		splitConversations(
+			A.conversationOrder,
+			search,
+			eagerSearchConversations,
+			searchAMP,
+			searchPublic,
+			searchPrivate,
+			searchStarred,
+			searchUnstarred
+		)
+	);
 	let historyAMPOptions = $derived(findModelsProvidersAssistants(datedConversation.allFiltered));
 
 	let selectedConversations: string[] = $state([]);
 	let deleting = $state(false);
 
-	export function selectAll(e: Event) {
+	function selectAll(e: Event) {
 		const target = e.target as HTMLInputElement;
 		if (target.checked) {
 			selectedConversations = datedConversation.allFiltered;
@@ -148,7 +174,7 @@
 		}
 	}
 
-	export async function deleteSelected() {
+	async function deleteSelected() {
 		deleting = true;
 		try {
 			await deleteConversations(selectedConversations);
@@ -159,31 +185,58 @@
 		search = '';
 		deleting = false;
 	}
+
+	let searchFocused = $state(true);
 </script>
 
-<div class="relative w-full">
-	<input
-		type="checkbox"
-		class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
-		onchange={(e) => selectAll(e)}
-		checked={!!selectedConversations.length && selectedConversations.length === datedConversation.allFiltered.length} />
-	{#if selectedConversations.length}
-		{#if deleting}
-			<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform"></span>
-		{:else}
-			<DeleteButton
-				class="dropdown-right absolute right-3 top-1/2 z-10 -translate-y-1/2"
-				btnClass="btn btn-sm m-0 btn-outline rounded-md p-0 px-1"
-				deleteAction={deleteSelected}
-				size={19} />
+<div>
+	<div class="relative w-full">
+		<input
+			type="checkbox"
+			class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
+			onchange={(e) => selectAll(e)}
+			checked={!!selectedConversations.length &&
+				selectedConversations.length === datedConversation.allFiltered.length} />
+		{#if selectedConversations.length}
+			{#if deleting}
+				<span class="loading loading-spinner absolute right-3 top-1/2 -translate-y-1/2 transform"></span>
+			{:else}
+				<DeleteButton
+					class="dropdown-right absolute right-3 top-1/2 z-10 -translate-y-1/2"
+					btnClass="btn btn-sm m-0 btn-outline rounded-md p-0 px-1"
+					deleteAction={deleteSelected}
+					size={19} />
+			{/if}
 		{/if}
-	{/if}
 
-	<input
-		type="text"
-		placeholder="Search chats..."
-		class="input input-bordered min-h-12 w-full pl-12"
-		bind:value={search} />
+		<input
+			type="text"
+			placeholder="Search chats..."
+			class="input input-bordered min-h-12 w-full pl-12"
+			bind:value={search}
+			onfocus={() => {
+				searchFocused = true;
+			}}
+			onblur={() => {
+				searchFocused = false;
+			}}
+			onkeydown={async (e) => {
+				if (e.key === 'Enter') {
+					await eagerSearch();
+				} else {
+					eagerSearchConversations = [];
+				}
+			}} />
+	</div>
+	{#if searchFocused || search?.length}
+		<div class="w-full pt-0.5 text-right text-sm">
+			{#if eagerSearchGoing}
+				<span class="loading loading-spinner loading-xs"></span>
+			{:else}
+				<p>Enter ⇒ search in messages</p>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <div class="divider w-full grow-0">
@@ -275,23 +328,23 @@
 
 <ul class="base-200 no-scrollbar menu flex w-full flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}
-		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations />
+		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
 
 	{#if datedConversation.yesterday.length}
-		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} bind:selectedConversations />
+		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
 
 	{#if datedConversation.lastWeek.length}
-		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} bind:selectedConversations />
+		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
 
 	{#if datedConversation.lastMonth.length}
-		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} bind:selectedConversations />
+		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
 
 	{#if datedConversation.unknown.length}
-		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations />
+		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
 </ul>
 <div class="grow"></div>

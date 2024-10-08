@@ -2,18 +2,23 @@
 	import { A } from '$lib/appstate.svelte';
 	import { Star, Link } from 'lucide-svelte';
 
-	let { title, group, selectedConversations = $bindable() }: { title: string, group: string[], selectedConversations: string[] } = $props();
+	let {
+		title,
+		group,
+		selectedConversations = $bindable(),
+		fromMessages: fromMessage
+	}: { title: string; group: string[]; selectedConversations: string[]; fromMessages: string[] } = $props();
 
-	function handleCheckboxChange(event: Event, conversationId: string) {
+	function handleCheckboxChange(event: Event, conversationID: string) {
 		const target = event.target as HTMLInputElement;
 		if (target.checked) {
 			// Add conversation ID if not already selected
-			if (!selectedConversations.includes(conversationId)) {
-				selectedConversations = [...selectedConversations, conversationId];
+			if (!selectedConversations.includes(conversationID)) {
+				selectedConversations = [...selectedConversations, conversationID];
 			}
 		} else {
 			// Remove conversation ID if unchecked
-			selectedConversations = selectedConversations.filter((id) => id !== conversationId);
+			selectedConversations = selectedConversations.filter((id) => id !== conversationID);
 		}
 	}
 </script>
@@ -44,6 +49,10 @@
 
 			{#if A.conversations[c]?.public}
 				<span><Link size={15} /></span>
+			{/if}
+
+			{#if fromMessage.includes(c)}
+				<span>📜</span>
 			{/if}
 
 			<span class="text-nowrap">{(A.conversations[c]?.summary ?? 'New Chat').trim()}</span>

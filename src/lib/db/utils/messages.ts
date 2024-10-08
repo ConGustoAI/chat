@@ -51,7 +51,7 @@ export async function DBupsertMessage({ dbUser, message }: { dbUser?: UserInterf
 
 	const insert = await db
 		.insert(messagesTable)
-		// @ts-expect-error - We check for conversationId above
+		// @ts-expect-error - We check for conversationID above
 		.values(message)
 		.onConflictDoNothing()
 		.returning();

@@ -69,6 +69,21 @@ export async function APIdeleteConversations(ids: string[]) {
 	return data;
 }
 
+export async function APISearchConversations(search: string) {
+	debug('searchConversations %o', { search });
+	const res = await fetch('/api/search', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ search })
+	});
+
+	if (!res.ok) throw new Error(`Failed to search conversations: ${await res.text()}`);
+	const data = await res.json() as string[];
+	debug('searchConversations -> %o', data);
+	return data;
+}
+
+
 export function conversationInterfaceFilter(conversation: ConversationInterface) {
 	const allowedKeys = Object.keys(conversationsTable);
 
