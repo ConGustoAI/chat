@@ -4,6 +4,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import { newConversation } from '$lib/utils';
 	import dbg from 'debug';
+	import { onMount } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:new');
 
 	function fetchConversation(convId: string) {
@@ -16,11 +17,9 @@
 		A.conversation = newConversation(A.dbUser, oldAssistantId, A.assistants);
 	}
 
-	// $effect(() => {
-	// 	fetchConversation($page.params.chat);
-	// });
-
-	// $: fetchConversation($page.params.chat);
+	onMount(() => {
+		fetchConversation($page.params.chat);
+	});
 </script>
 
 <MetaTag title="Congusto Chat" url={$page.url.href}/>
