@@ -61,6 +61,7 @@
 	}
 
 	let inputFocus = $state(false);
+	let prefillFocus = $state(false);
 
 	let prefillEnabled = $state(false);
 	let prefill = $state('');
@@ -79,19 +80,24 @@
 	<Notification messageType="error" bind:message={chatError} />
 
 	<div class="grid grid-cols-[min-content,auto] items-center gap-0.5">
-		<div class="tooltip tooltip-right z-[200]" data-tip={prefillAvailable? "Start assistant message": "Prefill not available for this assistant"}>
+		<div
+			class="tooltip tooltip-right z-[200]"
+			data-tip={prefillAvailable ? null : 'Prefill not available for this assistant'}>
 			<button
 				class="row-span-2 w-6 p-0"
 				class:-rotate-90={!prefillEnabled}
-				onclick={() => (prefillEnabled = !prefillEnabled)}
+				onclick={() => {
+					prefillEnabled = !prefillEnabled;
+					if (!prefillEnabled) prefill = '';
+				}}
 				disabled={!prefillAvailable}>
 				<ChevronDown />
 			</button>
 		</div>
 		<div class="relative h-full w-full">
-			{#if inputFocus}
+			{#if inputFocus || prefillFocus}
 				<div class="absolute -top-4 right-2 z-20 text-xs">
-					<CostEstimate {input} />
+					<CostEstimate input={input + prefill} />
 				</div>
 				{#if A.conversation?.public}
 					<div class="absolute -top-4 left-2 z-20 text-xs">
@@ -104,6 +110,7 @@
 				bind:value={input}
 				onkeydown={inputKeyboardHandler}
 				disabled={A.chatStreaming}
+				placeholder="User message"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
 			<div class="absolute bottom-1 left-2">
 				<button class="btn btn-circle btn-sm" disabled={true}>
@@ -132,9 +139,11 @@
 		{#if prefillEnabled}
 			<div class="col-start-2">
 				<GrowInput
+					bind:focused={prefillFocus}
 					bind:value={prefill}
 					onkeydown={inputKeyboardHandler}
 					disabled={A.chatStreaming}
+					placeholder="Start Assistant message"
 					class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap" />
 			</div>
 		{/if}

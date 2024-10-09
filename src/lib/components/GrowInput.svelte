@@ -6,6 +6,7 @@
 
 	let {
 		value = $bindable(''),
+		placeholder = 'Type a message',
 		class: className = '',
 		disabled = false,
 		spellcheck = false,
@@ -15,6 +16,7 @@
 		onchange = () => {}
 	} = $props<{
 		value?: string;
+		placeholder?: string;
 		class?: string;
 		disabled?: boolean;
 		spellcheck?: boolean;
@@ -34,28 +36,35 @@
 	}
 </script>
 
-{#if disabled}
-	<div
-		class={cn(
-			'textarea h-fit min-h-10 w-full resize-none overflow-auto whitespace-pre-wrap py-2 text-base',
-			className
-		)}>
-		{value}
-	</div>
-{:else}
-	<div
-		tabindex={0}
-		role="textbox"
-		contenteditable
-		{spellcheck}
-		bind:this={textBox}
-		bind:innerText={value}
-		onfocus={() => (focused = true)}
-		onblur={() => (focused = false)}
-		onpaste={handlePaste}
-		{oninput}
-		{onkeydown}
-		{onchange}
-		class={cn('textarea min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
-	</div>
-{/if}
+<div class="relative">
+	{#if disabled}
+		<div
+			class={cn(
+				'textarea h-fit min-h-10 w-full resize-none overflow-auto whitespace-pre-wrap py-2 text-base',
+				className
+			)}>
+			{value}
+		</div>
+	{:else}
+		<div
+			tabindex={0}
+			role="textbox"
+			contenteditable
+			{spellcheck}
+			bind:this={textBox}
+			bind:innerText={value}
+			onfocus={() => (focused = true)}
+			onblur={() => (focused = false)}
+			onpaste={handlePaste}
+			{oninput}
+			{onkeydown}
+			{onchange}
+			class={cn('textarea min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
+		</div>
+		{#if value === '' && !focused}
+			<div class={cn('pointer-events-none absolute inset-0 p-2 opacity-50', className)}>
+				{placeholder}
+			</div>
+		{/if}
+	{/if}
+</div>
