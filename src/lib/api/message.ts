@@ -1,4 +1,5 @@
 import { messagesTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:message');
@@ -11,7 +12,7 @@ export async function APIfetchMessage(id: string, withDeleted = false) {
 	const res = await fetch(`/api/message/${id}?${queryParams}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch message: ${await res.text()}`);
-	const data = await res.json();
+	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The message ID is missing in returned data.');
 	debug('fetchMessage -> %o', data);
 	return data as MessageInterface;
@@ -26,9 +27,9 @@ export async function APIupsertMessage(message: MessageInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to update message: ${await res.text()}`);
-	const data = (await res.json()) as MessageInterface;
+	const data = filterNull(await res.json());
 	debug('upsertMessage -> %o', data);
-	return data;
+	return data as MessageInterface;
 }
 
 export async function APIdeleteMessage(message: MessageInterface) {
@@ -40,9 +41,9 @@ export async function APIdeleteMessage(message: MessageInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete message: ${await res.text()}`);
-	const data = (await res.json()) as MessageInterface;
+	const data = filterNull(await res.json());
 	debug('deleteMessage -> %o', data);
-	return data;
+	return data as MessageInterface;
 }
 
 export function messageInterfaceFilter(message: MessageInterface) {

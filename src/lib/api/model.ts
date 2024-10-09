@@ -1,4 +1,5 @@
 import { modelsTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:model');
@@ -8,9 +9,9 @@ export async function APIfetchModels() {
 	const res = await fetch('/api/model');
 
 	if (!res.ok) throw new Error(`Failed to fetch models: ${await res.text()}`);
-	const data = (await res.json()) as ModelInterface[];
+	const data = (await res.json()).map((model: ModelInterface) => filterNull(model));
 	debug('fetchModels -> %o', data);
-	return data;
+	return data as ModelInterface[];
 }
 
 export async function APIfetchModel(id: string) {
@@ -18,9 +19,9 @@ export async function APIfetchModel(id: string) {
 	const res = await fetch(`/api/model/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch model: ${await res.text()}`);
-	const data = (await res.json()) as ModelInterface;
+	const data = filterNull(await res.json());
 	debug('fetchModel -> %o', data);
-	return data;
+	return data as ModelInterface;
 }
 
 export async function APIupsertModel(model: ModelInterface) {
@@ -32,9 +33,9 @@ export async function APIupsertModel(model: ModelInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to update model: ${await res.text()}`);
-	const data = (await res.json()) as ModelInterface;
+	const data = filterNull(await res.json());
 	debug('upsertModel -> %o', data);
-	return data;
+	return data as ModelInterface;
 }
 
 export async function APIdeleteModel(model: ModelInterface) {
@@ -46,9 +47,9 @@ export async function APIdeleteModel(model: ModelInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete model: ${await res.text()}`);
-	const data = (await res.json()) as ModelInterface;
+	const data = filterNull(await res.json());
 	debug('deleteModel -> %o', data);
-	return data;
+	return data as ModelInterface;
 }
 
 export function modelInterfaceFilter(model: ModelInterface) {

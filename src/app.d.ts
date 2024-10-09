@@ -179,6 +179,9 @@ declare global {
 		updatedAt?: Date;
 		createdAt?: Date;
 	}
+
+	type undefinedNull = undefined | null;
+
 }
 
 export {};

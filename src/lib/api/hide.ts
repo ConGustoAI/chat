@@ -1,4 +1,6 @@
 import dbg from 'debug';
+import { filterNull } from '$lib/utils';
+
 const debug = dbg('app:lib:api:hide');
 
 export async function APIfetchHidden() {
@@ -19,9 +21,9 @@ export async function APIhideItem(id: string) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to hide item: ${await res.text()}`);
-	const data = (await res.json()) as HiddenItemInterface;
+	const data = filterNull(await res.json());
 	debug('hideItem -> %o', data);
-	return data;
+	return data as HiddenItemInterface;
 }
 
 export async function APIunhideItem(id: string) {
@@ -32,7 +34,7 @@ export async function APIunhideItem(id: string) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to unhide item: ${await res.text()}`);
-	const data = (await res.json()) as HiddenItemInterface;
+	const data = filterNull(await res.json());
 	debug('unhideItem -> %o', data);
-	return data;
+	return data as HiddenItemInterface;
 }

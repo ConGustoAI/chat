@@ -6,10 +6,10 @@
 
 	let {
 		value = $bindable(''),
-		placeholder = 'Type a message',
+		placeholder = '',
 		class: className = '',
 		disabled = false,
-		spellcheck = false,
+		spellcheck = true,
 		focused = $bindable(false),
 		oninput = () => {},
 		onkeydown = () => {},
@@ -36,7 +36,7 @@
 	}
 </script>
 
-<div class="relative">
+<div class="relative w-full">
 	{#if disabled}
 		<div
 			class={cn(

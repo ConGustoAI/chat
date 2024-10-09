@@ -1,4 +1,5 @@
 import { apiKeysTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:key');
@@ -8,9 +9,9 @@ export async function APIfetchKeys() {
 	const res = await fetch('/api/key');
 
 	if (!res.ok) throw new Error(`Failed to fetch keys: ${await res.text()}`);
-	const data = (await res.json()) as ApiKeyInterface[];
+	const data = (await res.json()).map((key: ApiKeyInterface) => filterNull(key));
 	debug('fetchKeys -> %o', data);
-	return data;
+	return data as ApiKeyInterface[];
 }
 
 export async function APIfetchKey(id: string) {
@@ -18,9 +19,9 @@ export async function APIfetchKey(id: string) {
 	const res = await fetch(`/api/key/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch key: ${await res.text()}`);
-	const data = (await res.json()) as ApiKeyInterface;
+	const data = filterNull(await res.json());
 	debug('fetchKey -> %o', data);
-	return data;
+	return data as ApiKeyInterface;
 }
 
 export async function APIupsertKey(key: ApiKeyInterface) {
@@ -32,9 +33,9 @@ export async function APIupsertKey(key: ApiKeyInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to update key: ${await res.text()}`);
-	const data = (await res.json()) as ApiKeyInterface;
+	const data = filterNull(await res.json());
 	debug('upsertKey -> %o', data);
-	return data;
+	return data as ApiKeyInterface;
 }
 
 export async function APIdeleteKey(key: ApiKeyInterface) {
@@ -46,9 +47,9 @@ export async function APIdeleteKey(key: ApiKeyInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete key: ${await res.text()}`);
-	const data = (await res.json()) as ApiKeyInterface;
+	const data = filterNull(await res.json());
 	debug('deleteKey -> %o', data);
-	return data;
+	return data as ApiKeyInterface;
 }
 
 export function apiKeyInterfaceFilter(key: ApiKeyInterface) {

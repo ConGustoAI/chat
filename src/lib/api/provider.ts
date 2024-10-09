@@ -1,4 +1,5 @@
 import { providersTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:provider');
@@ -9,9 +10,9 @@ export async function APIfetchProviders() {
 	const res = await fetch('/api/provider');
 
 	if (!res.ok) throw new Error(`Failed to fetch providers: ${await res.text()}`);
-	const data = (await res.json()) as ProviderInterface[];
+	const data = (await res.json()).map((provider: ProviderInterface) => filterNull(provider));
 	debug('fetchProviders -> %o', data);
-	return data;
+	return data as ProviderInterface[];
 }
 
 export async function APIupsertProvider(provider: ProviderInterface) {
@@ -23,9 +24,9 @@ export async function APIupsertProvider(provider: ProviderInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to update provider: ${await res.text()}`);
-	const data = (await res.json()) as ProviderInterface;
+	const data = filterNull(await res.json());
 	debug('upsertProvider -> %o', data);
-	return data;
+	return data as ProviderInterface;
 }
 
 export async function APIdeleteProvider(provider: ProviderInterface) {
@@ -37,9 +38,9 @@ export async function APIdeleteProvider(provider: ProviderInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete provider: ${await res.text()}`);
-	const data = (await res.json()) as ProviderInterface;
+	const data = filterNull(await res.json());
 	debug('deleteProvider -> %o', data);
-	return data;
+	return data as ProviderInterface;
 }
 
 export function providerInterfaceFilter(provider: ProviderInterface) {

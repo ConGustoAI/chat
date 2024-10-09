@@ -33,9 +33,10 @@
 		}
 	}
 
-	$effect(() => fetchConversation($page.params.chat));
-
-	// } else {
-	//     $conversation = newConversation($dbUser, $assistants);
-	// }
+	$effect(() => {
+		// This gets called once on mount, so we add the check to avid a double fetch.
+		if (A.conversation?.id !== $page.params.chat) {
+			fetchConversation($page.params.chat);
+		}
+	});
 </script>

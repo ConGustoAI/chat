@@ -1,4 +1,5 @@
 import { usersTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:user');
@@ -8,9 +9,9 @@ export async function APIfetchUser() {
 	const res = await fetch('/api/user');
 
 	if (!res.ok) throw new Error(`Failed to fetch user: ${await res.text()}`);
-	const data = (await res.json()) as UserInterface;
+	const data = filterNull(await res.json());
 	debug('fetchUser -> %o', data);
-	return data;
+	return data as UserInterface;
 }
 
 export async function APIupdateUser(user: UserInterface) {
@@ -22,9 +23,9 @@ export async function APIupdateUser(user: UserInterface) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to update user: ${await res.text()}`);
-	const data = (await res.json()) as UserInterface;
+	const data = filterNull(await res.json());
 	debug('updateUser -> %o', data);
-	return data;
+	return data as UserInterface;
 }
 
 export async function APIdeleteUser() {
@@ -35,9 +36,9 @@ export async function APIdeleteUser() {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete user: ${await res.text()}`);
-	const data = await res.json();
+	const data = filterNull(await res.json());
 	debug('deleteUser -> %o', data);
-	return data;
+	return data as UserInterface;
 }
 
 export function userInterfaceFilter(user: UserInterface) {

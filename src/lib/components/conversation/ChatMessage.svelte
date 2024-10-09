@@ -9,6 +9,7 @@
 
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
+	import { trimLineLength } from '$lib/utils';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -72,18 +73,21 @@
 		let newConversation = false;
 		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
+		// Sanity check
+		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
+		if (currentIndex === -1) throw new Error('Current message not part of current conversation');
+
 		if (!A.conversation.id) {
+			A.conversation.summary = trimLineLength(message.text, 128);
 			A.conversation = { ...A.conversation, ...(await APIupsertConversation(A.conversation)) };
-			for (const m of A.conversation.messages || []) {
-				m.conversationID = A.conversation.id;
-			}
 			newConversation = true;
 		}
 
-		savingMessage = true;
-		const currentIndex = A.conversation.messages?.findIndex((m) => m === message);
-		if (currentIndex === -1) return;
+		for (const m of A.conversation.messages || []) {
+			m.conversationID = A.conversation.id;
+		}
 
+		savingMessage = true;
 		await APIupsertMessage(message);
 		savingMessage = false;
 		if (newConversation) await goto(`/chat/${A.conversation.id}`);
@@ -198,7 +202,8 @@
 				{/if}
 
 				<GrowInput
-					class="textarea-bordered w-full"
+					class="textarea-bordered h-fit min-h-10 w-full"
+					placeholder={message.role === 'user' ? 'User message' : 'Start Assistant message'}
 					bind:focused={inputFocus}
 					bind:value={message.text}
 					onkeydown={inputKeyboardHandler} />
@@ -267,7 +272,23 @@
 				{/if}
 				{#if A.dbUser?.showInfo && message.role == 'assistant' && message.id}
 					<div class="mr-2 flex gap-4 text-xs text-base-content">
-						<span>{message.assistantName} (T={message.temperature}, P={message.topP}, K={message.topK}) </span>
+						<span>
+							{#if message.assistantName}
+								{message.assistantName}
+							{/if}
+
+
+							{#if message.temperature !== undefined || message.topP !== undefined || message.topK !== undefined}
+								{@const stats = [
+									message.temperature !== undefined ? `T=${message.temperature}` : undefined,
+									message.topP !== undefined ? `P=${message.topP}` : undefined,
+									message.topK !== undefined ? `K=${message.topK}` : undefined
+								].filter(Boolean)}
+								{#if stats.length > 0}
+									({stats.join(', ')})
+								{/if}
+							{/if}
+						</span>
 						<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
 					</div>
 				{/if}

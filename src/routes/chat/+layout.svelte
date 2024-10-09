@@ -7,7 +7,8 @@
 		APIfetchModels,
 		APIfetchProviders,
 		APIupsertConversation,
-		APIupsertMessage
+		APIupsertMessage,
+		conversationInterfaceFilter
 	} from '$lib/api';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
@@ -118,7 +119,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ conversation: A.conversation, toDelete }),
+				body: JSON.stringify({ conversation: conversationInterfaceFilter(A.conversation), toDelete }),
 				signal: abortController.signal
 			});
 			debug('submitConversation POST: ', res);

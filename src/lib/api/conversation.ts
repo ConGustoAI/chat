@@ -1,4 +1,5 @@
 import { conversationsTable } from '$lib/db/schema';
+import { filterNull } from '$lib/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:conversation');
@@ -10,10 +11,10 @@ export async function APIfetchPublicConversation(id: string, fetch: typeof windo
 	const res = await fetch(`/api/public/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch public conversation: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface;
+	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
 	debug('fetchPublicConversation -> %o', data);
-	return data;
+	return data as ConversationInterface;
 }
 
 export async function APIfetchConversations() {
@@ -22,23 +23,23 @@ export async function APIfetchConversations() {
 	const res = await fetch('/api/conversation');
 
 	if (!res.ok) throw new Error(`Failed to fetch conversations: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface[];
+	const data = (await res.json()).map((conversation: ConversationInterface) => filterNull(conversation));
 	debug('fetchConversations -> %o', data);
-	return data;
+	return data as ConversationInterface[];
 }
 
 export async function APIfetchConversation(id: string) {
 	debug('fetchConversation %o', { id });
 
-	if (!id) return { userID: '' } as ConversationInterface;
+	if (!id) return filterNull({ userID: '' } as ConversationInterface);
 
 	const res = await fetch(`/api/conversation/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch conversation: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface;
+	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
 	debug('fetchConversation -> %o', data);
-	return data;
+	return data as ConversationInterface;
 }
 
 export async function APIupsertConversation(conversation: ConversationInterface) {
@@ -50,9 +51,9 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 	});
 
 	if (!res.ok) throw new Error(`Failed to update conversation: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface;
+	const data = filterNull(await res.json());
 	debug('upsertConversation -> %o', data);
-	return data;
+	return data as ConversationInterface;
 }
 
 export async function APIdeleteConversations(ids: string[]) {
@@ -64,9 +65,9 @@ export async function APIdeleteConversations(ids: string[]) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete conversation: ${await res.text()}`);
-	const data = (await res.json()) as ConversationInterface;
+	const data = filterNull(await res.json());
 	debug('deleteConversation -> %o', data);
-	return data;
+	return data as ConversationInterface;
 }
 
 export async function APISearchConversations(search: string) {
@@ -80,7 +81,7 @@ export async function APISearchConversations(search: string) {
 	if (!res.ok) throw new Error(`Failed to search conversations: ${await res.text()}`);
 	const data = await res.json() as string[];
 	debug('searchConversations -> %o', data);
-	return data;
+	return data as string[];
 }
 
 
