@@ -73,7 +73,13 @@
 		}
 	});
 
-	$inspect(A.dbUser);
+	$inspect(A.dbUser).with((type, value) => {
+		debug('dbUser: %s %o', type, value);
+	});
+	$inspect(A.conversation).with((type, value) => {
+		debug('conversation: %s %o', type, value);
+	});
+
 
 	let abortController: AbortController | undefined = undefined;
 
@@ -142,11 +148,10 @@
 						if (typeof dataPart === 'object' && dataPart !== null) {
 							if ('conversation' in dataPart) {
 								const dataConversation = dataPart.conversation as unknown as ConversationInterface;
-								// if (typeof dataPart.conversation !== 'string') throw new Error('The conversation ID is not a string.');
 								if (A.conversation.id && A.conversation.id != dataConversation.id)
 									throw new Error('The conversation ID does not match.');
 
-								A.conversation = { ...A.conversation, ...dataConversation };
+								Object.assign(A.conversation, dataConversation);
 								if (!A.conversation.id) throw new Error('The conversation ID is missing.');
 
 								if (!A.conversations[A.conversation.id]) {
