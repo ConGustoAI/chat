@@ -7,15 +7,14 @@
 		APIfetchModels,
 		APIfetchProviders,
 		APIupsertConversation,
-		APIupsertMessage,
-		conversationInterfaceFilter
+		APIupsertMessage
 	} from '$lib/api';
+	import { A } from '$lib/appstate.svelte.js';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
-	import { A } from '$lib/appstate.svelte.js';
 	import { newConversation, toIdMap } from '$lib/utils';
 	import { readDataStream } from 'ai';
-	import { ChevronUp, Star, Plus } from 'lucide-svelte';
+	import { ChevronUp, Plus, Star } from 'lucide-svelte';
 
 	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import dbg from 'debug';
@@ -119,7 +118,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ conversation: conversationInterfaceFilter(A.conversation), toDelete }),
+				body: JSON.stringify({ conversation: A.conversation, toDelete }),
 				signal: abortController.signal
 			});
 			debug('submitConversation POST: ', res);
