@@ -1,0 +1,115 @@
+<script lang="ts">
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:MediaPreview');
+
+	let { media }: { media: MediaInterface } = $props();
+
+	let progressBar: HTMLProgressElement|null = $state(null);
+
+	// Handle video seek based on mouse position
+	function handleVideoSeek(event: MouseEvent) {
+		const video = event.currentTarget as HTMLVideoElement;
+		const rect = video.getBoundingClientRect();
+		const xPos = event.clientX - rect.left;
+		const percentage = xPos / rect.width;
+
+		video.currentTime = percentage * video.duration; // Use video.duration
+		video.muted = true; // Mute the video
+		video.play();
+	}
+
+	// Stop video playback when mouse leaves
+	function handleVideoStop(event: MouseEvent) {
+		const video = event.currentTarget as HTMLVideoElement;
+		video.pause();
+	}
+
+	// Update progress bar based on video time
+	function updateProgressBar(event: Event) {
+		const video = event.currentTarget as HTMLVideoElement;
+		if (progressBar) {
+			const percentage = (video.currentTime / video.duration) * 100;
+			progressBar.value = percentage;
+		}
+	}
+	debug('media', media);
+	// if (media.file) debug(URL.createObjectURL(media.file));
+
+	let isHovered = false;
+
+	let thumbnailURL: string;
+	// $: {
+	// 	if (thumbnailURL) {
+	// 		URL.revokeObjectURL(thumbnailURL);
+	// 	}
+
+	// 	if (media.thumbnail?.file) {
+	// 		thumbnailURL = URL.createObjectURL(media.thumbnail.file);
+	// 	} else if (media.resized?.file) {
+	// 		thumbnailURL = URL.createObjectURL(media.resized.file);
+	// 	} else if (media.original?.file) {
+	// 		thumbnailURL = URL.createObjectURL(media.original.file);
+	// 	}
+	// 	debug('thumbnailURL', thumbnailURL);
+	// }
+
+
+</script>
+
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="relative flex h-32 w-32 flex-col justify-start gap-2 rounded-sm"
+	onmouseenter={() => (isHovered = true)}
+	onmouseleave={() => (isHovered = false)}>
+	{#if media.type === 'video'}
+		<!-- svelte-ignore a11y_media_has_caption -->
+		<video
+			class="grow object-cover"
+			onmousemove={(event) => handleVideoSeek(event)}
+			onmouseleave={handleVideoStop}
+			ontimeupdate={updateProgressBar}>
+			<source src={URL.createObjectURL(media.url)} type={media.mimeType} />
+			Your browser does not support the video tag.
+		</video>
+		<progress
+			bind:this={progressBar}
+			class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
+			value={0}
+			max={100}></progress>
+	{:else if media.type === 'audio'}
+		TODO: Audio
+	{:else}
+		<img src={thumbnailURL} alt={media.filename} class="object-contain h-32 w-32 border grow" />
+		{#if media.original?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.original.uploadProgress} max={100}>
+				{media.original.uploadProgress}%
+			</progress>
+		{:else if media.original?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.original.uploadError}</p>
+		{/if}
+
+		{#if media.resized?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.resized?.uploadProgress} max={100}>
+				{media.resized?.uploadProgress}%
+			</progress>
+		{:else if media.resized?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.resized?.uploadError}</p>
+		{/if}
+
+		{#if media.thumbnail?.status === 'progress'}
+			<progress class="absolute progress progress-success" value={media.thumbnail?.uploadProgress} max={100}>
+				{media.thumbnail?.uploadProgress}%
+			</progress>
+		{:else if media.thumbnail?.status === 'failed'}
+			<p class="absolute text-xs text-error">Upload error: {media.thumbnail?.uploadError}</p>
+		{/if}
+
+
+
+	{/if}
+
+	<label class="absolute right-1 top-1 z-30">
+		<input type="checkbox" class="checkbox checkbox-sm" />
+	</label>
+	<div class="break-all text-sm"></div>
+</div>

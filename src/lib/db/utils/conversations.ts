@@ -29,19 +29,54 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 
 	if (!conversation) error(404, 'Conversation not found or does not belong to the user');
 
+	// Sanity check. Messages and Media attached to the conversation should have the same user id.
+	for (const m of conversation.messages) {
+		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
+	}
+
 	return conversation;
 }
 
-export function DBGetPublicConversation({ id }: { id: string }) {
-	return db.query.conversationsTable.findFirst({
+export async function DBGetPublicConversation({ id }: { id: string }) {
+	const conversation = await db.query.conversationsTable.findFirst({
 		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.public, true)),
 		with: {
 			messages: {
 				where: (table, { eq, not }) => not(eq(table.deleted, true)),
 				orderBy: (table, { asc }) => [asc(table.order)]
+			},
+			media: {
+				orderBy: (table, { asc }) => [asc(table.order)],
+				with: {
+					original: true,
+					resized: true,
+					cropped: true,
+					thumbnail: true
+				}
 			}
 		}
 	});
+
+	if (!conversation) error(404, 'Conversation not found or is not public');
+
+	// Sanity check. Messages and Media attached to the conversation should have the same user id.
+	for (const m of conversation.messages) {
+		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
+	}
+
+	for (const m of conversation.media) {
+		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
+		if (m.original && m.original?.userID !== conversation.userID)
+			throw new Error("Media file 'original' user ID mismatch");
+		if (m.resized && m.resized?.userID !== conversation.userID)
+			throw new Error("Media file 'resized' user ID mismatch");
+		if (m.cropped && m.cropped?.userID !== conversation.userID)
+			throw new Error("Media file 'cropped' user ID mismatch");
+		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
+			throw new Error("Media file 'thumbnail' user ID mismatch");
+	}
+
+	return conversation;
 }
 
 export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface }) {
@@ -52,7 +87,6 @@ export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface })
 	});
 
 	if (!conversations) error(500, 'Failed to fetch conversations');
-
 	return conversations;
 }
 
@@ -65,42 +99,36 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 				where: (table, { eq, not }) => not(eq(table.deleted, true)),
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: { prompt: true }
+			},
+			media: {
+				orderBy: (table, { asc }) => [asc(table.order)],
+				with: {
+					original: true,
+					resized: true,
+					cropped: true,
+					thumbnail: true
+				}
 			}
 		}
 	});
 
 	if (!conversation) error(404, 'Conversation not found or does not belong to the user');
 
-	return conversation;
-}
-
-export async function DBConversationUpdateTokens({
-	dbUser,
-	conversationID,
-	tokensIn,
-	tokensOut
-}: {
-	dbUser?: UserInterface;
-	conversationID: string;
-	tokensIn: number;
-	tokensOut: number;
-}) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (!conversationID) error(400, 'Conversation ID is required');
-	const update = await db
-		.update(conversationsTable)
-		.set({
-			tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn}`,
-			tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut}`
-		})
-		.where(and(eq(conversationsTable.id, conversationID), eq(conversationsTable.userID, dbUser.id)))
-		.returning();
-
-	if (!update.length) {
-		error(403, 'Tried to update a conversation that does not exist or does not belong to the user');
+	// Sanity check. Messages and Media attached to the conversation should have the same user id.
+	for (const m of conversation.messages) {
+		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
+		if (m.prompt && m.prompt.userID !== conversation.userID) throw new Error('Message prompt user ID mismatch')
 	}
 
-	return update[0];
+	for (const m of conversation.media) {
+		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
+		if (m.original && m.original?.userID !== conversation.userID) throw new Error("Media file 'original' user ID mismatch");
+		if (m.resized && m.resized?.userID !== conversation.userID) throw new Error("Media file 'resized' user ID mismatch");
+		if (m.cropped && m.cropped?.userID !== conversation.userID) throw new Error("Media file 'cropped' user ID mismatch");
+		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID) throw new Error("Media file 'thumbnail' user ID mismatch");
+	}
+
+	return conversation;
 }
 
 export async function DBupsertConversation({

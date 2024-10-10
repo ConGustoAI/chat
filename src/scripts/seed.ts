@@ -16,12 +16,14 @@ export const seed = async () => {
 		const select = await tx.query.seedTable.findFirst({ orderBy: (table, { desc }) => desc(table.seed) });
 		debug(select);
 
+
+
 		if ((select?.seed ?? 0) < 3) {
-			await seedDefaultUser(tx);
-			await seedProviders(tx);
-			await seedModels(tx);
-			await seedAssistants(tx);
-			await seedConversations(tx);
+			await seedDefaultUser(tx as unknown as typeof db);
+			await seedProviders(tx as unknown as typeof db);
+			await seedModels(tx as unknown as typeof db);
+			await seedAssistants(tx as unknown as typeof db);
+			await seedConversations(tx as unknown as typeof db);
 			await tx
 				.insert(seedTable)
 				.values([{ seed: 2 }])

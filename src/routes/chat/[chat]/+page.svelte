@@ -3,21 +3,23 @@
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
+	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:[id]');
 
-	function fetchConversation(convId: string) {
-		if (!convId) {
+	function fetchConversation(convID: string) {
+		if (!convID) {
 			debug('No conversation ID provided');
 			return;
 		}
 
 		// If the message is already loaded, use it.
-		if (A.conversations[convId]) A.conversation = A.conversations[convId];
+		if (A.conversations[convID] && A.conversation?.id !== A.conversations[convID].id)
+			A.conversation = A.conversations[convID];
 		// If the conversation has no messages loaded, fetch them.
 		if (!A.conversation?.messages && !A.chatDataLoading) {
 			A.chatDataLoading = true;
 			let promise;
-			promise = APIfetchConversation(convId);
+			promise = APIfetchConversation(convID);
 
 			promise
 				.then((data) => {
@@ -25,7 +27,7 @@
 					A.conversation = A.conversations[data.id!];
 				})
 				.catch((e) => {
-					debug('Failed to fetch conversation:', e);
+					debug('Failed to fetch conversation:', e.message);
 				})
 				.finally(() => {
 					A.chatDataLoading = false;
@@ -35,8 +37,12 @@
 
 	$effect(() => {
 		// This gets called once on mount, so we add the check to avid a double fetch.
-		if (A.conversation?.id !== $page.params.chat) {
-			fetchConversation($page.params.chat);
+		if ($page.params.chat && untrack(() => A.conversation?.id !== $page.params.chat)) {
+			untrack(() => fetchConversation($page.params.chat));
 		}
+	});
+
+	$inspect(A.conversation).with((t, c) => {
+		debug('A.conversation', t, c);
 	});
 </script>

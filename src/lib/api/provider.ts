@@ -9,7 +9,7 @@ export async function APIfetchProviders() {
 
 	const res = await fetch('/api/provider');
 
-	if (!res.ok) throw new Error(`Failed to fetch providers: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch providers: ${(await res.json()).message}`);
 	const data = (await res.json()).map((provider: ProviderInterface) => filterNull(provider));
 	debug('fetchProviders -> %o', data);
 	return data as ProviderInterface[];
@@ -23,7 +23,7 @@ export async function APIupsertProvider(provider: ProviderInterface) {
 		body: JSON.stringify(providerInterfaceFilter(provider))
 	});
 
-	if (!res.ok) throw new Error(`Failed to update provider: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to update provider: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('upsertProvider -> %o', data);
 	return data as ProviderInterface;
@@ -37,7 +37,7 @@ export async function APIdeleteProvider(provider: ProviderInterface) {
 		body: JSON.stringify(provider)
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete provider: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to delete provider: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteProvider -> %o', data);
 	return data as ProviderInterface;

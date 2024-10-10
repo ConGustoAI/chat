@@ -1,7 +1,6 @@
-import { DATABASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { DefaultLogger, type LogWriter } from 'drizzle-orm/logger';
 import { drizzle } from 'drizzle-orm/postgres-js';
-
 
 import postgres from 'postgres';
 import * as schema from './schema';
@@ -16,7 +15,15 @@ class MyLogWriter implements LogWriter {
 }
 const logger = new DefaultLogger({ writer: new MyLogWriter() });
 
+if (!env.DATABASE_URL) {
+	debug('DATABASE_URL not set');
+	throw new Error('DATABASE_URL not set');
+}
+
 debug('Connecting to database');
-const client = postgres(DATABASE_URL, { max: 5 });
+const client = postgres(env.DATABASE_URL, { max: 5 });
 export const db = drizzle(client, { schema, logger });
 
+
+debug("keys", Object.keys(schema.mediaTable));
+// console.log("Media table keys:", Object.keys(schema.mediaTable.$inferInsert).join(", "));

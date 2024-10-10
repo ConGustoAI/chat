@@ -11,7 +11,7 @@ export async function APIfetchMessage(id: string, withDeleted = false) {
 
 	const res = await fetch(`/api/message/${id}?${queryParams}`);
 
-	if (!res.ok) throw new Error(`Failed to fetch message: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch message: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The message ID is missing in returned data.');
 	debug('fetchMessage -> %o', data);
@@ -26,7 +26,7 @@ export async function APIupsertMessage(message: MessageInterface) {
 		body: JSON.stringify(messageInterfaceFilter(message))
 	});
 
-	if (!res.ok) throw new Error(`Failed to update message: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to update message: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('upsertMessage -> %o', data);
 	return data as MessageInterface;
@@ -40,7 +40,7 @@ export async function APIdeleteMessage(message: MessageInterface) {
 		body: JSON.stringify(message)
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete message: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to delete message: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteMessage -> %o', data);
 	return data as MessageInterface;

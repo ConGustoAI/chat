@@ -111,7 +111,7 @@ declare global {
 	interface HiddenItemInterface {
 		userID: string;
 		id: string; // Can refer to assistants/providers/models/apikeys.
-		createAt?: Date;
+		createdAt?: Date;
 		updatedAt?: Date;
 	}
 
@@ -140,9 +140,14 @@ declare global {
 		topK?: number;
 		deleted?: boolean;
 		prompt?: PromptInterface;
+
+		// Don't send to the backend.
 		updatedAt?: Date;
 		createdAt?: Date;
+
+		// Used by the frontend, not in the database.
 		markdownCache?: string; // This is only used in the frontend, not saved to the database.
+		media?: MediaInterface[];
 	}
 
 	interface PromptInterface {
@@ -178,6 +183,87 @@ declare global {
 		messages?: MessageInterface[];
 		updatedAt?: Date;
 		createdAt?: Date;
+
+		// From relations, not in database.
+		messages?: MessageInterface[];
+		// All media for this conversation, including new media.
+		media? : MediaInterface[];
+	}
+
+	interface MediaInterface {
+		id?: string;
+		userID: string;
+		title: string;
+		filename: string;
+		type: 'image' | 'audio' | 'video';
+
+		originalWidth?: number;
+		originalHeight?: number;
+		originalDuration?: number;
+
+		resizedWidth?: number;
+		resizedHeight?: number;
+
+		cropStartX?: number;
+		cropStartY?: number;
+		cropEndX?: number;
+		cropEndY?: number;
+
+		trimStart?: number;
+		trimEnd?: number;
+
+		originalID?: string;
+		resizedID?: string;
+		croppedID?: string;
+		thumbnailID?: string;
+
+		createdAt?: Date;
+		updatedAt?: Date;
+
+		// Don't send to the backend.
+
+		// From relations, not in database.
+		original?: FileInterface;
+		resized?: FileInterface;
+		cropped?: FileInterface;
+		thumbnail?: FileInterface;
+
+		// Used by the frontend
+		newResizedWidth?: number;
+		newResizedHeight?: number;
+
+		newCropStartX?: number;
+		newCropStartY?: number;
+		newCropEndX?: number;
+		newCropEndY?: number;
+
+		newTrimStart?: number;
+		newTrimEnd?: number;
+	}
+
+	interface FileInterface {
+		id?: string;
+		userID: string;
+
+		size: number;
+		mimeType: string;
+		isThumbnail?: boolean;
+
+		status?: 'progress' | 'ok' | 'failed' | null;
+
+		// Don't send to the backend.
+
+		createdAt?: Date;
+		updatedAt?: Date;
+
+		file?: File; // A freshly selected file will have a file object.
+		url?: string; // A file that has been uploaded will have a URL.
+
+		uploadURL?: string;
+
+		uploadProgress?: number;
+		uploadError?: string;
+		uploading?: boolean;
 	}
 
 	type undefinedNull = undefined | null;

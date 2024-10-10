@@ -8,7 +8,7 @@ export async function APIfetchUser() {
 	debug('fetchUser');
 	const res = await fetch('/api/user');
 
-	if (!res.ok) throw new Error(`Failed to fetch user: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch user: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('fetchUser -> %o', data);
 	return data as UserInterface;
@@ -22,7 +22,7 @@ export async function APIupdateUser(user: UserInterface) {
 		body: JSON.stringify(userInterfaceFilter(user))
 	});
 
-	if (!res.ok) throw new Error(`Failed to update user: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to update user: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('updateUser -> %o', data);
 	return data as UserInterface;
@@ -35,7 +35,7 @@ export async function APIdeleteUser() {
 		headers: { 'Content-Type': 'application/json' }
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete user: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to delete user: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteUser -> %o', data);
 	return data as UserInterface;

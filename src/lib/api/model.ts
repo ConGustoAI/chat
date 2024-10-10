@@ -8,7 +8,7 @@ export async function APIfetchModels() {
 	debug('fetchModels');
 	const res = await fetch('/api/model');
 
-	if (!res.ok) throw new Error(`Failed to fetch models: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch models: ${(await res.json()).message}`);
 	const data = (await res.json()).map((model: ModelInterface) => filterNull(model));
 	debug('fetchModels -> %o', data);
 	return data as ModelInterface[];
@@ -18,7 +18,7 @@ export async function APIfetchModel(id: string) {
 	debug('fetchModel %o', id);
 	const res = await fetch(`/api/model/${id}`);
 
-	if (!res.ok) throw new Error(`Failed to fetch model: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch model: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('fetchModel -> %o', data);
 	return data as ModelInterface;
@@ -32,7 +32,7 @@ export async function APIupsertModel(model: ModelInterface) {
 		body: JSON.stringify(modelInterfaceFilter(model))
 	});
 
-	if (!res.ok) throw new Error(`Failed to update model: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to update model: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('upsertModel -> %o', data);
 	return data as ModelInterface;
@@ -46,7 +46,7 @@ export async function APIdeleteModel(model: ModelInterface) {
 		body: JSON.stringify(model)
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete model: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to delete model: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteModel -> %o', data);
 	return data as ModelInterface;

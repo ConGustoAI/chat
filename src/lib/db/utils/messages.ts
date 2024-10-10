@@ -13,6 +13,9 @@ export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id:
 	});
 
 	if (!message) error(404, 'Message not found');
+
+	// Sanity check
+
 	return message;
 }
 
@@ -29,7 +32,13 @@ export async function DBupsertMessages({ dbUser, messages }: { dbUser?: UserInte
 	return result;
 }
 
-export async function DBupsertMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {
+export async function DBupsertMessage({
+	dbUser,
+	message
+}: {
+	dbUser?: UserInterface;
+	message: MessageInterface;
+}): Promise<MessageInterface> {
 	if (!dbUser) error(401, 'Unauthorized');
 	if (message.userID !== dbUser.id && (!dbUser.admin || message.userID !== defaultsUUID))
 		error(401, 'Tried to update a message that does not belong to the user');
@@ -46,7 +55,7 @@ export async function DBupsertMessage({ dbUser, message }: { dbUser?: UserInterf
 			.returning();
 		if (!update?.length) error(403, 'Failed to update message');
 
-		return update[0];
+		return update[0] as MessageInterface;
 	}
 
 	const insert = await db
@@ -57,7 +66,7 @@ export async function DBupsertMessage({ dbUser, message }: { dbUser?: UserInterf
 		.returning();
 
 	if (!insert || !insert.length) error(500, 'Failed to insert message');
-	return insert[0];
+	return insert[0] as MessageInterface;
 }
 
 export async function DBdeleteMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {

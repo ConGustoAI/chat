@@ -10,7 +10,7 @@ export async function APIfetchPublicConversation(id: string, fetch: typeof windo
 
 	const res = await fetch(`/api/public/${id}`);
 
-	if (!res.ok) throw new Error(`Failed to fetch public conversation: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch public conversation: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
 	debug('fetchPublicConversation -> %o', data);
@@ -22,7 +22,7 @@ export async function APIfetchConversations() {
 
 	const res = await fetch('/api/conversation');
 
-	if (!res.ok) throw new Error(`Failed to fetch conversations: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch conversations: ${(await res.json()).message}`);
 	const data = (await res.json()).map((conversation: ConversationInterface) => filterNull(conversation));
 	debug('fetchConversations -> %o', data);
 	return data as ConversationInterface[];
@@ -35,7 +35,7 @@ export async function APIfetchConversation(id: string) {
 
 	const res = await fetch(`/api/conversation/${id}`);
 
-	if (!res.ok) throw new Error(`Failed to fetch conversation: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to fetch conversation: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	if (!data.id) throw new Error('The conversation ID is missing in returned data.');
 	debug('fetchConversation -> %o', data);
@@ -50,7 +50,7 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 		body: JSON.stringify(conversationInterfaceFilter(conversation))
 	});
 
-	if (!res.ok) throw new Error(`Failed to update conversation: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to update conversation: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('upsertConversation -> %o', data);
 	return data as ConversationInterface;
@@ -64,7 +64,7 @@ export async function APIdeleteConversations(ids: string[]) {
 		body: JSON.stringify(ids)
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete conversation: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to delete conversation: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteConversation -> %o', data);
 	return data as ConversationInterface;
@@ -78,7 +78,7 @@ export async function APISearchConversations(search: string) {
 		body: JSON.stringify({ search })
 	});
 
-	if (!res.ok) throw new Error(`Failed to search conversations: ${await res.text()}`);
+	if (!res.ok) throw new Error(`Failed to search conversations: ${(await res.json()).message}`);
 	const data = await res.json() as string[];
 	debug('searchConversations -> %o', data);
 	return data as string[];

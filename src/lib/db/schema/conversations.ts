@@ -1,10 +1,11 @@
+import { relations } from 'drizzle-orm';
 import { boolean, integer, pgTable, real, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
-import { usersTable } from './users';
-import { relations } from 'drizzle-orm';
 import { messagesTable } from './messages';
 import { modelsTable } from './models';
 import { providersTable } from './providers';
+import { usersTable } from './users';
+import { mediaTable } from './media';
 
 export const conversationsTable = pgTable('conversations', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -47,5 +48,6 @@ export const conversationTableRelations = relations(conversationsTable, ({ one, 
 		fields: [conversationsTable.assistant],
 		references: [assistantsTable.id]
 	}),
-	messages: many(messagesTable)
+	messages: many(messagesTable),
+	media: many(mediaTable),
 }));

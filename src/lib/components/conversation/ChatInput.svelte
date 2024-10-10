@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CostEstimate, GrowInput, Notification } from '$lib/components';
+	import { CostEstimate, GrowInput, Notification, MediaCarousel } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
+	import { PUBLIC_DISABLE_UPLOADS } from '$env/static/public';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -18,6 +19,7 @@
 
 	let input = $state('');
 	let chatError: string | undefined = $state(undefined);
+	let uploadOpen: boolean = $state(true);
 
 	async function onSubmit() {
 		debug('onSubmit', { input, connversation: A.conversation });
@@ -76,8 +78,14 @@
 	});
 </script>
 
-<div class="flex h-fit w-full flex-col gap-2">
+<div class="relative flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
+
+	{#if uploadOpen && !(PUBLIC_DISABLE_UPLOADS === 'true')}
+		<div class="absolute bottom-full flex max-h-[80vh] w-full flex-col bg-base-200">
+			<MediaCarousel />
+		</div>
+	{/if}
 
 	<div class="grid grid-cols-[min-content,auto] items-center gap-0.5">
 		<div
@@ -113,7 +121,10 @@
 				placeholder="User message"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
 			<div class="absolute bottom-1 left-2">
-				<button class="btn btn-circle btn-sm" disabled={true}>
+				<button
+					class="btn btn-circle btn-sm"
+					onclick={() => (uploadOpen = !uploadOpen)}
+					disabled={PUBLIC_DISABLE_UPLOADS === 'true'}>
 					<Upload style="disabled" size={20} />
 				</button>
 			</div>

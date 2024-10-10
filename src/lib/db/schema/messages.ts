@@ -1,11 +1,11 @@
+import { relations, sql } from 'drizzle-orm';
 import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { conversationsTable } from './conversations';
-import { relations } from 'drizzle-orm';
-import { messageMediaTable } from './media';
-import { usersTable } from './users';
+import { mediaTable } from './media';
 import { modelsTable } from './models';
 import { promptsTable } from './prompts';
+import { usersTable } from './users';
 
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 export const messagesTable = pgTable('messages', {
@@ -38,6 +38,11 @@ export const messagesTable = pgTable('messages', {
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
 	deleted: boolean('deleted').default(false),
+	mediaIDs: uuid('media_id')
+		.references(() => mediaTable.id, { onDelete: 'set null' })
+		.array()
+		.default(sql`ARRAY[]::uuid[]`),
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
@@ -45,12 +50,12 @@ export const messagesTable = pgTable('messages', {
 		.$onUpdate(() => new Date())
 });
 
-export const messageTableRelations = relations(messagesTable, ({ one, many }) => ({
+export const messageTableRelations = relations(messagesTable, ({ one, }) => ({
 	conversation: one(conversationsTable, {
 		fields: [messagesTable.conversationID],
 		references: [conversationsTable.id]
 	}),
-	media: many(messageMediaTable),
+
 	user: one(usersTable, {
 		fields: [messagesTable.userID],
 		references: [usersTable.id]
