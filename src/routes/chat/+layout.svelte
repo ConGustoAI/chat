@@ -41,17 +41,20 @@
 		A.conversations = toIdMap(gotConvos);
 		A.conversationOrder = Object.keys(A.conversations);
 		A.chatDataLoading = false;
-		debug('done fetching data', {
-			conversation: A.conversation,
-			conversations: A.conversations,
-			conversationOrder: A.conversationOrder
-		});
+		debug(
+			'done fetching data',
+			$state.snapshot({
+				conversation: A.conversation,
+				conversations: A.conversations,
+				conversationOrder: A.conversationOrder
+			})
+		);
 	});
 
 	let { data, children } = $props();
 
 	$effect(() => {
-		debug('dbUser changed, fetching data', A.dbUser);
+		debug('dbUser changed, fetching data', $state.snapshot(A.dbUser));
 
 		if (A.dbUser) {
 			Promise.all([APIfetchProviders(), APIfetchModels(), APIfetchKeys()]).then(
@@ -61,13 +64,16 @@
 					A.models = toIdMap(fetchedModels);
 					A.apiKeys = toIdMap(fetchedApiKeys);
 
-					debug('Done fetching', {
-						assistants: A.assistants,
-						providers: A.providers,
-						models: A.models,
-						dbUser: A.dbUser,
-						apiKeys: Object.keys(A.apiKeys)
-					});
+					debug(
+						'Done fetching',
+						$state.snapshot({
+							assistants: A.assistants,
+							providers: A.providers,
+							models: A.models,
+							dbUser: A.dbUser,
+							apiKeys: Object.keys(A.apiKeys)
+						})
+					);
 				}
 			);
 		}
@@ -79,7 +85,6 @@
 	$inspect(A.conversation).with((type, value) => {
 		debug('conversation: %s %o', type, value);
 	});
-
 
 	let abortController: AbortController | undefined = undefined;
 
@@ -157,7 +162,7 @@
 								if (!A.conversations[A.conversation.id]) {
 									// New conversation is not yet in the conversations dictionary.
 									A.conversations[A.conversation.id] = A.conversation;
-									A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];
+									A.conversationOrder.unshift(A.conversation.id!);
 								}
 							}
 							if ('userMessage' in dataPart) {

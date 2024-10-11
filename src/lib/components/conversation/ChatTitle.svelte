@@ -14,21 +14,13 @@
 	let updatingLike = $state(false);
 	let cloningConversation = $state(false);
 
-	async function updateConversation() {
-		if (!A.conversation || !A.conversation.id) return;
-
-		await APIupsertConversation(A.conversation);
-		// Trigger an update of the chat history
-		// conversationOrder = conversationOrder;
-		// conversation = conversation;
-	}
 
 	async function updateLike() {
 		if (!A.conversation || !A.conversation.id) return;
 
 		updatingLike = true;
 		try {
-			await updateConversation();
+			Object.assign(A.conversation, await APIupsertConversation(A.conversation))
 		} catch (e) {
 			debug('Failed to update like:', e);
 			A.conversation.like = !A.conversation.like;
@@ -40,7 +32,7 @@
 		if (!A.conversation || !A.conversation.id) return;
 		if (A.conversation.summary) A.conversation.summary = trimLineLength(A.conversation.summary, 128);
 		editingSummary = false;
-		await updateConversation();
+		Object.assign(A.conversation, await APIupsertConversation(A.conversation))
 	}
 
 	async function cloneConversation() {
@@ -72,6 +64,7 @@
 			m.createdAt = undefined;
 			m.updatedAt = undefined;
 
+			// TODO: Do this in parallel
 			const insertedMessage = await APIupsertMessage(m);
 			debug('insertedMessage', { insertedMessage });
 			insertedConversation.messages.push(insertedMessage);
@@ -156,7 +149,7 @@
 	<!-- navbar-end -->
 	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end">
 		{#if A.conversation?.id && !isPublic}
-			<ShareConversation {updateConversation} />
+			<ShareConversation />
 		{/if}
 
 		<Cost total={(A.conversation?.tokensInCost ?? 0) + (A.conversation?.tokensOutCost ?? 0)} />

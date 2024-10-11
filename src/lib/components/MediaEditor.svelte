@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Check } from 'lucide-svelte';
 
-	import { APIupsertMedia, MediaInterfaceFilter } from '$lib/api';
+	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
 	import { mediaResizeOriginal, resizePresets } from '$lib/media_utils';
 	import dbg from 'debug';
 

@@ -86,7 +86,7 @@ export async function populateFile(file: FileInterface) {
 	}
 }
 
-export async function populateMedia(media: MediaInterface) {
+export async function syncMediaFileURL(media: MediaInterface) {
 	if (!media.original) throw new Error('MediaInterface must have an original file');
 	if (media.original) await populateFile(media.original);
 	if (media.thumbnail) await populateFile(media.thumbnail);

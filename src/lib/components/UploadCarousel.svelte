@@ -3,20 +3,14 @@
 	import { A } from '$lib/appstate.svelte';
 	import { PlusCircle, Upload } from 'lucide-svelte';
 
-	import { APIupsertFile, APIupsertMedia } from '$lib/api';
+	import { APIupsertConversation, APIupsertFile, APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
 	import { putFile } from '$lib/files_client';
-	import { populateMedia } from '$lib/media_utils';
+	import { syncMediaFileURL } from '$lib/media_utils';
 	import { assert } from '$lib/utils';
 	import dbg from 'debug';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
+	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:MediaCarousel');
-
-	let media: MediaInterface[] = [];
-
-	let mediaToUpload: MediaInterface[] = $state([]);
-
-	// We use this element to get the natural width/height of the image.
-	let fakeImage: HTMLImageElement;
 
 	// // Used for testing
 	function makeFakeImage(): MediaInterface {
@@ -24,6 +18,7 @@
 		// fakeImage.src = `/cat.jpg`;
 
 		return {
+			active: true,
 			userID: 'anon',
 			filename: 'cat.jpg',
 			type: 'image',
@@ -59,7 +54,8 @@
 
 		// fakeImage.src = URL.createObjectURL(file);
 
-		const m: MediaInterface = $state({
+		const m: MediaInterface = {
+			active: true,
 			userID: A.dbUser.id,
 			title: file.name,
 			filename: file.name,
@@ -70,27 +66,31 @@
 				userID: A.dbUser.id,
 				file: file
 			}
-		});
+		};
 
-		await populateMedia(m);
+		await syncMediaFileURL(m);
 		return m;
 	}
 
 	// Handle file input change
 	async function handleFileChange(event: Event) {
+		if (!A.conversation) throw new Error('Conversation missing');
+
 		const input = event.target as HTMLInputElement;
 
 		debug('input.files', input.files);
 		if (input.files) {
+			if (!A.conversation.media) A.conversation.media = [];
+
 			const newFiles = Array.from(input.files).filter((file) => {
 				// Check if the file has already been uploaded by comparing size and last modified date
-				return !mediaToUpload.some(
+				return !A.conversation?.media?.some(
 					(m) => m.original?.size === file.size && m.original?.file?.lastModified === file.lastModified
 				);
 			});
 
-			mediaToUpload = [...mediaToUpload, ...(await Promise.all(newFiles.map(fileToMedia)))];
-			debug('newMedia', mediaToUpload);
+			A.conversation.media.push(...(await Promise.all(newFiles.map(fileToMedia))));
+			debug('Files added: ', $state.snapshot(A.conversation));
 		}
 	}
 
@@ -113,6 +113,8 @@
 	}
 
 	async function uploadMedia(media: MediaInterface) {
+		if (!A.conversation?.id) throw new Error('Conversation ID missing');
+
 		const uploadPromises = [];
 
 		uploadPromises.push(async () => {
@@ -143,25 +145,38 @@
 
 		await Promise.all(uploadPromises.map((p) => p()));
 
-		const updatedMedia = await APIupsertMedia(media);
+		media.originalID = media.original?.id;
+		media.resizedID = media.resized?.id;
+		media.thumbnailID = media.thumbnail?.id;
+		media.conversationID = A.conversation.id;
+
+		const updatedMedia = await APIupsertMedia(mediaInterfaceFilter(media));
 		debug('media uploaded!', updatedMedia);
 
 		// Apply all fields from updatedMedia to media
 		Object.assign(media, updatedMedia);
 	}
 
-	async function uploadMultipleMedia(mediaArray: MediaInterface[]) {
-		debug('uploadMedia', mediaArray);
+	async function uploadMultipleMedia() {
+		if (!A.conversation) throw Error('Conversation missing');
 
-		const updatedMedia = await Promise.all(mediaArray.map((m) => uploadMedia(m)));
-		debug('All media uploaded!', updatedMedia);
-		return updatedMedia;
+		debug('uploadMedia', $state.snapshot(A.conversation));
+
+		let createdNewConversation = false;
+		if (!A.conversation.id) {
+			Object.assign(A.conversation, await APIupsertConversation(A.conversation));
+			createdNewConversation = true;
+		}
+		if (!A.conversation.media) A.conversation.media = [];
+
+		await Promise.all(A.conversation.media.map((m) => uploadMedia(m)));
+		debug('All media uploaded!', $state.snapshot(A.conversation));
+		if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
 	}
 
-	$inspect(mediaToUpload).with((m) => {
-		debug('mediaToUpload', m);
+	$inspect(A.conversation).with((c, t) => {
+		debug('A.conversation', c, t);
 	});
-	// $: debug('newMedia', mediaToUpload);
 
 	// Handle drag-and-drop
 	// function handleDrop(event: DragEvent) {
@@ -177,8 +192,7 @@
 	// on:dragover={handleDragOver}
 </script>
 
-{#if mediaToUpload}
-	<!-- {#if false} -->
+<!-- {#if mediaToUpload}
 	<div class="tabs tabs-lifted h-full min-h-full w-full grow items-start bg-base-200">
 		{#each mediaToUpload as m, i}
 			<input
@@ -198,36 +212,36 @@
 		{/each}
 	</div>
 	<div class="divider my-0 w-full shrink-0"></div>
-{/if}
+{/if} -->
 
 <div
 	class="carousel carousel-center h-fit w-full shrink-0 space-x-4 bg-base-200 p-4"
 	role="region"
 	aria-label="Image upload area">
 	<!-- Clickable box for file upload -->
-	<button
-		class="btn carousel-item btn-outline h-32 w-32 items-center justify-center rounded-sm p-0"
-		onclick={() => document.getElementById('fileInput')?.click()}>
-		<PlusCircle size={48} />
-	</button>
-
+	<div class="flex flex-col gap-2">
+		<button
+			class="btn carousel-item btn-outline h-16 w-16 items-center justify-center rounded-sm p-0"
+			onclick={() => document.getElementById('fileInput')?.click()}>
+			<PlusCircle size={32} />
+		</button>
+		<button
+			class="btn carousel-item btn-outline h-16 w-16 items-center justify-center rounded-sm p-0"
+			disabled={!A.conversation?.media?.length}
+			onclick={async () => {
+				await uploadMultipleMedia();
+			}}>
+			<Upload size={32} />
+		</button>
+	</div>
 	<!-- Hidden file input -->
 	<input id="fileInput" type="file" class="hidden" onchange={handleFileChange} multiple />
 
 	<!-- Display uploaded images or videos -->
-	{#if mediaToUpload.length > 0}
-		<button
-			class="btn carousel-item btn-outline h-32 w-32 items-center justify-center rounded-sm p-0"
-			onclick={async () => {
-				await uploadMultipleMedia(mediaToUpload);
-				mediaToUpload = mediaToUpload;
-			}}>
-			<Upload size={48} />
-		</button>
-
-		{#each mediaToUpload as m}
+	{#if A.conversation?.media?.length}
+		{#each A.conversation?.media || [] as m, i}
 			<div class="carousel-item">
-				<MediaPreview media={m} />
+				<MediaPreview bind:media={A.conversation.media[i]} />
 			</div>
 		{/each}
 	{/if}

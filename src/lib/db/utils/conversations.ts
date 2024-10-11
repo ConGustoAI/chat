@@ -1,9 +1,12 @@
 import { conversationInterfaceFilter } from '$lib/api';
 import { trimLineLength } from '$lib/utils';
 import { error } from '@sveltejs/kit';
+import dbg from 'debug';
 import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const debug = dbg('app:db:utils:conversations');
 
 export async function DBgetDefaultConversations() {
 	const conversations = await db.query.conversationsTable.findMany({
@@ -121,10 +124,14 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 
 	for (const m of conversation.media) {
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
-		if (m.original && m.original?.userID !== conversation.userID) throw new Error("Media file 'original' user ID mismatch");
-		if (m.resized && m.resized?.userID !== conversation.userID) throw new Error("Media file 'resized' user ID mismatch");
-		if (m.cropped && m.cropped?.userID !== conversation.userID) throw new Error("Media file 'cropped' user ID mismatch");
-		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID) throw new Error("Media file 'thumbnail' user ID mismatch");
+		if (m.original && m.original?.userID !== conversation.userID)
+			throw new Error("Media file 'original' user ID mismatch");
+		if (m.resized && m.resized?.userID !== conversation.userID)
+			throw new Error("Media file 'resized' user ID mismatch");
+		if (m.cropped && m.cropped?.userID !== conversation.userID)
+			throw new Error("Media file 'cropped' user ID mismatch");
+		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
+			throw new Error("Media file 'thumbnail' user ID mismatch");
 	}
 
 	return conversation;

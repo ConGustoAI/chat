@@ -24,13 +24,13 @@
 					A.models = toIdMap(fetchedModels);
 					A.apiKeys = toIdMap(fetchedApiKeys);
 
-					debug('Done fetching', {
+					debug('Done fetching', $state.snapshot({
 						assistants: A.assistants,
 						providers: A.providers,
 						models: A.models,
 						dbUser: A.dbUser,
 						apiKeys: Object.keys(A.apiKeys)
-					});
+					}));
 				}
 			);
 		}

@@ -13,7 +13,6 @@ export async function putFile(file: FileInterface) {
 	const xhr = new XMLHttpRequest();
 	xhr.open('PUT', file.uploadURL, true);
 	xhr.setRequestHeader('Content-Type', file.mimeType);
-	xhr.setRequestHeader('Content-Length', file.size.toString());
 
 	xhr.upload.onprogress = (event) => {
 		debug('upload progress', event);

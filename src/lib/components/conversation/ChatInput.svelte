@@ -19,7 +19,6 @@
 
 	let input = $state('');
 	let chatError: string | undefined = $state(undefined);
-	let uploadOpen: boolean = $state(true);
 
 	async function onSubmit() {
 		debug('onSubmit', { input, connversation: A.conversation });
@@ -77,6 +76,7 @@
 		}
 	});
 
+	let uploadOpen: boolean = $state(true);
 	let uploadEnabled = (!env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true')
 
 </script>
