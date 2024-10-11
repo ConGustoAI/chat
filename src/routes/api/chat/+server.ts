@@ -3,9 +3,10 @@ import { db } from '$lib/db';
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { defaultsUUID, messagesTable, promptsTable } from '$lib/db/schema';
+import { defaultsUUID, messagesTable } from '$lib/db/schema';
 import { DBupdateUser, DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
-import { promptHash, undefineExtras } from '$lib/utils';
+import { DBinsertPrompt } from '$lib/db/utils/prompts';
+import { filterNull, promptHash, undefineExtras } from '$lib/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -164,6 +165,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 		try {
 			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
+			if (!dbUser) error(500, "dbUser is missing")
 
 			// experimental_providerMetadata: { openai: { reasoningTokens: 128 } },
 			const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
@@ -195,7 +197,8 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 			// The system prompt should be inserted before the assistant message.
 			const [iUM, iP] = await Promise.all([
 				DBupsertMessage({ dbUser, message: UM }),
-				db.insert(promptsTable).values({ id: systemPromptHash, text: systemPrompt }).onConflictDoNothing().returning()
+				DBinsertPrompt({ id: systemPromptHash, text: systemPrompt })
+				// db.insert(promptsTable).values({ id: systemPromptHash, text: systemPrompt }).onConflictDoNothing().returning()
 			]);
 
 			// Insert/update the rest in parallel
@@ -227,7 +230,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 				DBupdateUser({ dbUser, updatedUser: { id: dbUser!.id, lastAssistant: assistantData.id } })
 			])) as [MessageInterface, MessageInterface[], ConversationInterface, UserInterface];
 
-			iAM.prompt = { id: systemPromptHash, text: systemPrompt };
+			iAM.prompt = filterNull(iP) as PromptInterface;
 			debug('After updating the DB: %o', {
 				userMessage: iUM,
 				assistantMessage: iAM,

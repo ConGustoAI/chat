@@ -193,6 +193,10 @@ declare global {
 	interface MediaInterface {
 		id?: string;
 		userID: string;
+		conversationID?: string;
+		repeat?: boolean;
+		active: boolean;
+
 		title: string;
 		filename: string;
 		type: 'image' | 'audio' | 'video';

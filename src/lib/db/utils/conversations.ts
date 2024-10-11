@@ -117,7 +117,6 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 	// Sanity check. Messages and Media attached to the conversation should have the same user id.
 	for (const m of conversation.messages) {
 		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
-		if (m.prompt && m.prompt.userID !== conversation.userID) throw new Error('Message prompt user ID mismatch')
 	}
 
 	for (const m of conversation.media) {
