@@ -5,7 +5,7 @@
 	import { trimLineLength } from '$lib/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
-	import { PUBLIC_DISABLE_UPLOADS } from '$env/static/public';
+	import { env } from '$env/dynamic/public'
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -76,12 +76,15 @@
 			prefillAvailable = false;
 		}
 	});
+
+	let uploadEnabled = (!env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true')
+
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
 
-	{#if uploadOpen && !(PUBLIC_DISABLE_UPLOADS === 'true')}
+	{#if uploadOpen && uploadEnabled}
 		<div class="absolute bottom-full flex max-h-[80vh] w-full flex-col bg-base-200">
 			<MediaCarousel />
 		</div>
@@ -124,7 +127,7 @@
 				<button
 					class="btn btn-circle btn-sm"
 					onclick={() => (uploadOpen = !uploadOpen)}
-					disabled={PUBLIC_DISABLE_UPLOADS === 'true'}>
+					disabled={!uploadEnabled}>
 					<Upload style="disabled" size={20} />
 				</button>
 			</div>
