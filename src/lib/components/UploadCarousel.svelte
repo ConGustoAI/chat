@@ -174,9 +174,12 @@
 		if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
 	}
 
-	$inspect(A.conversation).with((c, t) => {
-		debug('A.conversation', c, t);
-	});
+	let _ = $derived.by(() => debug('A.conversation', A.conversation))
+
+
+	// $inspect(A.conversation).with((c, t) => {
+	// 	debug('A.conversation', c, t);
+	// });
 
 	// Handle drag-and-drop
 	// function handleDrop(event: DragEvent) {
@@ -238,8 +241,8 @@
 	<input id="fileInput" type="file" class="hidden" onchange={handleFileChange} multiple />
 
 	<!-- Display uploaded images or videos -->
-	{#if A.conversation?.media?.length}
-		{#each A.conversation?.media || [] as m, i}
+	{#if A.conversation?.media}
+		{#each A.conversation?.media as m, i}
 			<div class="carousel-item">
 				<MediaPreview bind:media={A.conversation.media[i]} />
 			</div>

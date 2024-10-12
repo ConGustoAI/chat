@@ -8,7 +8,7 @@
 	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import Google from '$lib/components/icons/Google.svelte';
 
-	let  {form }= $props();
+	let { form } = $props();
 	$inspect(form);
 
 	if (A.dbUser) {

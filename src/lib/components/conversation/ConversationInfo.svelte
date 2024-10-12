@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { A} from '$lib/appstate.svelte';
+	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ConversationInfo');
 
@@ -49,6 +49,8 @@
 	}
 
 	let info = $derived.by(() => {
+		const _ = A.conversation; // Trigger dependency
+
 		if (A.conversation?.id && !A.chatStreaming) {
 			return collectInfo();
 		}
@@ -56,35 +58,33 @@
 	});
 </script>
 
-
 {#if A.conversation?.id}
-
-<div class="card w-full overflow-auto rounded-none bg-base-300 p-4 shadow-xl">
-	<h3 class="card-title text-base">Conversation Stats</h3>
-	<div class="card-body w-full p-0">
-		{#if info.length}
-        <div class="flex flex-col">
-			<span><strong>Tokens in:</strong> {A.conversation.tokensIn ?? 'N/A'}</span>
-			<span><strong>Tokens out:</strong> {A.conversation.tokensOut ?? 'N/A'}</span>
-        </div>
-			{#each info as infoItem}
-				<div class="mb-2">
-					{#each Object.keys(infoItem) as key}
-						{#if key === 'promptText'}
-							<div class="">
-								<strong>{key}:</strong>
-								<div class="text-base">{infoItem[key]}</div>
-							</div>
-						{:else}
-							<div class="flex gap-2">
-								<strong>{key}:</strong>
-								{infoItem[key]}
-							</div>
-						{/if}
-					{/each}
+	<div class="card w-full overflow-auto rounded-none bg-base-300 p-4 shadow-xl">
+		<h3 class="card-title text-base">Conversation Stats</h3>
+		<div class="card-body w-full p-0">
+			{#if info.length}
+				<div class="flex flex-col">
+					<span><strong>Tokens in:</strong> {A.conversation.tokensIn ?? 'N/A'}</span>
+					<span><strong>Tokens out:</strong> {A.conversation.tokensOut ?? 'N/A'}</span>
 				</div>
-			{/each}
-		{/if}
+				{#each info as infoItem}
+					<div class="mb-2">
+						{#each Object.keys(infoItem) as key}
+							{#if key === 'promptText'}
+								<div class="">
+									<strong>{key}:</strong>
+									<div class="text-base">{infoItem[key]}</div>
+								</div>
+							{:else}
+								<div class="flex gap-2">
+									<strong>{key}:</strong>
+									{infoItem[key]}
+								</div>
+							{/if}
+						{/each}
+					</div>
+				{/each}
+			{/if}
+		</div>
 	</div>
-</div>
 {/if}

@@ -35,9 +35,9 @@
 		}
 	}
 
-	$inspect(media).with((t, c) => {
-		debug('media', t, c);
-	});
+	// $inspect(media).with((t, c) => {
+	// 	debug('media', t, c);
+	// });
 
 	let isHovered = false;
 
