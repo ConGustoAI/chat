@@ -125,9 +125,9 @@
 					</div>
 				{/if}
 			{/if}
-			{#if !uploadOpen && !A.conversation?.media?.length}
-					sd
-			{/if}
+			<!-- {#if !uploadOpen && !A.conversation?.media?.length}
+
+			{/if} -->
 			<GrowInput
 				bind:focused={inputFocus}
 				bind:value={input}
