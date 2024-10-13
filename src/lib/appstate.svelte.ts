@@ -12,6 +12,8 @@ interface AppState {
 	conversation: ConversationInterface | undefined;
 	chatDataLoading: boolean;
 	chatStreaming: boolean;
+	mediaUploading: boolean;
+	mediaProcessing: boolean;
 	sidebarOpen: boolean;
 	isMobile: boolean;
 }
@@ -28,6 +30,8 @@ export const A: AppState = $state({
 	conversation: undefined,
 	chatDataLoading: false,
 	chatStreaming: false,
+	mediaUploading: false,
+	mediaProcessing: false,
 	sidebarOpen: true,
 	isMobile: false
 });

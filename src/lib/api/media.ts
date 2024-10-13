@@ -1,6 +1,6 @@
 import { mediaTable } from '$lib/db/schema';
 import dbg from 'debug';
-import { filterNull } from '$lib/utils';
+import { filterNull } from '$lib/utils/utils';
 
 const debug = dbg('app:lib:api:media');
 

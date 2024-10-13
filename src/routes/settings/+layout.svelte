@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { SidebarNav } from '$lib/components';
-	import { A } from '$lib/appstate.svelte.js';
+	import { A } from '$lib/appstate.svelte';
 	import { ArrowLeftCircle } from 'lucide-svelte';
 
 	import dbg from 'debug';
-	import { APIfetchProviders } from '$lib/api/provider.js';
-	import { APIfetchModels } from '$lib/api/model.js';
-	import { APIfetchKeys } from '$lib/api/key.js';
-	import { toIdMap } from '$lib/utils.js';
+	import { APIfetchProviders } from '$lib/api/provider';
+	import { APIfetchModels } from '$lib/api/model';
+	import { APIfetchKeys } from '$lib/api/key';
+	import { toIdMap } from '$lib/utils/utils';
 	const debug = dbg('app:ui:settings:layout');
 
 	let { data, children } = $props();

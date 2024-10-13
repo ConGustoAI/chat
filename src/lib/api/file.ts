@@ -1,5 +1,5 @@
 import { fileTable } from '$lib/db/schema';
-import { filterNull } from '$lib/utils';
+import { filterNull } from '$lib/utils/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:file');

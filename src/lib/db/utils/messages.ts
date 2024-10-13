@@ -1,8 +1,11 @@
 import { error } from '@sveltejs/kit';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import { defaultsUUID, messagesTable } from '../schema';
 import { messageInterfaceFilter } from '$lib/api';
+import dbg from 'debug';
+
+const debug = dbg('app:db:utils:messages');
 
 export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
 	if (!dbUser) error(401, 'Unauthorized');
@@ -20,6 +23,7 @@ export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id:
 }
 
 export async function DBupsertMessages({ dbUser, messages }: { dbUser?: UserInterface; messages: MessageInterface[] }) {
+	debug('DBupsertMessages', dbUser);
 	if (!dbUser) error(401, 'Unauthorized');
 	if (!messages.length) error(400, 'Messages array is required');
 
@@ -67,6 +71,22 @@ export async function DBupsertMessage({
 
 	if (!insert || !insert.length) error(500, 'Failed to insert message');
 	return insert[0] as MessageInterface;
+}
+
+export async function DBmarkDeletedMessage({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
+	if (!dbUser) error(401, 'Unauthorized');
+	if (!ids.length) error(400, 'Messages array is required');
+
+	const res = await db
+		.update(messagesTable)
+		.set({ deleted: true })
+		.where(and(inArray(messagesTable.id, ids), eq(messagesTable.userID, dbUser.id))).returning({id: messagesTable.id})
+
+	const deletedIds = res.map((r) => r.id)
+	if (!deletedIds.length) error(400, "No messages deleted")
+	if (deletedIds.length != ids.length) debug("Not all messages were deleted")
+
+	return deletedIds;
 }
 
 export async function DBdeleteMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {

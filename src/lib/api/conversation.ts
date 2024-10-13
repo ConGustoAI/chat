@@ -1,5 +1,5 @@
 import { conversationsTable } from '$lib/db/schema';
-import { filterNull } from '$lib/utils';
+import { filterNull } from '$lib/utils/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:conversation');
@@ -58,6 +58,7 @@ export async function APIupsertConversation(conversation: ConversationInterface)
 
 export async function APIdeleteConversations(ids: string[]) {
 	debug('deleteConversation %o', ids);
+	if (ids.length === 0) return;
 	const res = await fetch(`/api/conversation`, {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
@@ -79,11 +80,10 @@ export async function APISearchConversations(search: string) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to search conversations: ${(await res.json()).message}`);
-	const data = await res.json() as string[];
+	const data = (await res.json()) as string[];
 	debug('searchConversations -> %o', data);
 	return data as string[];
 }
-
 
 export function conversationInterfaceFilter(conversation: ConversationInterface) {
 	const allowedKeys = Object.keys(conversationsTable);

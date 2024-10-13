@@ -14,7 +14,7 @@ export async function DBgetUser({ id }: { id: string }) {
 	return user;
 }
 
-export async function DBinsertUser({ user }: { user: UserInterface }) {
+export async function DBinsertUser({ user }: { user: UserInterface & { id: string } }) {
 	// Attention: This funciton has no way to check that the user is authorized to insert a new user
 	// Check that the user is authorized before calling this function
 	if (!user.id) error(400, 'User ID is required');

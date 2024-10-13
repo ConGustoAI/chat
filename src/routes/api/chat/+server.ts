@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 import { defaultsUUID, messagesTable } from '$lib/db/schema';
 import { DBupdateUser, DBupsertConversation, DBupsertMessage } from '$lib/db/utils';
 import { DBinsertPrompt } from '$lib/db/utils/prompts';
-import { filterNull, promptHash, undefineExtras } from '$lib/utils';
+import { filterNull, promptHash, undefineExtras } from '$lib/utils/utils';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -127,6 +127,18 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 		error(500, 'Unsupported provider, this is a bug');
 	}
 
+	// let hasMedia = false;
+	// for (const m of conversation.messages || []) {
+	// 	if (m.mediaIDs?.length) {
+	// 		hasMedia = true;
+	// 		break;
+	// 	}
+	// }
+
+	// if (hasMedia) {
+	// 	const selectedConversation = await DBgetConversation({ dbUser, id: conversation.id });
+	// }
+
 	const inputMessages: (CoreAssistantMessage | CoreUserMessage)[] = [...oldMessages, UM, ...(AM.text ? [AM] : [])].map(
 		(m) => ({
 			role: m.role,
@@ -165,7 +177,7 @@ export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
 
 		try {
 			if (!assistantData) error(500, 'Assistant data is missing'); // Should neve happen, but TS is complaining.
-			if (!dbUser) error(500, "dbUser is missing")
+			if (!dbUser) error(500, 'dbUser is missing');
 
 			// experimental_providerMetadata: { openai: { reasoningTokens: 128 } },
 			const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;

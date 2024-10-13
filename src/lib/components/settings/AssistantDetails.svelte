@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fixNumberInput } from '$lib/utils';
+	import { fixNumberInput } from '$lib/utils/utils';
 
 	let { assistant = $bindable(), model, provider, edit, onchange }: {
 		assistant: AssistantInterface;

@@ -1,4 +1,3 @@
-
 // This is a script to trim the conversation summary to 128 characters.
 // It was written to be ran exactly once, to trim the summary of all conversations.
 // Don't run this script again.
@@ -11,14 +10,14 @@ import { config } from 'dotenv';
 import { DefaultLogger, eq, type LogWriter } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { trimLineLength } from '$lib/utils';
+import { trimLineLength } from '$lib/utils/utils';
 
 export const run = async () => {
 	const conversations = await db.query.conversationsTable.findMany();
 
 	for (const conversation of conversations) {
 		debug('conversation', conversation);
-		
+
 		if (conversation.summary && conversation.summary.length > 128) {
 			conversation.summary = trimLineLength(conversation.summary, 128);
 		}

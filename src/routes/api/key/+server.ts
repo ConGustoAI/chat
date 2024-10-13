@@ -1,5 +1,5 @@
 import { DBdeleteKey, DBgetKeys, DBupsertKey } from '$lib/db/utils/keys';
-import { censorKey } from '$lib/utils';
+import { censorKey } from '$lib/utils/utils';
 import { json } from '@sveltejs/kit';
 import dbg from 'debug';
 import type { RequestHandler } from './$types';

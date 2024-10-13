@@ -2,7 +2,7 @@ import { DBgetConversation, DBgetDefaultConversation } from '$lib/db/utils';
 import { json } from '@sveltejs/kit';
 import dbg from 'debug';
 import type { RequestHandler } from './$types';
-import { getDownloadURL } from '$lib/files_server';
+import { getDownloadURL } from '$lib/utils/files_server';
 
 const debug = dbg('app:api:conversation:id');
 

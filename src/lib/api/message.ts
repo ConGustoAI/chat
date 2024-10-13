@@ -1,5 +1,5 @@
 import { messagesTable } from '$lib/db/schema';
-import { filterNull } from '$lib/utils';
+import { filterNull } from '$lib/utils/utils';
 import dbg from 'debug';
 
 const debug = dbg('app:lib:api:message');
@@ -32,15 +32,17 @@ export async function APIupsertMessage(message: MessageInterface) {
 	return data as MessageInterface;
 }
 
-export async function APIdeleteMessage(message: MessageInterface) {
-	debug('deleteMessage %o', message);
+// Does not actually delete, but rather marks as deleted.
+export async function APIdeleteMessages(ids: string[]) {
+	debug('deleteMessage %o', ids);
+	if (ids.length === 0) return;
 	const res = await fetch('/api/message', {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(message)
+		body: JSON.stringify(ids)
 	});
 
-	if (!res.ok) throw new Error(`Failed to delete message: ${(await res.json()).message}`);
+	if (!res.ok) throw new Error(`Failed to delete messages: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());
 	debug('deleteMessage -> %o', data);
 	return data as MessageInterface;

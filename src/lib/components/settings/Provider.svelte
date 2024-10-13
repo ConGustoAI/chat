@@ -3,7 +3,7 @@
 	import { APIdeleteProvider, APIhideItem, APIunhideItem, APIupsertModel, APIupsertProvider } from '$lib/api';
 	import { defaultsUUID, providerTypes } from '$lib/db/schema';
 	import { A } from '$lib/appstate.svelte';
-	import { assert, capitalize } from '$lib/utils';
+	import { assert, capitalize } from '$lib/utils/utils';
 	import { Check, Copy, Eye, EyeOff, Trash2 } from 'lucide-svelte';
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
 

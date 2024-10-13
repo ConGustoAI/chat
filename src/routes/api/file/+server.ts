@@ -4,7 +4,7 @@ import { DBupsertFile } from '$lib/db/utils';
 
 import { error, json } from '@sveltejs/kit';
 
-import { getUploadURL, s3 } from '$lib/files_server';
+import { getUploadURL, s3 } from '$lib/utils/files_server';
 
 import dbg from 'debug';
 const debug = dbg('app:api:file');
@@ -28,10 +28,6 @@ export async function POST({ request, locals: { dbUser }, url }) {
 	if (!file.size) error(400, 'No file size');
 	if (file.size > maxSize) error(400, 'File too large');
 	if (!file.mimeType) error(400, 'No mime type');
-
-	if (uploadurl) {
-		file.status = 'progress';
-	}
 
 	const insertedFile = (await DBupsertFile({
 		dbUser,

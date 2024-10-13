@@ -24,7 +24,7 @@
 	import type { Element, Root } from 'hast';
 	import { visit } from 'unist-util-visit';
 
-	import { assert } from '$lib/utils';
+	import { assert } from '$lib/utils/utils';
 	import { h, s } from 'hastscript';
 	import type { Node } from 'unist';
 

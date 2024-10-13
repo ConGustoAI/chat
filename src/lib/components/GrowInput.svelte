@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from '$lib/utils/utils';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:GrowInput');

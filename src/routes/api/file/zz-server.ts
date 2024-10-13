@@ -16,7 +16,7 @@ import { ReadableStream } from 'stream/web';
 
 import Busboy from 'busboy';
 
-import { s3 } from '$lib/files_server';
+import { s3 } from '$lib/utils/files_server';
 
 import dbg from 'debug';
 const debug = dbg('app:upload');

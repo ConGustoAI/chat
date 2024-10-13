@@ -2,10 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { CostEstimate, GrowInput, Notification, MediaCarousel } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
-	import { trimLineLength } from '$lib/utils';
+	import { trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
-	import { env } from '$env/dynamic/public'
+	import { env } from '$env/dynamic/public';
+	import { uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -26,11 +27,20 @@
 		if (!A.conversation) return;
 		if (!A.conversation.summary) A.conversation.summary = trimLineLength(input, 128);
 
-		A.conversation.messages = [
-			...(A.conversation.messages ?? []),
-			{ userID: A.conversation.userID, role: 'user', text: input },
+		if (!A.conversation.messages) A.conversation.messages = [];
+
+
+		await uploadConversationMedia()
+
+		const mediaIDs = [];
+		for (const media of A.conversation.media ?? []) {
+			if (media.active) mediaIDs.push(media.id!);
+		}
+
+		A.conversation.messages.push(
+			{ userID: A.conversation.userID, role: 'user', text: input, mediaIDs },
 			{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
-		];
+		);
 
 		let savedInput = input;
 		input = '';
@@ -77,8 +87,7 @@
 	});
 
 	let uploadOpen: boolean = $state(true);
-	let uploadEnabled = (!env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true')
-
+	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
@@ -116,6 +125,9 @@
 					</div>
 				{/if}
 			{/if}
+			{#if !uploadOpen && !A.conversation?.media?.length}
+					sd
+			{/if}
 			<GrowInput
 				bind:focused={inputFocus}
 				bind:value={input}
@@ -124,10 +136,7 @@
 				placeholder="User message"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
 			<div class="absolute bottom-1 left-2">
-				<button
-					class="btn btn-circle btn-sm"
-					onclick={() => (uploadOpen = !uploadOpen)}
-					disabled={!uploadEnabled}>
+				<button class="btn btn-circle btn-sm" onclick={() => (uploadOpen = !uploadOpen)} disabled={!uploadEnabled}>
 					<Upload style="disabled" size={20} />
 				</button>
 			</div>

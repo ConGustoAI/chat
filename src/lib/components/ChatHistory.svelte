@@ -346,5 +346,6 @@
 	{#if datedConversation.unknown.length}
 		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
 	{/if}
+	<div class="mb-14"></div>
 </ul>
 <div class="grow"></div>

@@ -4,7 +4,7 @@
 	import { APIupsertModel } from '$lib/api/model';
 	import { DeleteButton } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
-	import { assert } from '$lib/utils';
+	import { assert } from '$lib/utils/utils';
 	import { Check, Eye, EyeOff } from 'lucide-svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:lib:components:Model');

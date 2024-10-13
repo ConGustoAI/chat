@@ -2,7 +2,7 @@
 	import { Check } from 'lucide-svelte';
 
 	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { mediaResizeOriginal, resizePresets } from '$lib/media_utils';
+	import { mediaResizeOriginal, resizePresets } from '$lib/utils/media_utils.svelte';
 	import dbg from 'debug';
 
 	const debug = dbg('app:ui:components:MediaEditor');

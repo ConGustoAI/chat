@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from '$lib/utils/utils';
 	import { Trash2 } from 'lucide-svelte';
 
 	let { deleteAction, size = 15, btnClass = '', class: className = '', disabled = false, children } = $props<{

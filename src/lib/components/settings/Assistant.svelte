@@ -4,7 +4,7 @@
 	import { AssistantDetails, AssistantPrompt, DeleteButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { A } from '$lib/appstate.svelte';
-	import { assert } from '$lib/utils';
+	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 	const debug = dbg('app:ui:components:Assistant');
@@ -67,16 +67,16 @@
 
 	function statusChanged() {
 		debug('statusChanged');
-		if (assistant.images && assistant.model && !A.models[assistant.model].images) {
+		if (assistant.images && assistant.modelID && !A.models[assistant.modelID].images) {
 			assistant.images = false;
 		}
-		if (assistant.audio && assistant.model && !A.models[assistant.model].audio) {
+		if (assistant.audio && assistant.modelID && !A.models[assistant.modelID].audio) {
 			assistant.audio = false;
 		}
-		if (assistant.video && assistant.model && !A.models[assistant.model].video) {
+		if (assistant.video && assistant.modelID && !A.models[assistant.modelID].video) {
 			assistant.video = false;
 		}
-		if (assistant.prefill && assistant.model && !A.models[assistant.model].prefill) {
+		if (assistant.prefill && assistant.modelID && !A.models[assistant.modelID].prefill) {
 			assistant.prefill = false;
 		}
 
@@ -119,7 +119,7 @@
 		)
 	);
 
-	let model = $derived(assistant.model ? A.models[assistant.model] : null);
+	let model = $derived(assistant.modelID ? A.models[assistant.modelID] : null);
 	let provider = $derived(model ? A.providers[model.providerID] : null);
 
 	$inspect(status);
@@ -154,7 +154,7 @@
 
 <select
 	class="select select-bordered w-full"
-	bind:value={assistant.model}
+	bind:value={assistant.modelID}
 	onchange={statusChanged}
 	onblur={() => {
 		clearTimeout(updateTimer);
@@ -186,15 +186,15 @@
 
 <select
 	class="select select-bordered"
-	bind:value={assistant.apiKey}
+	bind:value={assistant.apiKeyID}
 	onchange={statusChanged}
 	onblur={() => {
 		clearTimeout(updateTimer);
 		updateAssistantNow();
 	}}
 	disabled={!edit}>
-	{#if assistant.model}
-		{@const model = A.models[assistant.model]}
+	{#if assistant.modelID}
+		{@const model = A.models[assistant.modelID]}
 		{@const provider = model ? A.providers[model.providerID] : null}
 		{#if provider}
 			<option value={defaultsUUID}>First available</option>

@@ -2,14 +2,14 @@
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { syncMediaFileURL } from '$lib/media_utils';
-	import { assert } from '$lib/utils';
+	import { syncMediaFileURLs } from '$lib/utils/media_utils.svelte';
+	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:[id]');
 
 	function fetchConversation(convID: string) {
-		assert(convID)
+		assert(convID);
 
 		// If the message is already loaded, use it.
 		if (A.conversations[convID] && A.conversation?.id !== A.conversations[convID].id)
@@ -24,9 +24,7 @@
 				.then((data) => {
 					A.conversations[data.id!] = { ...A.conversations[data.id!], ...data };
 					A.conversation = A.conversations[data.id!];
-					(A.conversation.media??[]).map(syncMediaFileURL)
-
-
+					(A.conversation.media ?? []).map(syncMediaFileURLs);
 				})
 				.catch((e) => {
 					debug('Failed to fetch conversation:', e.message);
@@ -44,7 +42,8 @@
 		}
 	});
 
-	$inspect(A.conversation).with((t, c) => {
-		debug('A.conversation', t, c);
-	});
+	// $effect(() => {
+	// 	debug('A.conversation changed: ', A.conversation);
+	// })
+
 </script>

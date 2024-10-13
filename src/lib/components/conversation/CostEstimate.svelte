@@ -2,8 +2,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import { Cost } from '$lib/components';
 
-	let { input = undefined, messages = undefined }: { input?: string, messages?: MessageInterface[] } = $props();
-
+	let { input = undefined, messages = undefined }: { input?: string; messages?: MessageInterface[] } = $props();
 
 	function estimateTokens(input: string, messages?: MessageInterface[]) {
 		let inputTokens = 0;
@@ -36,23 +35,23 @@
 	function estimateCost(tokens: number) {
 		const assistant = A.assistants[A.conversation?.assistant ?? 'unknown'];
 		if (!assistant) return 0;
-		const model = A.models[assistant.model ?? 'unknown'];
+		const model = A.models[assistant.modelID ?? 'unknown'];
 		if (!model) return 0;
 
 		return (tokens * (model.inputCost ?? 0)) / 1000000;
 	}
 
 	let tokensEstimate = $derived.by(() => {
-        if (A.conversation) {
-            return estimateTokens(input ?? '', messages);
-        }
-    });
+		if (A.conversation) {
+			return estimateTokens(input ?? '', messages);
+		}
+	});
 
-    let costEstimate = $derived.by(() => {
-        if (A.conversation && tokensEstimate !== undefined) {
-            return estimateCost(tokensEstimate);
-        }
-    });
+	let costEstimate = $derived.by(() => {
+		if (A.conversation && tokensEstimate !== undefined) {
+			return estimateCost(tokensEstimate);
+		}
+	});
 </script>
 
 {#if A.dbUser?.showEstimate}

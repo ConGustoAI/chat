@@ -4,9 +4,9 @@
 	import { PlusCircle, Upload } from 'lucide-svelte';
 
 	import { APIupsertConversation, APIupsertFile, APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { putFile } from '$lib/files_client';
-	import { syncMediaFileURL } from '$lib/media_utils';
-	import { assert } from '$lib/utils';
+	import { putFile } from '$lib/utils/files_client.svelte';
+	import { mediaCreateThumbnail, syncMediaFileURLs, uploadChangedMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -68,7 +68,7 @@
 			}
 		};
 
-		await syncMediaFileURL(m);
+		await syncMediaFileURLs(m);
 		return m;
 	}
 
@@ -89,93 +89,17 @@
 				);
 			});
 
-			A.conversation.media.push(...(await Promise.all(newFiles.map(fileToMedia))));
+			const newMedia = await Promise.all(newFiles.map(fileToMedia));
+			// await Promise.all(newMedia.map(mediaCreateThumbnail));
+
+			A.conversation.media.push(...newMedia);
 			debug('Files added: ', $state.snapshot(A.conversation));
 		}
 	}
 
-	async function uploadFile(file: FileInterface) {
-		if (!file.file) throw new Error('File not found');
-		debug('uploadFile', file);
 
-		file.status = 'progress';
-		file = { ...file, ...(await APIupsertFile(file, true)) };
-		assert(file.uploadURL, 'No upload URL returned');
-		debug('uploadFile insertion: ', file);
 
-		file = { ...file, ...(await putFile(file)) };
-		debug('uploadFile putFile: ', file);
-
-		// Update status
-		file = { ...file, ...(await APIupsertFile(file)) };
-		debug('uploadFile finished', file);
-		return file;
-	}
-
-	async function uploadMedia(media: MediaInterface) {
-		if (!A.conversation?.id) throw new Error('Conversation ID missing');
-
-		const uploadPromises = [];
-
-		uploadPromises.push(async () => {
-			if (media.original && !media.original.id) {
-				media.original = { ...media.original, ...(await uploadFile(media.original)) };
-			}
-		});
-
-		// Only upload resized if it has changed
-		uploadPromises.push(async () => {
-			if (
-				media.resized &&
-				(!media.resized.id ||
-					media.resizedHeight != media.newResizedHeight ||
-					media.resizedWidth != media.newResizedWidth)
-			) {
-				media.resized = { ...media.resized, ...(await uploadFile(media.resized)) };
-			}
-		});
-
-		// Upload thumbnail if it doesn't have an ID
-		uploadPromises.push(async () => {
-			if (media.thumbnail && !media.thumbnail.id) {
-				media.thumbnail.isThumbnail = true;
-				media.thumbnail = { ...media.thumbnail, ...(await uploadFile(media.thumbnail)) };
-			}
-		});
-
-		await Promise.all(uploadPromises.map((p) => p()));
-
-		media.originalID = media.original?.id;
-		media.resizedID = media.resized?.id;
-		media.thumbnailID = media.thumbnail?.id;
-		media.conversationID = A.conversation.id;
-
-		const updatedMedia = await APIupsertMedia(mediaInterfaceFilter(media));
-		debug('media uploaded!', updatedMedia);
-
-		// Apply all fields from updatedMedia to media
-		Object.assign(media, updatedMedia);
-	}
-
-	async function uploadMultipleMedia() {
-		if (!A.conversation) throw Error('Conversation missing');
-
-		debug('uploadMedia', $state.snapshot(A.conversation));
-
-		let createdNewConversation = false;
-		if (!A.conversation.id) {
-			Object.assign(A.conversation, await APIupsertConversation(A.conversation));
-			createdNewConversation = true;
-		}
-		if (!A.conversation.media) A.conversation.media = [];
-
-		await Promise.all(A.conversation.media.map((m) => uploadMedia(m)));
-		debug('All media uploaded!', $state.snapshot(A.conversation));
-		if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
-	}
-
-	let _ = $derived.by(() => debug('A.conversation', A.conversation))
-
+	// let _ = $derived.by(() => debug('A.conversation', A.conversation));
 
 	// $inspect(A.conversation).with((c, t) => {
 	// 	debug('A.conversation', c, t);
@@ -222,17 +146,17 @@
 	role="region"
 	aria-label="Image upload area">
 	<!-- Clickable box for file upload -->
-	<div class="flex flex-col gap-2">
+	<div class="flex flex-col gap-3">
 		<button
-			class="btn carousel-item btn-outline h-16 w-16 items-center justify-center rounded-sm p-0"
+			class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
 			onclick={() => document.getElementById('fileInput')?.click()}>
 			<PlusCircle size={32} />
 		</button>
 		<button
-			class="btn carousel-item btn-outline h-16 w-16 items-center justify-center rounded-sm p-0"
+			class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
 			disabled={!A.conversation?.media?.length}
 			onclick={async () => {
-				await uploadMultipleMedia();
+				await uploadConversationMedia();
 			}}>
 			<Upload size={32} />
 		</button>

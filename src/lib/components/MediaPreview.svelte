@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { assert } from '$lib/utils';
+	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
+	import { RefreshCcw, RefreshCwOff } from 'lucide-svelte';
 	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:components:MediaPreview');
 
@@ -35,6 +36,8 @@
 		}
 	}
 
+	$effect(() => debug('media: ', $state.snapshot(media)));
+
 	// $inspect(media).with((t, c) => {
 	// 	debug('media', t, c);
 	// });
@@ -46,17 +49,14 @@
 	let mediaHeight: number | undefined = $state();
 
 	$effect(() => {
-		untrack(() => {
-			if (thumbnailURL) URL.revokeObjectURL(thumbnailURL);
-		});
-
-		if (media.thumbnail?.file) {
-			thumbnailURL = URL.createObjectURL(media.thumbnail.file);
-		} else if (media.resized?.file) {
-			thumbnailURL = URL.createObjectURL(media.resized.file);
+		if (media.thumbnail?.url) {
+			debug('thumbnailURL: Picking thumbnail');
+			thumbnailURL = media.thumbnail.url;
 		} else if (media.original?.file) {
-			thumbnailURL = URL.createObjectURL(media.original.file);
+			debug('thumbnailURL: Picking original');
+			thumbnailURL = media.original.url;
 		} else {
+			debug('thumbnailURL: No preview URL available');
 			thumbnailURL = undefined;
 		}
 
@@ -83,7 +83,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="bordere relative flex h-32 w-32 flex-col justify-start gap-1 rounded-sm border-indigo-800"
+	class="relative flex h-32 w-32 flex-col gap-0.5 justify-between p-1 bg-base-300 rounded-md"
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
 	{#if media.type === 'video'}
@@ -104,8 +104,11 @@
 	{:else if media.type === 'audio'}
 		TODO: Audio
 	{:else}
-		<img src={thumbnailURL} alt={media.filename} class="h-32 w-32 grow border object-contain" />
-		<div class="absolute">
+		<img src={thumbnailURL} alt={media.filename} class="h-auto max-h-full w-full overflow-hidden object-contain" />
+
+		<div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div>
+
+		<div class="absolute bottom-1 w-full bg-blue-500">
 			{#if media.original?.status === 'progress'}
 				<progress class="progress progress-success" value={media.original.uploadProgress} max={100}>
 					{media.original.uploadProgress}%
@@ -130,8 +133,10 @@
 		</div>
 	{/if}
 
-	<label class="absolute right-1 top-1 z-30">
-		<input type="checkbox" class="checkbox checkbox-sm" bind:checked={media.repeat} />
+	<label class="swap swap-rotate absolute right-1 top-1 z-30">
+		<input type="checkbox" class="" bind:checked={media.repeat} />
+		<RefreshCcw class="swap-on" />
+		<RefreshCwOff class="swap-off" />
 	</label>
 
 	{#if media.originalWidth != undefined}
@@ -143,7 +148,4 @@
 			{/if}
 		</div>
 	{/if}
-
-	<div class="absolute"></div>
-	<div class="overflow-ellipsis break-all text-sm">{media.title}</div>
 </div>

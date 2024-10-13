@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { APIupsertConversation, APIupsertMessage } from '$lib/api';
-	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
+	import { goto } from '$app/navigation';
+	import { APIdeleteMessages, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
+	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
 
+	import { trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
-	import { trimLineLength } from '$lib/utils';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -19,7 +19,7 @@
 		loading = false,
 		editingMessage = $bindable(false)
 	}: {
-		submitConversation: (toDelete: string[]) => Promise<void>;
+		submitConversation: () => Promise<void>;
 		message: MessageInterface;
 		isPublic?: boolean;
 		loading?: boolean;
@@ -56,16 +56,19 @@
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
+
+		const deletePromise = APIdeleteMessages(toDelete)
+
 		A.conversation.messages = A.conversation.messages.slice(0, currentIndex + 1);
 		if (message.role === 'user')
 			A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
-
 		try {
 			// Update the conversation
-			await submitConversation(toDelete);
+			await submitConversation();
 		} catch (e) {
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}
+		await deletePromise;
 	}
 
 	async function updateMessage() {
@@ -121,16 +124,19 @@
 			.slice(currentIndex)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
+		const deletePromise = APIdeleteMessages(toDelete)
+
 
 		A.conversation.messages = A.conversation.messages.slice(0, currentIndex);
 		A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
 
 		try {
 			// Update the conversation
-			await submitConversation(toDelete);
+			await submitConversation();
 		} catch (e) {
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}
+		await deletePromise;
 
 		editingMessage = false;
 	}

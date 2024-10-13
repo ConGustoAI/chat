@@ -6,8 +6,10 @@ const debug = dbg('app:hooks');
 
 export const sse = false;
 
+import { userInterfaceFilter } from '$lib/api';
 import { lucia } from '$lib/db/auth';
-import { DBgetAssistants, DBgetHiddenItems, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
+import { DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
+import { filterNull } from '$lib/utils/utils';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
@@ -17,7 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// 	return resolve(event);
 	// }
 
-	const { session, user } = await lucia.validateSession(sessionId??"");
+	const { session, user } = await lucia.validateSession(sessionId ?? '');
 	if (session && session.fresh) {
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		// sveltekit types deviates from the de-facto standard
@@ -34,18 +36,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 			...sessionCookie.attributes
 		});
 	}
-	event.locals.user = user;
-	event.locals.session = session;
+	// event.locals.user = user;
+	// event.locals.session = session;
 
-	// debug('session', session);
-	// debug('user', user);
+	debug('session', session);
+	debug('user', user);
 
 	if (user) {
-		[event.locals.hiddenItems, event.locals.dbUser, event.locals.assistants] = (await Promise.all([
-			DBgetHiddenItems({ dbUser: { id: user.id } }),
-			DBgetUser({ id: user.id }),
-			DBgetAssistants({ dbUser: { id: user.id } })
-		])) as [Set<string>, UserInterface, AssistantInterface[]];
+		event.locals.dbUser = filterNull(await DBgetUser({ id: user.id })) as UserInterface | undefined;
 
 		if (!event.locals.dbUser) {
 			event.locals.dbUser = (await DBinsertUser({
@@ -60,18 +58,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 		// The user had no avattar before, but the new log in method was used that provides an avatar
 		if (!event.locals.dbUser.avatar && user.avatar_url) {
-			DBupdateUser({
-				dbUser: event.locals.dbUser,
+			await DBupdateUser({
+				dbUser: userInterfaceFilter(event.locals.dbUser),
 				updatedUser: { ...event.locals.dbUser, avatar: user.avatar_url }
 			});
 
 			event.locals.dbUser.avatar = user.avatar_url;
 		}
 	} else {
-		event.locals.hiddenItems = new Set();
 		event.locals.dbUser = undefined;
-		event.locals.assistants = (await DBgetAssistants({})) as AssistantInterface[];
 	}
+
+	debug("dbUser", event.locals.dbUser)
 
 	// debug("hook %o", {session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser, assistants: event.locals.assistants, hiddenItems: event.locals.hiddenItems});
 

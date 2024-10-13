@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { MetaTag } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
-	import { newConversation } from '$lib/utils';
+	import { newConversation } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:new');

@@ -5,7 +5,7 @@
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { trimLineLength } from '$lib/utils';
+	import { trimLineLength } from '$lib/utils/utils';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 

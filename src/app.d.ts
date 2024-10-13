@@ -88,8 +88,8 @@ declare global {
 		userID: string;
 		name: string;
 		about?: string;
-		model?: string;
-		apiKey?: string;
+		modelID?: string;
+		apiKeyID?: string;
 		aboutUser?: string;
 		aboutUserFromUser: boolean;
 		assistantInstructions?: string;
@@ -139,7 +139,8 @@ declare global {
 		topP?: number;
 		topK?: number;
 		deleted?: boolean;
-		prompt?: PromptInterface;
+
+		mediaIDs?: string[];
 
 		// Don't send to the backend.
 		updatedAt?: Date;
@@ -148,6 +149,7 @@ declare global {
 		// Used by the frontend, not in the database.
 		markdownCache?: string; // This is only used in the frontend, not saved to the database.
 		media?: MediaInterface[];
+		prompt?: PromptInterface;
 	}
 
 	interface PromptInterface {
@@ -187,7 +189,7 @@ declare global {
 		// From relations, not in database.
 		messages?: MessageInterface[];
 		// All media for this conversation, including new media.
-		media? : MediaInterface[];
+		media?: MediaInterface[];
 	}
 
 	interface MediaInterface {
@@ -216,10 +218,10 @@ declare global {
 		trimStart?: number;
 		trimEnd?: number;
 
-		originalID?: string;
-		resizedID?: string;
-		croppedID?: string;
-		thumbnailID?: string;
+		originalID?: string | null;
+		resizedID?: string | null;
+		croppedID?: string | null;
+		thumbnailID?: string | null;
 
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -271,7 +273,6 @@ declare global {
 	}
 
 	type undefinedNull = undefined | null;
-
 }
 
 export {};

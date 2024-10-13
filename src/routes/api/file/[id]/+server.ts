@@ -1,5 +1,5 @@
 import { DBdeleteFile, DBgetFile } from '$lib/db/utils';
-import { deleteFile, getDownloadURL, s3 } from '$lib/files_server';
+import { deleteFile, getDownloadURL, s3 } from '$lib/utils/files_server';
 import { error, json } from '@sveltejs/kit';
 import dbg from 'debug';
 

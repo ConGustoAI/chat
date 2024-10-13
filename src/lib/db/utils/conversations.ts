@@ -1,5 +1,5 @@
 import { conversationInterfaceFilter } from '$lib/api';
-import { trimLineLength } from '$lib/utils';
+import { trimLineLength } from '$lib/utils/utils';
 import { error } from '@sveltejs/kit';
 import dbg from 'debug';
 import { and, eq, inArray, not, sql } from 'drizzle-orm';
@@ -208,7 +208,7 @@ export async function DBdeleteConversations({ dbUser, ids }: { dbUser?: UserInte
 		.delete(conversationsTable)
 		.where(and(inArray(conversationsTable.id, ids), eq(conversationsTable.userID, dbUser.id)))
 		.returning({ id: conversationsTable.id });
-
+	debug("delete conversation res: %o", res)
 	if (!res.length) error(500, 'Failed to delete conversation');
 
 	return res[0];

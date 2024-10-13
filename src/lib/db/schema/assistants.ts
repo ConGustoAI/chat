@@ -12,8 +12,8 @@ export const assistantsTable = pgTable('assistants', {
 		.notNull(),
 	name: text('name').notNull().default('Assistant'),
 	about: text('about'),
-	model: uuid('model').references(() => modelsTable.id, { onDelete: 'set null' }),
-	apiKey: uuid('api_key'),
+	modelID: uuid('model').references(() => modelsTable.id, { onDelete: 'set null' }),
+	apiKeyID: uuid('api_key'),
 	aboutUser: text('about_user'),
 	aboutUserFromUser: boolean('about_user_from_user').notNull().default(true),
 	assistantInstructions: text('assistant_instructions'),
@@ -42,11 +42,11 @@ export const assistantTableRelations = relations(assistantsTable, ({ one, many }
 		references: [usersTable.id]
 	}),
 	model: one(modelsTable, {
-		fields: [assistantsTable.model],
+		fields: [assistantsTable.modelID],
 		references: [modelsTable.id]
 	}),
 	apiKey: one(apiKeysTable, {
-		fields: [assistantsTable.apiKey],
+		fields: [assistantsTable.apiKeyID],
 		references: [apiKeysTable.id]
 	}),
 	conversations: many(conversationsTable)
