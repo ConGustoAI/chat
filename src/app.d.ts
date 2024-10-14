@@ -150,6 +150,8 @@ declare global {
 		markdownCache?: string; // This is only used in the frontend, not saved to the database.
 		media?: MediaInterface[];
 		prompt?: PromptInterface;
+		editing?: boolean;
+		originalText?: string; // Saven when editing to be able to cancel the edit.
 	}
 
 	interface PromptInterface {

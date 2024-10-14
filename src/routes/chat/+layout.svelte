@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import {
-		APIdeleteConversations,
-		APIfetchConversations
-	} from '$lib/api';
+	import { APIdeleteConversations, APIfetchConversations } from '$lib/api';
 	import { A } from '$lib/appstate.svelte.js';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { abortController, submitConversationClientSide } from '$lib/utils/chat.svelte.js';
-	import { assert, newConversation } from '$lib/utils/utils.js';
+	import { addMessage, assert, newConversation } from '$lib/utils/utils.js';
 	import { ChevronUp, Plus, Star } from 'lucide-svelte';
 
 	import GitHub from '$lib/components/icons/GitHub.svelte';
@@ -34,9 +31,9 @@
 		});
 
 		for (const c of gotConvos) {
-			assert(c.id)
-			if (A.conversations[c.id]) Object.assign(A.conversations[c.id], c)
-			else A.conversations[c.id] = c
+			assert(c.id);
+			if (A.conversations[c.id]) Object.assign(A.conversations[c.id], c);
+			else A.conversations[c.id] = c;
 		}
 
 		A.conversationOrder = Object.keys(A.conversations);
@@ -51,8 +48,6 @@
 	});
 
 	let { data, children } = $props();
-
-
 
 	$inspect(A.dbUser).with((type, value) => {
 		debug('dbUser: %s %o', type, value);
@@ -79,30 +74,12 @@
 		if (A.dbUser) {
 			const delIds = await APIdeleteConversations(ids);
 			if (delIds?.length !== ids.length) {
-				debug("Not all conversations have been deleted:")
-				debug("Rquestd: ", ids)
-				debug("Confirmed: ", delIds)
+				debug('Not all conversations have been deleted:');
+				debug('Rquestd: ', ids);
+				debug('Confirmed: ', delIds);
 			}
 		}
 	}
-
-	async function addMessage(role: 'user' | 'assistant') {
-		debug('addMessage', role);
-
-		if (!A.conversation) return;
-		if (!A.conversation.messages) A.conversation.messages = [];
-
-		A.conversation?.messages?.push({
-			userID: A.dbUser?.id ?? 'unknown',
-			role,
-			text: ''
-		});
-
-		if (addMessageDropdown) addMessageDropdown.open = false;
-		editLastMessage = true;
-	}
-
-	let editLastMessage = $state(false);
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
@@ -144,33 +121,41 @@
 		<div class="mb-auto flex w-full grow flex-col justify-start overflow-y-auto bg-transparent bg-opacity-10">
 			{#if A.conversation?.messages}
 				{#each A.conversation.messages as m, i}
-					{#if i == A.conversation.messages.length - 1}
-						<ChatMessage
-							bind:message={A.conversation.messages[i]}
-							loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
-							submitConversation={submitConversationClientSide}
-							bind:editingMessage={editLastMessage} />
-					{:else}
-						<ChatMessage
-							bind:message={A.conversation.messages[i]}
-							loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
-							submitConversation={submitConversationClientSide} />
-					{/if}
+					<ChatMessage
+						bind:message={A.conversation.messages[i]}
+						loading={i === A.conversation.messages.length - 1 && A.chatStreaming}
+						submitConversation={submitConversationClientSide} />
 				{/each}
 			{/if}
-			{#if A.dbUser?.hacker}
-				<div class="flex w-full flex-col items-end justify-end">
-					<div class="divider w-full grow-0"></div>
-					<details class="dropdown dropdown-left h-full" bind:this={addMessageDropdown}>
-						<summary class="btn btn-outline btn-xs mx-2 mt-2 rounded-md p-1"><Plus size={14} /></summary>
-						<ul class="menu dropdown-content z-[20] w-fit text-nowrap rounded-md bg-base-200 p-2 shadow">
-							<button class="btn btn-ghost btn-sm rounded" onclick={() => addMessage('user')}>New user message</button>
-							<button class="btn btn-ghost btn-sm" onclick={() => addMessage('assistant')}
-								>New assistant message</button>
-						</ul>
-					</details>
+
+			{#if !A.conversation?.messages?.length}
+				<div class="dropdown dropdown-end m-2 self-end">
+					<button class="btn btn-ghost btn-outline btn-sm rounded-md p-1" title="Add messages">
+						<Plus size="fit-h" />
+					</button>
+					<ul class="menu dropdown-content z-20 w-32 text-nowrap bg-base-200 p-2">
+						<li>
+							<button
+								class="btn btn-ghost btn-sm justify-end"
+								onclick={async (e) => {
+									const target = e.target as HTMLButtonElement;
+									target.blur();
+									await addMessage({ role: 'assistant', above: false, editing: true });
+								}}>assistant</button>
+						</li>
+						<li>
+							<button
+								class="btn btn-ghost btn-sm justify-end"
+								onclick={async (e) => {
+									const target = e.target as HTMLButtonElement;
+									target.blur();
+									await addMessage({ role: 'user', above: false, editing: true });
+								}}>user</button>
+						</li>
+					</ul>
 				</div>
 			{/if}
+
 			{#if A.conversation?.messages}
 				<div class="mb-20 w-full"></div>
 			{/if}

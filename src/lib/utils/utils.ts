@@ -2,6 +2,10 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { ClassValue } from 'tailwind-variants';
 import { defaultsUUID } from '../db/schema';
+import { APIupsertMessage } from '$lib/api';
+import { A } from '$lib/appstate.svelte';
+import dbg from 'debug';
+const debug = dbg('app:utils:utils');
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -135,4 +139,62 @@ export function filterNull<T>(value: T): T {
 				return [k, v];
 			})
 	) as T;
+}
+
+export async function updateMessage(m: MessageInterface) {
+	if (A.conversation?.id) {
+		m.conversationID = A.conversation.id;
+		Object.assign(m, await APIupsertMessage(m));
+	}
+}
+
+export async function addMessage({
+	role,
+	parent,
+	above = false,
+	editing = false
+}: {
+	role: 'user' | 'assistant';
+	parent?: MessageInterface;
+	above?: boolean;
+	editing?: boolean;
+}) {
+	assert(A.conversation);
+	if (!A.conversation.messages) A.conversation.messages = [];
+
+	const newMessage: MessageInterface = { userID: A.dbUser?.id ?? 'unknown', role, text: '', editing };
+	if (parent) {
+		const messageIdx = A.conversation.messages.findIndex((m) => m === parent);
+		if (messageIdx === undefined) throw new Error("Can't find the message in conversation messages");
+
+		A.conversation.messages.splice(above ? messageIdx : messageIdx + 1, 0, newMessage);
+	} else {
+		A.conversation.messages.push(newMessage);
+	}
+
+	await updateMessage(newMessage);
+
+	const orderList = A.conversation.messages.map((m) => {
+		assert(m.order !== undefined);
+		return m.order;
+	});
+
+	// Check if messages are in ascending order
+	const isAscending = orderList.every((value, index, array) => index === 0 || value > array[index - 1]);
+
+	if (!isAscending) {
+		const promises = []
+		const sortedOrder = orderList.sort((a, b) => a - b);
+
+		debug("Message order is not in ascending order. Fixing...");
+
+		for (let i = 0; i < A.conversation.messages.length; i++) {
+			if (A.conversation.messages[i].order !== sortedOrder[i]) {
+				A.conversation.messages[i].order = sortedOrder[i];
+				promises.push(updateMessage(A.conversation.messages[i]));
+			}
+		}
+
+		await Promise.all(promises);
+	}
 }

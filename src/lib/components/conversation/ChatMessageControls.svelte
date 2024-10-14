@@ -1,27 +1,24 @@
 <script lang="ts">
 	import { APIdeleteMessages, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
+	import { addMessage, assert, updateMessage } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import Cost from './Cost.svelte';
-	import { Copy, Edit, Repeat } from 'lucide-svelte';
+	import { Copy, Edit, Menu, Repeat } from 'lucide-svelte';
 	import DeleteButton from '../DeleteButton.svelte';
+	import Cost from './Cost.svelte';
 	const debug = dbg('app:ui:components:ChatMessageControls');
 
 	let {
 		message = $bindable(),
 		savingMessage = $bindable(),
-        editingMessage = $bindable(),
-        originalMessage = $bindable(),
-        markdown = $bindable(),
+		markdown = $bindable(),
 		isPublic = false,
 		submitConversation,
-		chatError = $bindable(),
+		chatError = $bindable()
 	}: {
 		message: MessageInterface;
 		savingMessage: boolean;
-        editingMessage: boolean;
-        originalMessage: string;
-        markdown: boolean;
+		markdown: boolean;
 		isPublic: boolean;
 		submitConversation: () => Promise<void>;
 		chatError: string | undefined;
@@ -61,105 +58,169 @@
 		A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
 
 		try {
-			// Update the conversation
 			await submitConversation();
 		} catch (e) {
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}
 		await deletePromise;
 
-		editingMessage = false;
+		message.editing = false;
 	}
+
+
+	function shouldShowAssistantInfo() {
+		// previouis Assistant Message
+		let pAM: MessageInterface | undefined;
+
+		for (const m of A.conversation?.messages ?? []) {
+			if (m === message) break;
+			if (m.role === 'assistant') pAM = m;
+		}
+
+		if (
+			!pAM ||
+			pAM.assistantID !== message.assistantID ||
+			pAM.temperature !== message.temperature ||
+			pAM.topK !== message.topK ||
+			pAM.topP !== message.topP
+		)
+			return true;
+	}
+
+
 </script>
 
-<div class="absolute right-0 top-0 mr-2 flex w-full items-center justify-end gap-2 text-base-content">
-	{#if A.dbUser?.hacker}
-		<select
-			class="select select-xs m-0 bg-transparent py-0"
-			name=""
-			id=""
-			value={message.role}
-			onchange={async (e: Event) => {
-				const target = e.target as HTMLSelectElement;
-				target.blur();
-				debug(e);
-				if (target.value != message.role && A.conversation?.id) {
-					message.role = target.value as 'user' | 'assistant';
-					message.conversationID = A.conversation.id;
-					savingMessage = true;
-					await APIupsertMessage(message);
-					savingMessage = false;
-				}
-			}}>
-			<option class="bg-base-100 text-right" value="user" label="user"></option>
-			<option class="bg-base-100 text-right" value="assistant" label="assistant"></option>
-		</select>
-	{/if}
-
-	{#if message.createdAt && message.role !== 'assistant'}
-		{new Date(message.createdAt).toLocaleString('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-			hour12: false
-		})}
-	{/if}
-	{#if A.dbUser?.showInfo && message.role == 'assistant' && message.id}
-		<div class="mr-2 flex gap-4 text-xs text-base-content">
-			<span>
-				{#if message.assistantName}
-					{message.assistantName}
+<div class="absolute right-0 top-0 flex h-full flex-col pr-2">
+	<div class="flex w-full items-center justify-end gap-2 text-base-content">
+		{#if message.createdAt && message.role !== 'assistant'}
+			{new Date(message.createdAt).toLocaleString('en-GB', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false
+			})}
+		{/if}
+		{#if A.dbUser?.showInfo && message.role == 'assistant' && message.id}
+			<div class="mr-2 flex gap-4 text-xs text-base-content">
+				{#if shouldShowAssistantInfo()}
+					<span>
+						{#if message.assistantName}
+							{message.assistantName}
+						{/if}
+						{#if message.temperature !== undefined || message.topP !== undefined || message.topK !== undefined}
+							{@const stats = [
+								message.temperature !== undefined ? `T=${message.temperature}` : undefined,
+								message.topP !== undefined ? `P=${message.topP}` : undefined,
+								message.topK !== undefined ? `K=${message.topK}` : undefined
+							].filter(Boolean)}
+							{#if stats.length > 0}
+								({stats.join(', ')})
+							{/if}
+						{/if}
+					</span>
 				{/if}
-
-				{#if message.temperature !== undefined || message.topP !== undefined || message.topK !== undefined}
-					{@const stats = [
-						message.temperature !== undefined ? `T=${message.temperature}` : undefined,
-						message.topP !== undefined ? `P=${message.topP}` : undefined,
-						message.topK !== undefined ? `K=${message.topK}` : undefined
-					].filter(Boolean)}
-					{#if stats.length > 0}
-						({stats.join(', ')})
-					{/if}
-				{/if}
-			</span>
-			<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
-		</div>
-	{/if}
-
-	<!-- {message.order} -->
-	{#if message.role == 'assistant' && !isPublic}
-		<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" onclick={reGenerate}><Repeat size={15} /></button>
-	{/if}
-
-	{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublic}
+				<Cost total={(message.tokensInCost ?? 0) + (message.tokensOutCost ?? 0)} />
+			</div>
+		{/if}
+		<!-- {message.order} -->
+		{#if message.role == 'assistant' && !isPublic}
+			<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" title="Generate a new response" onclick={reGenerate}
+				><Repeat size={15} /></button>
+		{/if}
+		{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublic}
+			<button
+				title="Edit message"
+				class="btn btn-ghost btn-xs rounded-md p-0 px-1"
+				onclick={() => {
+					message.editing = !message.editing;
+					if (message.editing) {
+						message.originalText = message.text;
+					}
+				}}><Edit size={15} /></button>
+		{/if}
 		<button
-			class="btn btn-ghost btn-xs rounded-md p-0 px-1"
+			title="Copy message to clipboard"
+			class="btn btn-ghost btn-xs rounded-md p-0"
 			onclick={() => {
-				editingMessage = !editingMessage;
-				if (editingMessage) {
-					originalMessage = message.text;
-				}
-			}}><Edit size={15} /></button>
-	{/if}
-	<button
-		class="btn btn-ghost btn-xs rounded-md p-0"
-		onclick={() => {
-			navigator.clipboard.writeText(message.text);
-		}}><Copy size={15} /></button>
-	{#if !isPublic}
-		<DeleteButton
-			class="dropdown-end"
-			btnClass="btn-xs btn-ghost rounded-md p-1"
-			deleteAction={deleteMessage}
-			size={15} />
-	{/if}
-	{#if !A.dbUser || A.dbUser.hacker || isPublic}
-		<button
-			class="btn btn-ghost btn-outline btn-xs rounded-md p-0 px-1"
-			onclick={() => {
-				markdown = !markdown;
-			}}>{markdown ? 'md' : 'raw'}</button>
-	{/if}
+				navigator.clipboard.writeText(message.text);
+			}}><Copy size={15} /></button>
+		{#if !isPublic}
+			<DeleteButton
+				title="Delete message"
+				class="dropdown-end"
+				btnClass="btn-xs btn-ghost rounded-md p-1"
+				deleteAction={deleteMessage}
+				size={15} />
+		{/if}
+		{#if !A.dbUser || A.dbUser.hacker || isPublic}
+			<button
+				title="Toggle markdown"
+				class="btn btn-ghost btn-outline btn-xs h-5 min-h-4 rounded-md p-0 px-1"
+				class:ml-1={markdown}
+				onclick={() => {
+					markdown = !markdown;
+				}}>{markdown ? 'md' : 'raw'}</button>
+		{/if}
+		{#if !A.dbUser || A.dbUser.hacker}
+			<div class="dropdown dropdown-end">
+				<button class="btn btn-ghost btn-xs rounded-md p-1" title="More options">
+					<Menu size="fit-h" />
+				</button>
+				<ul class="menu dropdown-content z-20 w-64 text-nowrap bg-base-200 p-2">
+					<li>
+						<button
+							class="btn btn-ghost btn-sm justify-end"
+							onclick={async (e: Event) => {
+								message.role = message.role === 'assistant' ? 'user' : 'assistant';
+								const target = e.target as HTMLButtonElement;
+								target.blur();
+								savingMessage = true;
+								await updateMessage(message);
+								savingMessage = false;
+							}}>Change role to {message.role === 'assistant' ? 'user' : 'assistant'}</button>
+					</li>
+					<div class="divider w-full">Add message above</div>
+					<li>
+						<button
+							class="btn btn-ghost btn-sm justify-end"
+							onclick={async (e) => {
+								const target = e.target as HTMLButtonElement;
+								target.blur();
+								await addMessage({ parent: message, role: 'assistant', above: true, editing: true });
+							}}>assistant</button>
+					</li>
+					<li>
+						<button
+							class="btn btn-ghost btn-sm justify-end"
+							onclick={async (e) => {
+								const target = e.target as HTMLButtonElement;
+								target.blur();
+								await addMessage({ parent: message, role: 'user', above: true, editing: true });
+							}}>user</button>
+					</li>
+					<div class="divider w-full">Add message below</div>
+					<li>
+						<button
+							class="btn btn-ghost btn-sm justify-end"
+							onclick={async (e) => {
+								const target = e.target as HTMLButtonElement;
+								target.blur();
+								await addMessage({ parent: message,role: 'assistant', above: false, editing: true });
+							}}>assistant</button>
+					</li>
+					<li>
+						<button
+							class="btn btn-ghost btn-sm justify-end"
+							onclick={async (e) => {
+								const target = e.target as HTMLButtonElement;
+								target.blur();
+								await addMessage({ parent: message,role: 'user', above: false, editing: true });
+							}}>user</button>
+					</li>
+				</ul>
+			</div>
+		{/if}
+	</div>
 </div>

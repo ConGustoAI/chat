@@ -17,21 +17,19 @@
 		submitConversation,
 		message = $bindable(),
 		isPublic = false,
-		loading = false,
-		editingMessage = $bindable(false)
+		loading = false
 	}: {
 		submitConversation: () => Promise<void>;
 		message: MessageInterface;
 		isPublic?: boolean;
 		loading?: boolean;
-		editingMessage?: boolean;
 	} = $props();
 
 	let chatError: string | undefined = $state();
 	let markdown = $state(message.role === 'assistant');
 
 	let originalMessage = $state('');
-	// let editingMessage = $state(edit);
+
 	let savingMessage = $state(false);
 
 	let detailsOpen = $state(false);
@@ -71,7 +69,7 @@
 		await deletePromise;
 	}
 
-	async function updateMessage() {
+	async function saveMessage() {
 		debug('updateMessage', { conversation: A.conversation, message });
 		let newConversation = false;
 		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
@@ -91,21 +89,21 @@
 		}
 
 		savingMessage = true;
-		await APIupsertMessage(message);
+		Object.assign(message, await APIupsertMessage(message));
 		savingMessage = false;
 		if (newConversation) await goto(`/chat/${A.conversation.id}`);
 	}
 
 	async function inputKeyboardHandler(event: any) {
-		if (editingMessage && A.conversation && event instanceof KeyboardEvent) {
+		if (message.editing && A.conversation && event instanceof KeyboardEvent) {
 			if (event.key === 'Enter' && event.ctrlKey) {
 				event.preventDefault();
 				message.markdownCache = undefined;
-				editingMessage = false;
+				message.editing = false;
 				await sendEditedMessage();
 			} else if (event.key === 'Escape') {
-				message.text = originalMessage;
-				editingMessage = false;
+				message.text = message.originalText ?? '';
+				message.editing = false;
 			}
 		}
 	}
@@ -116,9 +114,19 @@
 		}
 	}
 
+	function shouldShowDivider() {
+		let idx = A.conversation?.messages?.findIndex((m) => m === message);
+		if (!idx) return false;
+		const pm = A.conversation?.messages?.[idx - 1];
+		if (pm?.role === message.role) return true;
+	}
+
 	let inputFocus = $state(false);
 </script>
 
+{#if shouldShowDivider()}
+	<div class="divider w-full grow-0" style="margin: 0;"></div>
+{/if}
 <div class="relative flex items-start pt-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
 		{#if loading}
@@ -142,7 +150,7 @@
 	</div>
 
 	<div class="mr-4 flex grow flex-col md:mr-16">
-		{#if editingMessage && !isPublic}
+		{#if message.editing && !isPublic}
 			<div class="relative my-4 flex w-full flex-col items-start">
 				{#if inputFocus && message.role === 'user'}
 					{@const currentIndex = A.conversation?.messages?.findIndex((m) => m === message) ?? -1}
@@ -172,7 +180,7 @@
 					<button
 						class="btn btn-outline btn-sm"
 						onclick={async () => {
-							editingMessage = false;
+							message.editing = false;
 							await sendEditedMessage();
 						}}>
 						Save & Send
@@ -183,9 +191,9 @@
 						onclick={async () => {
 							savingMessage = true;
 							message.markdownCache = undefined;
-							await updateMessage();
+							await saveMessage();
 							savingMessage = false;
-							editingMessage = false;
+							message.editing = false;
 						}}>
 						{#if savingMessage}
 							<div class="loading"></div>
@@ -196,8 +204,8 @@
 					<button
 						class="btn btn-outline btn-sm"
 						onclick={() => {
-							message.text = originalMessage;
-							editingMessage = false;
+							message.text = message.originalText ?? '';
+							message.editing = false;
 						}}>
 						Cancel
 					</button>
@@ -219,12 +227,10 @@
 		<!-- </div> -->
 		<Notification messageType="error" bind:message={chatError} />
 
-		{#if !editingMessage}
+		{#if !message.editing}
 			<ChatMessageControls
 				bind:message
 				bind:savingMessage
-				bind:editingMessage
-				bind:originalMessage
 				bind:markdown
 				bind:chatError
 				{submitConversation}
