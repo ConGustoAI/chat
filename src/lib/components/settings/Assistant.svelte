@@ -19,7 +19,7 @@
 	}: {
 		assistant: AssistantInterface;
 		deleteAssistant: (assistant: AssistantInterface) => void;
-		copyAssistant: (assistant: AssistantInterface) => void;
+		copyAssistant: (assistant: AssistantInterface) => Promise<void>;
 		edit: boolean;
 		showDefault: boolean;
 		allowHiding?: boolean;
@@ -122,7 +122,7 @@
 	let model = $derived(assistant.modelID ? A.models[assistant.modelID] : null);
 	let provider = $derived(model ? A.providers[model.providerID] : null);
 
-	$inspect(status);
+	// $inspect(status);
 </script>
 
 <button

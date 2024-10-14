@@ -5,17 +5,17 @@
 	const debug = dbg('app:ui:components:GrowInput');
 
 	let {
-		value = $bindable(''),
+		value = $bindable(),
 		placeholder = '',
 		class: className = '',
 		disabled = false,
 		spellcheck = true,
-		focused = $bindable(false),
+		focused = $bindable(),
 		oninput = () => {},
 		onkeydown = () => {},
 		onchange = () => {}
 	} = $props<{
-		value?: string;
+		value: string|undefined;
 		placeholder?: string;
 		class?: string;
 		disabled?: boolean;

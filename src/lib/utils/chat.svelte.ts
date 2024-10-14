@@ -136,6 +136,8 @@ export async function _submitConversationClientSide() {
 	UM.conversationID = A.conversation.id;
 	AM.conversationID = A.conversation.id;
 
+	const prompt = { id: systemPromptHash, text: systemPromptText}
+
 	if (provider.type === 'openai' && model.name.startsWith('o1') && systemPromptText) {
 		inputMessages.unshift({
 			role: 'user',
@@ -170,7 +172,7 @@ export async function _submitConversationClientSide() {
 		AM.topP = assistant.topP;
 		AM.topK = assistant.topK;
 		AM.promptID = systemPromptHash;
-		AM.prompt = { id: systemPromptHash, text: systemPromptText}
+		AM.prompt = prompt;
 
 		AM.markdownCache = undefined;
 
@@ -190,7 +192,7 @@ export async function _submitConversationClientSide() {
 		// The system prompt should be inserted before the assistant message.
 		const [iUM, iP] = await Promise.all([
 			APIupsertMessage($state.snapshot(UM)),
-			APIupsertPrompt({ id: systemPromptHash, text: systemPromptText })
+			APIupsertPrompt(prompt)
 		]);
 
 		// Insert/update the rest in parallel

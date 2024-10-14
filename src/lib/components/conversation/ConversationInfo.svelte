@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
+	import TokenStats from './TokenStats.svelte';
 	const debug = dbg('app:ui:components:ConversationInfo');
 
 	function collectInfo(): Array<any> {
@@ -60,13 +61,30 @@
 
 {#if A.conversation?.id}
 	<div class="card w-full overflow-auto rounded-none bg-base-300 p-4 shadow-xl">
-		<h3 class="card-title text-base">Conversation Stats</h3>
+		<!-- <h3 class="card-title text-base">Conversation Stats</h3> -->
+		{#if A.conversation.createdAt}
+		<div>
+			<span><strong>Created at:</strong></span>
+			{new Date(A.conversation.createdAt).toLocaleString('en-GB', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false
+			})}
+		</div>
+	{/if}
+
 		<div class="card-body w-full p-0">
 			{#if info.length}
-				<div class="flex flex-col">
-					<span><strong>Tokens in:</strong> {A.conversation.tokensIn ?? 'N/A'}</span>
-					<span><strong>Tokens out:</strong> {A.conversation.tokensOut ?? 'N/A'}</span>
-				</div>
+				<TokenStats
+					tokensIn={A.conversation.tokensIn}
+					tokensOut={A.conversation.tokensOut}
+					tokensInCost={A.conversation.tokensInCost}
+					tokensOutCost={A.conversation.tokensOutCost}
+					tokensReasoning={A.conversation.tokensReasoning}
+					tokensReasoningCost={A.conversation.tokensReasoningCost} />
 				{#each info as infoItem}
 					<div class="mb-2">
 						{#each Object.keys(infoItem) as key}

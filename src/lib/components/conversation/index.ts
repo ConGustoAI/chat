@@ -10,3 +10,4 @@ export { default as Cost } from './Cost.svelte';
 export { default as CostEstimate } from './CostEstimate.svelte';
 export { default as ConversationHistoryGroup } from './ConversationHistoryGroup.svelte';
 export { default as ChatInput } from './ChatInput.svelte';
+export { default as TokenStats } from './TokenStats.svelte';

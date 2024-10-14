@@ -3,6 +3,9 @@
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:assistants');
+
+	$inspect(A.assistants).with((t, c) => debug('A.assistants', { t, c }));
+
 </script>
 
 <div class="flex max-w-screen-xl flex-col gap-4">

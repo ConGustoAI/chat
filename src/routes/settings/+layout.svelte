@@ -12,30 +12,6 @@
 
 	let { data, children } = $props();
 
-	// A.dbUser.subscribe(async () => {
-
-	$effect(() => {
-		debug('dbUser changed, fetching data');
-		if (A.dbUser) {
-			Promise.all([APIfetchProviders(), APIfetchModels(), APIfetchKeys()]).then(
-				([fetchedProviders, fetchedModels, fetchedApiKeys]) => {
-					A.assistants = toIdMap(data.assistants);
-					A.providers = toIdMap(fetchedProviders);
-					A.models = toIdMap(fetchedModels);
-					A.apiKeys = toIdMap(fetchedApiKeys);
-
-					debug('Done fetching', $state.snapshot({
-						assistants: A.assistants,
-						providers: A.providers,
-						models: A.models,
-						dbUser: A.dbUser,
-						apiKeys: Object.keys(A.apiKeys)
-					}));
-				}
-			);
-		}
-	});
-
 	const sidebarNavItems = [
 		{
 			title: 'Profile',

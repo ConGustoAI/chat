@@ -54,6 +54,7 @@
 					);
 				}
 			} else {
+				debug('No dbUser, clearing data');
 				A.assistants = {};
 				A.providers = {};
 				A.models = {};
