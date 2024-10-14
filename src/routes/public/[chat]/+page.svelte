@@ -42,7 +42,7 @@
 	debug('page', $page);
 </script>
 
-<MetaTag {title} url={$page.url.href} {description} image_url={$page.url.origin + '/favicon.png'} />
+<MetaTag {title} url={$page.url.href} {description} />
 
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
