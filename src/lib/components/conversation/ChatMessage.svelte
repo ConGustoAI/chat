@@ -56,8 +56,7 @@
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
 
-
-		const deletePromise = APIdeleteMessages(toDelete)
+		const deletePromise = APIdeleteMessages(toDelete);
 
 		A.conversation.messages = A.conversation.messages.slice(0, currentIndex + 1);
 		if (message.role === 'user')
@@ -124,8 +123,7 @@
 			.slice(currentIndex)
 			.filter((m) => m.id)
 			.map((m) => m.id) as string[];
-		const deletePromise = APIdeleteMessages(toDelete)
-
+		const deletePromise = APIdeleteMessages(toDelete);
 
 		A.conversation.messages = A.conversation.messages.slice(0, currentIndex);
 		A.conversation.messages.push({ userID: A.conversation.userID, role: 'assistant', text: '' });
@@ -265,7 +263,30 @@
 		<Notification messageType="error" bind:message={chatError} />
 
 		{#if !editingMessage}
-			<div class="absolute right-0 top-0 mr-2 flex w-fit items-center gap-2 text-base-content">
+			<div class="absolute right-0 top-0 mr-2 flex w-full items-center justify-end gap-2 text-base-content">
+				{#if A.dbUser?.hacker}
+					<select
+						class="select select-xs m-0 bg-transparent py-0"
+						name=""
+						id=""
+						value={message.role}
+						onchange={async (e: Event) => {
+							const target = e.target as HTMLSelectElement;
+							target.blur();
+							debug(e);
+							if (target.value != message.role && A.conversation?.id) {
+								message.role = target.value as "user" | "assistant"
+								message.conversationID = A.conversation.id;
+								savingMessage = true;
+								await APIupsertMessage(message);
+								savingMessage = false;
+							}
+						}}>
+						<option class="bg-base-100 text-right" value="user" label="user"></option>
+						<option class="bg-base-100 text-right" value="assistant" label="assistant"></option>
+					</select>
+				{/if}
+
 				{#if message.createdAt && message.role !== 'assistant'}
 					{new Date(message.createdAt).toLocaleString('en-GB', {
 						day: '2-digit',
@@ -282,7 +303,6 @@
 							{#if message.assistantName}
 								{message.assistantName}
 							{/if}
-
 
 							{#if message.temperature !== undefined || message.topP !== undefined || message.topK !== undefined}
 								{@const stats = [
