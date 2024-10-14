@@ -28,11 +28,6 @@ if (env.AWS_REGION || env.AWS_ACCESS_KEY_ID || env.AWS_SECRET_ACCESS_KEY || env.
 		}
 	};
 
-	debug('env', env);
-
-	// !!!! comment out for production, this leaks the secret key !!!!!
-	debug('S3 config: %o', s3Config);
-
 	s3 = new S3Client(s3Config);
 }
 

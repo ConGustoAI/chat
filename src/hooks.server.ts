@@ -39,8 +39,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// event.locals.user = user;
 	// event.locals.session = session;
 
-	debug('session', session);
-	debug('user', user);
+	// debug('session', session);
+	// debug('user', user);
 
 	if (user) {
 		event.locals.dbUser = filterNull(await DBgetUser({ id: user.id })) as UserInterface | undefined;
@@ -69,7 +69,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.dbUser = undefined;
 	}
 
-	debug("dbUser", event.locals.dbUser)
+	// debug("dbUser", event.locals.dbUser)
 
 	// debug("hook %o", {session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser, assistants: event.locals.assistants, hiddenItems: event.locals.hiddenItems});
 
