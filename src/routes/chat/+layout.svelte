@@ -36,7 +36,14 @@
 			else A.conversations[c.id] = c;
 		}
 
-		A.conversationOrder = Object.keys(A.conversations);
+		A.conversationOrder = Object.entries(A.conversations)
+			.sort((a, b) => {
+				return (b[1]?.order ?? 0) - (a[1]?.order ?? 0);
+			})
+			.map(([id]) => id);
+
+		debug('Fetched conversations:', A.conversationOrder);
+
 		A.chatDataLoading = false;
 		debug(
 			'done fetching data',

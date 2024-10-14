@@ -72,12 +72,12 @@
 			stats.tokensReasoningCost = (stats.tokensReasoningCost ?? 0) + (message.tokensReasoningCost ?? 0);
 		}
 
-		debug('tokenStatsFromMessages', { stats });
+		debug('tokenStatsFromMessages', stats);
 
 		return stats;
 	}
 
-	let statsFromMessages = $derived(tokenStatsFromMessages(A.conversation));
+	let statsFromMessages = $derived.by(() => tokenStatsFromMessages(A.conversation));
 
 	function tokenStatsFromConversation(conversation?: ConversationInterface): TokenStats {
 		if (!conversation) return {};
@@ -91,7 +91,7 @@
 			tokensReasoningCost: conversation.tokensReasoningCost ?? 0
 		};
 
-		debug('tokenStatsFromConversation', { stats });
+		debug('tokenStatsFromConversation', stats);
 
 		return stats;
 	}
@@ -131,8 +131,8 @@
 
 		<div class="card-body w-full p-0">
 			{#if info.length}
-				{#if !compareStats(statsFromMessages, statsFromConversation) && !isPublic}
-					<div class="grid grid-cols-[1fr,1fr]">
+				{#if !compareStats(statsFromMessages, statsFromConversation) && (statsFromConversation.tokensIn || statsFromConversation.tokensOut) && !isPublic}
+					<div class="grid grid-cols-[1fr,1fr] w-fit">
 						<div class="font-bold">Conversatoin tokens</div>
 						<div class="font-bold">With deleted messages</div>
 						<TokenStats stats={statsFromMessages} />

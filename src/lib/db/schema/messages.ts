@@ -27,13 +27,13 @@ export const messagesTable = pgTable('messages', {
 	topK: integer('top_k'),
 	role: messageRoleEnum('role').notNull(),
 	text: text('text').notNull(),
-	tokensIn: integer('tokens_in').default(0),
-	tokensOut: integer('tokens_out').default(0),
-	tokensInCost: real('tokens_in_cost').default(0),
-	tokensOutCost: real('tokens_out_cost').default(0),
+	tokensIn: integer('tokens_in').notNull().default(0),
+	tokensOut: integer('tokens_out').notNull().default(0),
+	tokensInCost: real('tokens_in_cost').notNull().default(0),
+	tokensOutCost: real('tokens_out_cost').notNull().default(0),
 	// For o1 models.
-	tokensReasoning: integer('tokens_reasoning'),
-	tokensReasoningCost: real('tokens_reasoning_cost'),
+	tokensReasoning: integer('tokens_reasoning').notNull().default(0),
+	tokensReasoningCost: real('tokens_reasoning_cost').notNull().default(0),
 
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
@@ -50,7 +50,7 @@ export const messagesTable = pgTable('messages', {
 		.$onUpdate(() => new Date())
 });
 
-export const messageTableRelations = relations(messagesTable, ({ one, }) => ({
+export const messageTableRelations = relations(messagesTable, ({ one }) => ({
 	conversation: one(conversationsTable, {
 		fields: [messagesTable.conversationID],
 		references: [conversationsTable.id]

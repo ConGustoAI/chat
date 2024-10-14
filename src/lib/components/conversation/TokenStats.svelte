@@ -1,6 +1,6 @@
 <script lang="ts">
 	let { stats }: { stats: TokenStats } = $props();
-	let { tokensIn, tokensOut, tokensInCost, tokensOutCost, tokensReasoning, tokensReasoningCost } = stats;
+	let { tokensIn, tokensOut, tokensInCost, tokensOutCost, tokensReasoning, tokensReasoningCost } = $derived(stats);
 </script>
 
 <div>

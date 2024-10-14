@@ -25,13 +25,14 @@ export const conversationsTable = pgTable('conversations', {
 	deleted: boolean('deleted').default(false),
 	order: serial('order').notNull(),
 	public: boolean('public').default(false),
-	tokensIn: integer('tokens_in').default(0),
-	tokensOut: integer('tokens_out').default(0),
-	tokensInCost: real('tokens_in_cost').default(0),
-	tokensOutCost: real('tokens_out_cost').default(0),
+	tokensIn: integer('tokens_in').notNull().default(0),
+	tokensOut: integer('tokens_out').notNull().default(0),
+	tokensInCost: real('tokens_in_cost').notNull().default(0),
+	tokensOutCost: real('tokens_out_cost').notNull().default(0),
+
 	// For o1 models.
-	tokensReasoning: integer('tokens_reasoning'),
-	tokensReasoningCost: real('tokens_reasoning_cost'),
+	tokensReasoning: integer('tokens_reasoning').notNull().default(0),
+	tokensReasoningCost: real('tokens_reasoning_cost').notNull().default(0),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()
