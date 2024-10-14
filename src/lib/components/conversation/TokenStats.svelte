@@ -1,26 +1,14 @@
 <script lang="ts">
-	let {
-		tokensIn,
-		tokensOut,
-		tokensInCost,
-		tokensOutCost,
-		tokensReasoning,
-		tokensReasoningCost
-	}: {
-		tokensIn?: number;
-		tokensOut?: number;
-		tokensInCost?: number;
-		tokensOutCost?: number;
-		tokensReasoning?: number;
-		tokensReasoningCost?: number;
-	} = $props();
+	let { stats }: { stats: TokenStats } = $props();
+	let { tokensIn, tokensOut, tokensInCost, tokensOutCost, tokensReasoning, tokensReasoningCost } = stats;
 </script>
 
 <div>
 	{#if tokensIn || tokensOut}
 		<div>
 			<span>
-				<strong>Tokens:</strong> {(tokensIn ?? 0) + (tokensOut ?? 0)}
+				<strong>Total:</strong>
+				{(tokensIn ?? 0) + (tokensOut ?? 0)}
 			</span>
 			{#if (tokensInCost ?? 0) + (tokensOutCost ?? 0) > 0}
 				<span>
@@ -33,7 +21,8 @@
 	{#if tokensIn}
 		<div class="ml-4">
 			<span>
-				<strong>Tokens in:</strong> {tokensIn}
+				<strong>In:</strong>
+				{tokensIn}
 			</span>
 			{#if tokensInCost}
 				<span>
@@ -45,7 +34,8 @@
 	{#if tokensOut}
 		<div class="ml-4">
 			<span>
-				<strong>Tokens out:</strong> {tokensOut}
+				<strong>Out:</strong>
+				{tokensOut}
 			</span>
 			{#if tokensOutCost}
 				<span>
@@ -56,7 +46,8 @@
 		{#if tokensReasoning}
 			<div class="ml-8">
 				<span>
-					<strong>Reasoning:</strong> {tokensReasoning}
+					<strong>Reasoning:</strong>
+					{tokensReasoning}
 				</span>
 				{#if tokensReasoningCost}
 					<span>
@@ -66,7 +57,8 @@
 			</div>
 			<div class="ml-8">
 				<span>
-					<strong>Completion:</strong> {tokensOut - tokensReasoning}
+					<strong>Completion:</strong>
+					{tokensOut - tokensReasoning}
 				</span>
 				{#if tokensOutCost}
 					<span>

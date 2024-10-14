@@ -136,7 +136,7 @@ export async function _submitConversationClientSide() {
 	UM.conversationID = A.conversation.id;
 	AM.conversationID = A.conversation.id;
 
-	const prompt = { id: systemPromptHash, text: systemPromptText}
+	const prompt = { id: systemPromptHash, text: systemPromptText };
 
 	if (provider.type === 'openai' && model.name.startsWith('o1') && systemPromptText) {
 		inputMessages.unshift({
@@ -186,14 +186,11 @@ export async function _submitConversationClientSide() {
 
 		A.dbUser.lastAssistant = assistant.id;
 
-		debug('Assistant message after stats: %o', AM);
+		debug('Assistant message after stats: %o', $state.snapshot(AM));
 
 		// insert the user messages first to avoid inserting them out of order.
 		// The system prompt should be inserted before the assistant message.
-		const [iUM, iP] = await Promise.all([
-			APIupsertMessage($state.snapshot(UM)),
-			APIupsertPrompt(prompt)
-		]);
+		const [iUM, iP] = await Promise.all([APIupsertMessage($state.snapshot(UM)), APIupsertPrompt(prompt)]);
 
 		// Insert/update the rest in parallel
 		const [iAM, iC, iU] = await Promise.all([
@@ -208,6 +205,11 @@ export async function _submitConversationClientSide() {
 				}
 			}
 		]);
+
+		Object.assign(A.dbUser, iU);
+		Object.assign(UM, iUM);
+		Object.assign(AM, iAM);
+		Object.assign(A.conversation, iC);
 
 		iAM.prompt = iP;
 		debug('After updating the DB: %o', {
@@ -276,7 +278,9 @@ export async function submitConversationClientSide() {
 						conversationID: A.conversation.id
 					};
 
-					A.conversation.messages[A.conversation.messages.length - 2] = await APIupsertMessage($state.snapshot(userMessage));
+					A.conversation.messages[A.conversation.messages.length - 2] = await APIupsertMessage(
+						$state.snapshot(userMessage)
+					);
 
 					let assistantMessage = A.conversation.messages[A.conversation.messages.length - 1];
 
@@ -297,14 +301,12 @@ export async function submitConversationClientSide() {
 					A.conversation.messages[A.conversation.messages.length - 1] = await APIupsertMessage(assistantMessage);
 
 					// A.conversation = { ...A.conversation, ...newConversation };
-
 				}
 			} else throw Error('Failed to process the conversation: ' + e.message);
 		} else {
 			throw new Error('Failed to process the conversation: An unknown error occurred');
 		}
 	} finally {
-
 		if (A.conversation?.id && !A.conversations[A.conversation.id]) {
 			A.conversations[A.conversation.id] = A.conversation;
 			A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];

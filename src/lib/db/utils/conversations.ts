@@ -2,10 +2,10 @@ import { conversationInterfaceFilter } from '$lib/api';
 import { trimLineLength } from '$lib/utils/utils';
 import { error } from '@sveltejs/kit';
 import dbg from 'debug';
-import { and, eq, inArray, not, sql } from 'drizzle-orm';
+import { and, eq, inArray, not } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const debug = dbg('app:db:utils:conversations');
 
 export async function DBgetDefaultConversations() {
@@ -139,25 +139,13 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 
 export async function DBupsertConversation({
 	dbUser,
-	conversation,
-	tokensIn,
-	tokensOut,
-	tokensInCost,
-	tokensOutCost,
-	tokensReasoning,
-	tokensReasoningCost
+	conversation
 }: {
 	dbUser?: UserInterface;
 	conversation: ConversationInterface;
-	tokensIn?: number;
-	tokensOut?: number;
-	tokensReasoning?: number;
-	tokensInCost?: number;
-	tokensOutCost?: number;
-	tokensReasoningCost?: number;
 }) {
 	if (!dbUser) error(401, 'Unauthorized');
-	if (conversation.userID != dbUser.id && (!dbUser.admin || conversation.userID !== defaultsUUID))
+	if (conversation.userID != dbUser.id)
 		error(401, 'Tried to update a conversation that does not belong to the user');
 
 	conversation = conversationInterfaceFilter(conversation);
@@ -166,15 +154,7 @@ export async function DBupsertConversation({
 	if (conversation.id) {
 		const update = await db
 			.update(conversationsTable)
-			.set({
-				...conversation,
-				tokensIn: sql`${conversationsTable.tokensIn} + ${tokensIn ?? 0}`,
-				tokensOut: sql`${conversationsTable.tokensOut} + ${tokensOut ?? 0}`,
-				tokensInCost: sql`${conversationsTable.tokensInCost} + ${tokensInCost ?? 0}`,
-				tokensOutCost: sql`${conversationsTable.tokensOutCost} + ${tokensOutCost ?? 0}`,
-				tokensReasoning: sql`${conversationsTable.tokensReasoning} + ${tokensReasoning ?? 0}`,
-				tokensReasoningCost: sql`${conversationsTable.tokensReasoningCost} + ${tokensReasoningCost ?? 0}`
-			})
+			.set(conversation)
 			.where(and(eq(conversationsTable.id, conversation.id), eq(conversationsTable.userID, conversation.userID)))
 			.returning();
 
@@ -185,15 +165,7 @@ export async function DBupsertConversation({
 		return update[0];
 	}
 
-	const insert = await db
-		.insert(conversationsTable)
-		.values({
-			...conversation,
-			tokensIn: (conversation.tokensIn ?? 0) + (tokensIn ?? 0),
-			tokensOut: (conversation.tokensOut ?? 0) + (tokensOut ?? 0)
-		})
-		.onConflictDoNothing()
-		.returning();
+	const insert = await db.insert(conversationsTable).values(conversation).onConflictDoNothing().returning();
 
 	if (!insert || !insert.length) error(500, 'Failed to update conversation');
 
@@ -208,7 +180,7 @@ export async function DBdeleteConversations({ dbUser, ids }: { dbUser?: UserInte
 		.delete(conversationsTable)
 		.where(and(inArray(conversationsTable.id, ids), eq(conversationsTable.userID, dbUser.id)))
 		.returning({ id: conversationsTable.id });
-	debug("delete conversation res: %o", res)
+	debug('delete conversation res: %o', res);
 	if (!res.length) error(500, 'Failed to delete conversation');
 
 	return res;

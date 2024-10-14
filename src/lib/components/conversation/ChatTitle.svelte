@@ -178,12 +178,21 @@
 		{/if}
 
 		<Cost total={(A.conversation?.tokensInCost ?? 0) + (A.conversation?.tokensOutCost ?? 0)} />
-		<details class="dropdown-botton dropdown dropdown-end hidden md:block">
+		<div class="dropdown-botton dropdown dropdown-end hidden md:block">
+			<button class="mt-auto block text-center"><Info /></button>
+			<ul class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">
+				<li>
+					<ConversationInfo {isPublic} />
+				</li>
+			</ul>
+		</div>
+
+		<!-- <details class="dropdown-botton dropdown dropdown-end hidden md:block">
 			<summary class="mt-auto block text-center" tabindex={0}><Info /></summary>
 			<div class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">
-				<ConversationInfo />
+				<ConversationInfo {isPublic} />
 			</div>
-		</details>
+		</details> -->
 
 		{#if !isPublic}
 			<ProfileCircle />

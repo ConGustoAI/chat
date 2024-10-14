@@ -275,6 +275,15 @@ declare global {
 	}
 
 	type undefinedNull = undefined | null;
+
+	interface TokenStats {
+		tokensIn?: number;
+		tokensOut?: number;
+		tokensInCost?: number;
+		tokensOutCost?: number;
+		tokensReasoning?: number;
+		tokensReasoningCost?: number;
+	}
 }
 
 export {};

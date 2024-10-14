@@ -4,6 +4,24 @@
 
 	let { message }: { message: MessageInterface } = $props();
 	let provider = $derived(A.providers[A.models[message.model ?? 'unknown']?.providerID ?? 'Unknown']);
+
+	function tokenStatsFromMessage(): TokenStats {
+		if (!message) return {};
+
+		const stats: TokenStats = {
+			tokensIn: message.tokensIn,
+			tokensOut: message.tokensOut,
+			tokensInCost: message.tokensInCost,
+			tokensOutCost: message.tokensOutCost,
+			tokensReasoning: message.tokensReasoning,
+			tokensReasoningCost: message.tokensReasoningCost
+		};
+
+		return stats;
+	}
+
+	let tokenStats = $derived(tokenStatsFromMessage());
+
 </script>
 
 <div class="flex w-max max-w-md flex-col whitespace-pre-line rounded-sm bg-base-300 p-2 lg:max-w-screen-md">
@@ -52,15 +70,7 @@
 		<span><strong>k:</strong> <code class="bg-base-300 font-mono">{message.topK}</code></span>
 	</div>
 
-	<TokenStats
-		tokensIn={message.tokensIn}
-		tokensOut={message.tokensOut}
-		tokensInCost={message.tokensInCost}
-		tokensOutCost={message.tokensOutCost}
-		tokensReasoning={message.tokensReasoning}
-		tokensReasoningCost={message.tokensReasoningCost}
-	/>
-
+	<TokenStats stats={tokenStats} />
 
 	<div>
 		<span><strong>Finish reason:</strong></span>
