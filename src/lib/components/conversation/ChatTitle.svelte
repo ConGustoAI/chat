@@ -121,7 +121,7 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="min-w-0 shrink-[2] grow overflow-hidden">
+	<div class="flex min-w-0 shrink-[2] grow overflow-hidden">
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="flex w-full text-ellipsis text-center text-xl font-bold"
@@ -150,13 +150,13 @@
 								}
 							}} />
 					{:else}
-						<div class="items-bottom flex gap-1">
-							<p class="truncate">
+						<div class="items-bottom flex shrink gap-1 w-full">
+							<p class="shrink truncate">
 								{A.conversation.summary ?? 'New chat'}
 							</p>
 							{#if summaryHovered}
 								<button
-									class="btn btn-ghost btn-xs rounded-md p-0"
+									class="btn btn-ghost btn-xs shrink-0 rounded-md p-0"
 									onclick={() => {
 										if (!isPublic) {
 											savedSummary = A.conversation!.summary ?? '';
