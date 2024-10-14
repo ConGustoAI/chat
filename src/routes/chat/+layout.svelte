@@ -2,16 +2,13 @@
 	import { goto } from '$app/navigation';
 	import {
 		APIdeleteConversations,
-		APIfetchConversations,
-		APIfetchKeys,
-		APIfetchModels,
-		APIfetchProviders
+		APIfetchConversations
 	} from '$lib/api';
 	import { A } from '$lib/appstate.svelte.js';
 	import { ChatHistory, ChatInput, ChatMessage, ChatTitle, SidebarButton } from '$lib/components';
 	import { defaultsUUID } from '$lib/db/schema';
 	import { abortController, submitConversationClientSide } from '$lib/utils/chat.svelte.js';
-	import { newConversation, toIdMap } from '$lib/utils/utils.js';
+	import { assert, newConversation } from '$lib/utils/utils.js';
 	import { ChevronUp, Plus, Star } from 'lucide-svelte';
 
 	import GitHub from '$lib/components/icons/GitHub.svelte';
@@ -36,7 +33,12 @@
 			return [];
 		});
 
-		A.conversations = toIdMap(gotConvos);
+		for (const c of gotConvos) {
+			assert(c.id)
+			if (A.conversations[c.id]) Object.assign(A.conversations[c.id], c)
+			else A.conversations[c.id] = c
+		}
+
 		A.conversationOrder = Object.keys(A.conversations);
 		A.chatDataLoading = false;
 		debug(

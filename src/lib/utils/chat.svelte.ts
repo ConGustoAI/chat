@@ -296,16 +296,18 @@ export async function submitConversationClientSide() {
 
 					// A.conversation = { ...A.conversation, ...newConversation };
 
-					if (!A.conversations[A.conversation.id]) {
-						A.conversations[A.conversation.id] = A.conversation;
-						A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];
-					}
 				}
 			} else throw Error('Failed to process the conversation: ' + e.message);
 		} else {
 			throw new Error('Failed to process the conversation: An unknown error occurred');
 		}
 	} finally {
+
+		if (A.conversation?.id && !A.conversations[A.conversation.id]) {
+			A.conversations[A.conversation.id] = A.conversation;
+			A.conversationOrder = [A.conversation.id!, ...A.conversationOrder];
+		}
+
 		A.chatStreaming = false;
 	}
 }
