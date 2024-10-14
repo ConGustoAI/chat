@@ -29,7 +29,7 @@ export const run = async () => {
 			if (assistant) {
 				conversation.assistantName = assistant.name;
 
-				const m = assistant.model;
+				const m = assistant.modelID;
 				if (m) {
 					const model = models.find((model) => model.id === m);
 					if (model) {

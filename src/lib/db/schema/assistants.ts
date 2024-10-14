@@ -6,7 +6,7 @@ import { modelsTable } from './models';
 import { usersTable } from './users';
 
 export const assistantsTable = pgTable('assistants', {
-	id: uuid('id').defaultRandom().primaryKey(),
+	id: uuid('id').notNull().defaultRandom().primaryKey(),
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
