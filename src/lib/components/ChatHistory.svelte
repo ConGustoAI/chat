@@ -187,6 +187,9 @@
 	}
 
 	let searchFocused = $state(false);
+	let searchAMPdisabled = $derived(
+		searchOptionsOpen && (!!searchAMP || searchPublic || searchPrivate || searchStarred || searchUnstarred)
+	);
 </script>
 
 <div>
@@ -242,6 +245,8 @@
 <div class="divider w-full grow-0">
 	<button
 		class="btn-outline mx-0 flex h-4 w-fit items-center rounded-full border px-4"
+		disabled={searchAMPdisabled}
+		class:btn-disabled={searchAMPdisabled}
 		class:rotate-180={searchOptionsOpen}
 		onclick={() => (searchOptionsOpen = !searchOptionsOpen)}>
 		<ChevronDown size={12} />
@@ -328,23 +333,43 @@
 
 <ul class="base-200 no-scrollbar menu flex w-full flex-nowrap overflow-y-auto p-0">
 	{#if datedConversation.today.length}
-		<ConversationHistoryGroup title="Today" group={datedConversation.today} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
+		<ConversationHistoryGroup
+			title="Today"
+			group={datedConversation.today}
+			bind:selectedConversations
+			fromMessages={datedConversation.fromMessages} />
 	{/if}
 
 	{#if datedConversation.yesterday.length}
-		<ConversationHistoryGroup title="Yesterday" group={datedConversation.yesterday} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
+		<ConversationHistoryGroup
+			title="Yesterday"
+			group={datedConversation.yesterday}
+			bind:selectedConversations
+			fromMessages={datedConversation.fromMessages} />
 	{/if}
 
 	{#if datedConversation.lastWeek.length}
-		<ConversationHistoryGroup title="Last Week" group={datedConversation.lastWeek} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
+		<ConversationHistoryGroup
+			title="Last Week"
+			group={datedConversation.lastWeek}
+			bind:selectedConversations
+			fromMessages={datedConversation.fromMessages} />
 	{/if}
 
 	{#if datedConversation.lastMonth.length}
-		<ConversationHistoryGroup title="Last Month" group={datedConversation.lastMonth} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
+		<ConversationHistoryGroup
+			title="Last Month"
+			group={datedConversation.lastMonth}
+			bind:selectedConversations
+			fromMessages={datedConversation.fromMessages} />
 	{/if}
 
 	{#if datedConversation.unknown.length}
-		<ConversationHistoryGroup title="Older" group={datedConversation.unknown} bind:selectedConversations fromMessages={datedConversation.fromMessages}/>
+		<ConversationHistoryGroup
+			title="Older"
+			group={datedConversation.unknown}
+			bind:selectedConversations
+			fromMessages={datedConversation.fromMessages} />
 	{/if}
 	<div class="mb-14"></div>
 </ul>
