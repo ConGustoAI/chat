@@ -211,5 +211,5 @@ export async function DBdeleteConversations({ dbUser, ids }: { dbUser?: UserInte
 	debug("delete conversation res: %o", res)
 	if (!res.length) error(500, 'Failed to delete conversation');
 
-	return res[0];
+	return res;
 }

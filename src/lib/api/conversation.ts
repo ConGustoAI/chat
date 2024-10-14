@@ -66,9 +66,9 @@ export async function APIdeleteConversations(ids: string[]) {
 	});
 
 	if (!res.ok) throw new Error(`Failed to delete conversation: ${(await res.json()).message}`);
-	const data = filterNull(await res.json());
-	debug('deleteConversation -> %o', data);
-	return data as ConversationInterface;
+	const deletedIds = await res.json();
+	debug('deleteConversation -> %o', deletedIds);
+	return deletedIds as string[];
 }
 
 export async function APISearchConversations(search: string) {

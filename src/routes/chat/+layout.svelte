@@ -77,8 +77,12 @@
 	async function deleteConversations(ids: string[]) {
 		A.conversationOrder = A.conversationOrder.filter((c) => !ids.includes(c));
 		if (A.dbUser) {
-			const del = await APIdeleteConversations(ids);
-			if (!del.id) throw new Error('Failed to delete the conversation.');
+			const delIds = await APIdeleteConversations(ids);
+			if (delIds?.length !== ids.length) {
+				debug("Not all conversations have been deleted:")
+				debug("Rquestd: ", ids)
+				debug("Confirmed: ", delIds)
+			}
 		}
 	}
 
