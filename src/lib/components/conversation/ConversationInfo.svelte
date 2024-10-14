@@ -72,6 +72,8 @@
 			stats.tokensReasoningCost = (stats.tokensReasoningCost ?? 0) + (message.tokensReasoningCost ?? 0);
 		}
 
+		debug('tokenStatsFromMessages', { stats });
+
 		return stats;
 	}
 
@@ -81,12 +83,12 @@
 		if (!conversation) return {};
 
 		const stats: TokenStats = {
-			tokensIn: conversation.tokensIn,
-			tokensOut: conversation.tokensOut,
-			tokensInCost: conversation.tokensInCost,
-			tokensOutCost: conversation.tokensOutCost,
-			tokensReasoning: conversation.tokensReasoning,
-			tokensReasoningCost: conversation.tokensReasoningCost
+			tokensIn: conversation.tokensIn ?? 0,
+			tokensOut: conversation.tokensOut ?? 0,
+			tokensInCost: conversation.tokensInCost ?? 0,
+			tokensOutCost: conversation.tokensOutCost ?? 0,
+			tokensReasoning: conversation.tokensReasoning ?? 0,
+			tokensReasoningCost: conversation.tokensReasoningCost ?? 0
 		};
 
 		debug('tokenStatsFromConversation', { stats });

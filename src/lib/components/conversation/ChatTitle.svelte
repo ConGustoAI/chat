@@ -14,6 +14,19 @@
 	let updatingLike = $state(false);
 	let cloningConversation = $state(false);
 
+	let detailsOpen = $state(false);
+	let summaryElement: HTMLElement;
+
+	function closeDetails() {
+		detailsOpen = false;
+		if (summaryElement) summaryElement.blur();
+	}
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			closeDetails();
+		}
+	}
+
 	async function updateLike() {
 		if (!A.conversation || !A.conversation.id) return;
 
@@ -178,21 +191,31 @@
 		{/if}
 
 		<Cost total={(A.conversation?.tokensInCost ?? 0) + (A.conversation?.tokensOutCost ?? 0)} />
-		<div class="dropdown-botton dropdown dropdown-end hidden md:block">
+
+		<details class="dropdown-botton dropdown dropdown-end hidden md:block" bind:open={detailsOpen}>
+			<summary class="mt-auto block text-center"><Info /></summary>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20"
+				onkeydown={handleKeydown}
+				tabindex="-1">
+				<ConversationInfo {isPublic} />
+			</div>
+		</details>
+		{#if detailsOpen}
+			<button class="fixed inset-0 z-20" onclick={closeDetails} aria-label="Close modal"></button>
+		{/if}
+
+		<!-- <div class="dropdown-botton dropdown dropdown-end hidden md:block">
 			<button class="mt-auto block text-center"><Info /></button>
-			<ul class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">
+			<ul
+				class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20"
+				tabindex="-1">
 				<li>
 					<ConversationInfo {isPublic} />
 				</li>
 			</ul>
-		</div>
-
-		<!-- <details class="dropdown-botton dropdown dropdown-end hidden md:block">
-			<summary class="mt-auto block text-center" tabindex={0}><Info /></summary>
-			<div class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20">
-				<ConversationInfo {isPublic} />
-			</div>
-		</details> -->
+		</div> -->
 
 		{#if !isPublic}
 			<ProfileCircle />

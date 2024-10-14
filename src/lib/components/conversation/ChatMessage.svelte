@@ -134,8 +134,8 @@
 		{:else if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
-			<details class="dropdown dropdown-right" bind:open={detailsOpen}>
-				<summary class="block cursor-pointer text-center">
+			<details class="dropdown dropdown-right" bind:open={detailsOpen} >
+				<summary class="block cursor-pointer text-center" >
 					<Computer />
 				</summary>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
