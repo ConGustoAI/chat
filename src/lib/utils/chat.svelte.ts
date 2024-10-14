@@ -174,13 +174,13 @@ export async function _submitConversationClientSide() {
 
 		AM.markdownCache = undefined;
 
-		A.conversation.tokensIn = A.conversation.tokensIn ?? 0 + AM.tokensIn;
-		A.conversation.tokensOut = A.conversation.tokensOut ?? 0 + AM.tokensOut;
-		A.conversation.tokensInCost = A.conversation.tokensInCost ?? 0 + AM.tokensInCost;
-		A.conversation.tokensOutCost = A.conversation.tokensOutCost ?? 0 + AM.tokensOutCost;
-		if (AM.tokensReasoning) A.conversation.tokensReasoning = A.conversation.tokensReasoning ?? 0 + AM.tokensReasoning;
+		A.conversation.tokensIn = (A.conversation.tokensIn ?? 0) + AM.tokensIn;
+		A.conversation.tokensOut = (A.conversation.tokensOut ?? 0) + AM.tokensOut;
+		A.conversation.tokensInCost = (A.conversation.tokensInCost ?? 0) + AM.tokensInCost;
+		A.conversation.tokensOutCost = (A.conversation.tokensOutCost ?? 0) + AM.tokensOutCost;
+		if (AM.tokensReasoning) A.conversation.tokensReasoning = (A.conversation.tokensReasoning ?? 0) + AM.tokensReasoning;
 		if (AM.tokensReasoningCost)
-			A.conversation.tokensReasoningCost = A.conversation.tokensReasoningCost ?? 0 + AM.tokensReasoningCost;
+			A.conversation.tokensReasoningCost = (A.conversation.tokensReasoningCost ?? 0) + AM.tokensReasoningCost;
 
 		A.dbUser.lastAssistant = assistant.id;
 
