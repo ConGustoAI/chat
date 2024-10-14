@@ -121,7 +121,7 @@
 		{/if}
 	</div>
 	<!-- navbar-center -->
-	<div class="min-w-0 shrink-[2] grow">
+	<div class="min-w-0 shrink-[2] grow overflow-hidden">
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="flex w-full text-ellipsis text-center text-xl font-bold"
