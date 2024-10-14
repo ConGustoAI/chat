@@ -5,7 +5,7 @@
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { trimLineLength } from '$lib/utils/utils';
+	import { trimLineLength, assert } from '$lib/utils/utils';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
@@ -14,13 +14,12 @@
 	let updatingLike = $state(false);
 	let cloningConversation = $state(false);
 
-
 	async function updateLike() {
 		if (!A.conversation || !A.conversation.id) return;
 
 		updatingLike = true;
 		try {
-			Object.assign(A.conversation, await APIupsertConversation(A.conversation))
+			Object.assign(A.conversation, await APIupsertConversation(A.conversation));
 		} catch (e) {
 			debug('Failed to update like:', e);
 			A.conversation.like = !A.conversation.like;
@@ -32,7 +31,7 @@
 		if (!A.conversation || !A.conversation.id) return;
 		if (A.conversation.summary) A.conversation.summary = trimLineLength(A.conversation.summary, 128);
 		editingSummary = false;
-		Object.assign(A.conversation, await APIupsertConversation(A.conversation))
+		Object.assign(A.conversation, await APIupsertConversation(A.conversation));
 	}
 
 	async function cloneConversation() {
@@ -75,6 +74,9 @@
 		cloningConversation = false;
 		await goto('/chat/' + insertedConversation.id);
 	}
+
+	let summaryHovered = $state(false);
+	let savedSummary: string;
 </script>
 
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-200">
@@ -120,7 +122,15 @@
 	</div>
 	<!-- navbar-center -->
 	<div class="min-w-0 shrink-[2] grow">
-		<div class="flex w-full text-ellipsis text-center text-xl font-bold">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="flex w-full text-ellipsis text-center text-xl font-bold"
+			onmouseenter={() => {
+				summaryHovered = true;
+			}}
+			onmouseleave={() => {
+				summaryHovered = false;
+			}}>
 			{#if !A.chatDataLoading}
 				{#if A.conversation}
 					{#if editingSummary}
@@ -128,16 +138,33 @@
 							type="text"
 							class="input input-sm input-bordered w-full grow"
 							bind:value={A.conversation.summary}
-							onblur={() => (editingSummary = false)}
-							onkeypress={async (e) => e.key === 'Enter' && (await updateSummary())} />
+							onblur={async () => {
+								await updateSummary();
+								editingSummary = false;
+							}}
+							onkeydown={async (e) => {
+								if (e.key === 'Enter') await updateSummary();
+								if (e.key === 'Escape') {
+									editingSummary = false;
+									A.conversation!.summary = savedSummary;
+								}
+							}} />
 					{:else}
-						<p
-							class="cursor-pointer truncate"
-							ondblclick={() => {
-								if (!isPublic) editingSummary = true;
-							}}>
-							{A.conversation.summary ?? 'New chat'}
-						</p>
+						<div class="items-bottom flex gap-1">
+							<p class="truncate">
+								{A.conversation.summary ?? 'New chat'}
+							</p>
+							{#if summaryHovered}
+								<button
+									class="btn btn-ghost btn-xs rounded-md p-0"
+									onclick={() => {
+										if (!isPublic) {
+											savedSummary = A.conversation!.summary ?? '';
+											editingSummary = true;
+										}
+									}}><Edit size="h-fit" /></button>
+							{/if}
+						</div>
 					{/if}
 				{/if}
 			{:else}
@@ -165,4 +192,4 @@
 		{/if}
 	</div>
 </div>
-<div class="divider m-0 w-full "></div>
+<div class="divider m-0 w-full"></div>
