@@ -150,18 +150,16 @@
 								}
 							}} />
 					{:else}
-						<div class="items-bottom flex shrink gap-1 w-full">
+						<div class="items-bottom flex w-full shrink gap-1">
 							<p class="shrink truncate">
 								{A.conversation.summary ?? 'New chat'}
 							</p>
-							{#if summaryHovered}
+							{#if summaryHovered && !isPublic}
 								<button
 									class="btn btn-ghost btn-xs shrink-0 rounded-md p-0"
 									onclick={() => {
-										if (!isPublic) {
-											savedSummary = A.conversation!.summary ?? '';
-											editingSummary = true;
-										}
+										savedSummary = A.conversation!.summary ?? '';
+										editingSummary = true;
 									}}><Edit size="h-fit" /></button>
 							{/if}
 						</div>
