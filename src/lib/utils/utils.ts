@@ -37,6 +37,7 @@ export function undefineExtras<T extends object>(obj: T): Omit<T, 'createdAt' | 
 
 export function assert(condition: unknown, message?: string): asserts condition {
 	if (!condition) {
+		debug('Stack trace: ', new Error().stack);
 		throw new Error(message ?? 'Assertion failed');
 	}
 }
@@ -183,10 +184,10 @@ export async function addMessage({
 	const isAscending = orderList.every((value, index, array) => index === 0 || value > array[index - 1]);
 
 	if (!isAscending) {
-		const promises = []
+		const promises = [];
 		const sortedOrder = orderList.sort((a, b) => a - b);
 
-		debug("Message order is not in ascending order. Fixing...");
+		debug('Message order is not in ascending order. Fixing...');
 
 		for (let i = 0; i < A.conversation.messages.length; i++) {
 			if (A.conversation.messages[i].order !== sortedOrder[i]) {

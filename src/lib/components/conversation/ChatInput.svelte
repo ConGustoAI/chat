@@ -29,8 +29,7 @@
 
 		if (!A.conversation.messages) A.conversation.messages = [];
 
-
-		await uploadConversationMedia()
+		await uploadConversationMedia();
 
 		const mediaIDs = [];
 		for (const media of A.conversation.media ?? []) {
@@ -42,14 +41,15 @@
 			{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
 		);
 
+		debug('onSubmit after pushing messages: ', $state.snapshot(A.conversation));
+
 		let savedInput = input;
 		input = '';
 		prefill = '';
 
 		try {
-			// This modifieds the messages and sets the conversaion id if it was not set.
+			// This modifies the messages and sets the conversaion id if it was not set.
 			await submitConversation();
-			input = '';
 			chatError = undefined;
 			await goto(`/chat/${A.conversation.id}`);
 		} catch (e: unknown) {
@@ -65,7 +65,14 @@
 	}
 
 	async function inputKeyboardHandler(event: any) {
-		if (!A.chatStreaming && event instanceof KeyboardEvent && event.key === 'Enter' && !event.shiftKey) {
+		if (
+			!A.chatStreaming &&
+			!A.mediaUploading &&
+			!A.mediaProcessing &&
+			event instanceof KeyboardEvent &&
+			event.key === 'Enter' &&
+			!event.shiftKey
+		) {
 			event.preventDefault();
 			await onSubmit();
 		}
@@ -79,14 +86,32 @@
 	let prefillAvailable = $state(false);
 
 	$effect(() => {
+		debug('Chatinput Effect');
 		if (A.assistants[A.conversation?.assistant ?? '']?.prefill) prefillAvailable = true;
 		else {
 			prefillEnabled = false;
 			prefillAvailable = false;
 		}
+
+		for (const m of A.conversation?.media ?? []) {
+			m.active = true;
+		}
+
+		if (A.conversation?.messages?.length) {
+			for (const msg of A.conversation.messages) {
+				if (msg.role === 'user' && msg.mediaIDs?.length) {
+					for (const mediaID of msg.mediaIDs) {
+						const media = A.conversation.media?.find((m) => m.id === mediaID);
+						if (media) {
+							media.active = media.repeat;
+						}
+					}
+				}
+			}
+		}
 	});
 
-	let uploadOpen: boolean = $state(true);
+	let uploadOpen: boolean = $state(false);
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 </script>
 
@@ -94,7 +119,7 @@
 	<Notification messageType="error" bind:message={chatError} />
 
 	{#if uploadOpen && uploadEnabled}
-		<div class="absolute bottom-full flex max-h-[80vh] w-full flex-col bg-base-200">
+		<div class="absolute bottom-full flex max-h-[80vh] w-full flex-col bg-base-200" tabindex="-1">
 			<MediaCarousel />
 		</div>
 	{/if}
@@ -136,8 +161,14 @@
 				placeholder="User message"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
 			<div class="absolute bottom-1 left-2">
-				<button class="btn btn-circle btn-sm" onclick={() => (uploadOpen = !uploadOpen)} disabled={!uploadEnabled}>
-					<Upload style="disabled" size={20} />
+				<button
+					class="btn btn-circle btn-sm relative"
+					onclick={() => (uploadOpen = !uploadOpen)}
+					disabled={!uploadEnabled || A.mediaUploading}>
+					<Upload size={20} />
+					{#if A.mediaUploading || A.mediaProcessing}
+						<span class="loading loading-spinner absolute h-full w-full"></span>
+					{/if}
 				</button>
 			</div>
 			<div class="absolute bottom-1 right-2">
@@ -153,7 +184,11 @@
 						</button>
 					</div>
 				{:else}
-					<button class="btn btn-sm rounded-md" disabled={A.chatStreaming} onclick={onSubmit}>
+					<button
+						class="btn btn-sm rounded-md"
+						onclick={onSubmit}
+						disabled={A.chatStreaming || A.mediaProcessing || A.mediaUploading || !input.trim()}
+						class:btn-disabled={A.chatStreaming || A.mediaProcessing || A.mediaUploading || !input.trim()}>
 						<Send size={20} />
 					</button>
 				{/if}

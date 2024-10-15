@@ -6,7 +6,7 @@ import { defaultsUUID } from '$lib/db/schema';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, type CoreAssistantMessage, type CoreUserMessage } from 'ai';
+import { streamText, type CoreAssistantMessage, type CoreUserMessage, type UserContent } from 'ai';
 import dbg from 'debug';
 import { assert, promptHash } from './utils';
 const debug = dbg('app:lib:utils:chat');
@@ -114,12 +114,67 @@ export async function _submitConversationClientSide() {
 		throw new Error('Unsupported provider type, this is a bug');
 	}
 
-	const inputMessages: (CoreAssistantMessage | CoreUserMessage)[] = [...oldMessages, UM, ...(AM.text ? [AM] : [])].map(
-		(m) => ({
-			role: m.role,
-			content: [{ type: 'text', text: m.text }]
-		})
+	const addedMedia: string[] = [];
+
+	async function messageToCoreMessage(message: MessageInterface): Promise<CoreUserMessage | CoreAssistantMessage> {
+		const contentChunks: UserContent = [];
+
+		if (message.role === 'user') {
+			for (const mid of message.mediaIDs ?? []) {
+				const media = A.conversation?.media?.find((m) => m.id === mid);
+				assert(media); // Deleted?
+
+				assert(media.id);
+				assert(media.conversationID === A.conversation?.id);
+				assert(media.type === 'image' || media.type === 'audio' || media.type === 'video');
+
+				// XXX for now
+				assert(media.type === 'image');
+
+				assert(media.original);
+				assert(media.original?.file);
+
+				const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || (message === UM));
+
+				if (shouldAddMedia) {
+					addedMedia.push(media.id);
+					contentChunks.push({
+						type: 'text',
+						text:
+							`<Image ` +
+							`title="${media.title}" ` +
+							`filename="${media.filename}" ` +
+							`mimetype="${media.original?.mimeType ?? 'image/png'}" ` +
+							`resolution="${media.originalWidth}x${media.originalHeight}" ` +
+							`>`
+					});
+
+					contentChunks.push({
+						type: 'image',
+						image: await media.original.file.arrayBuffer()
+					});
+
+					contentChunks.push({ type: 'text', text: '</Image>' });
+				}
+			}
+
+			return {
+				role: 'user',
+				content: [...contentChunks, { type: 'text', text: message.text }]
+			};
+		} else {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: message.text }]
+			};
+		}
+	}
+
+	const inputMessages: (CoreAssistantMessage | CoreUserMessage)[] = await Promise.all(
+		[...oldMessages, UM, ...(AM.text ? [AM] : [])].map(messageToCoreMessage)
 	);
+
+	debug('inputMessages:', inputMessages);
 
 	A.conversation.assistantName = assistant.name;
 	A.conversation.model = model.id;
@@ -141,7 +196,7 @@ export async function _submitConversationClientSide() {
 	if (provider.type === 'openai' && model.name.startsWith('o1') && systemPromptText) {
 		inputMessages.unshift({
 			role: 'user',
-			content: [{ type: 'text', text: 'SYSTEM PROMPT:\n' + systemPromptText }]
+			content: [{ type: 'text', text: `<system_prompt>\n${systemPromptText}\n</system_prompt>` }]
 		});
 		systemPromptText = '';
 	}
@@ -251,8 +306,12 @@ export async function _submitConversationClientSide() {
 		abortSignal: abortController.signal
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	for await (const _ of res.textStream);
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		for await (const _ of res.textStream);
+	} catch (e) {
+		debug('streamText error:', e);
+	}
 }
 
 export async function submitConversationClientSide() {

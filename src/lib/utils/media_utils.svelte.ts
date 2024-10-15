@@ -19,6 +19,7 @@ export async function resizeImage(
 	if (!context) throw new Error('Canvas context not found');
 	if (!file.file) throw new Error('File file not found');
 
+	A.mediaProcessing = true;
 	debug('resizeImage', file, width, height);
 	const image = new Image();
 	const p = new Promise((resolve, reject) => {
@@ -61,6 +62,7 @@ export async function resizeImage(
 	if (!blob) throw new Error('Blob is null');
 	const resizedFile = new File([blob], 'resized');
 	debug('blob', blob);
+	A.mediaProcessing = false;
 	return {
 		userID: A.dbUser?.id ?? 'anon',
 		url: URL.createObjectURL(blob),
@@ -91,6 +93,8 @@ export async function syncFileURL(file: FileInterface) {
 
 export async function syncMediaFileURLs(media: MediaInterface) {
 	if (!media.original) throw new Error('MediaInterface must have an original file');
+
+	A.mediaProcessing = true;
 	if (media.original) await syncFileURL(media.original);
 	if (media.thumbnail) await syncFileURL(media.thumbnail);
 	if (media.resized) await syncFileURL(media.resized);
@@ -117,6 +121,8 @@ export async function syncMediaFileURLs(media: MediaInterface) {
 			}
 		});
 	}
+
+	A.mediaProcessing = false;
 
 	// if (media.resizedWidth && media.resizedHeight && !media.resized) {
 	// 	media.resized = await resizeImage(media.original, media.resizedWidth, media.resizedHeight);
@@ -210,7 +216,8 @@ export async function uploadChangedMedia(media: MediaInterface) {
 	if (media.original && !media.original.id) {
 		mediaNeedsUpdate = true;
 		uploadPromises.push(async () => {
-			media.original = { ...media.original, ...(await uploadFile(media.original!)) };
+			assert(media.original);
+			Object.assign(media.original, await uploadFile(media.original));
 		});
 	}
 
@@ -221,7 +228,8 @@ export async function uploadChangedMedia(media: MediaInterface) {
 	) {
 		mediaNeedsUpdate = true;
 		uploadPromises.push(async () => {
-			media.resized = { ...media.resized, ...(await uploadFile(media.resized!)) };
+			assert(media.resized);
+			Object.assign(media.resized, await uploadFile(media.resized));
 		});
 	}
 
@@ -229,8 +237,8 @@ export async function uploadChangedMedia(media: MediaInterface) {
 	if (media.thumbnail && !media.thumbnail.id) {
 		mediaNeedsUpdate = true;
 		uploadPromises.push(async () => {
-			media.thumbnail!.isThumbnail = true;
-			media.thumbnail = { ...media.thumbnail, ...(await uploadFile(media.thumbnail!)) };
+			assert(media.thumbnail);
+			Object.assign(media.thumbnail, { ...(await uploadFile(media.thumbnail)), isThumbnail: true });
 		});
 	}
 
@@ -268,7 +276,7 @@ export async function uploadConversationMedia() {
 	if (!A.conversation.media) A.conversation.media = [];
 
 	await Promise.all(A.conversation.media.map(uploadChangedMedia));
-	A.mediaUploading = false;
 	debug('All media uploaded!', $state.snapshot(A.conversation));
+	A.mediaUploading = false;
 	if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
 }

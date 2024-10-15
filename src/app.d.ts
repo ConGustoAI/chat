@@ -199,7 +199,6 @@ declare global {
 		userID: string;
 		conversationID?: string;
 		repeat?: boolean;
-		active: boolean;
 
 		title: string;
 		filename: string;
@@ -237,6 +236,7 @@ declare global {
 		thumbnail?: FileInterface;
 
 		// Used by the frontend
+		active?: boolean;
 		newResizedWidth?: number;
 		newResizedHeight?: number;
 

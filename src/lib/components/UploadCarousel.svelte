@@ -5,7 +5,12 @@
 
 	import { APIupsertConversation, APIupsertFile, APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
 	import { putFile } from '$lib/utils/files_client.svelte';
-	import { mediaCreateThumbnail, syncMediaFileURLs, uploadChangedMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import {
+		mediaCreateThumbnail,
+		syncMediaFileURLs,
+		uploadChangedMedia,
+		uploadConversationMedia
+	} from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { onMount, untrack } from 'svelte';
@@ -56,6 +61,7 @@
 
 		const m: MediaInterface = {
 			active: true,
+			repeat: true,
 			userID: A.dbUser.id,
 			title: file.name,
 			filename: file.name,
@@ -97,7 +103,40 @@
 		}
 	}
 
+	let meidaNeedsUpload = $derived.by(() => {
+		debug('meidaNeedsUpload', $state.snapshot(A.conversation));
+		return !!A.conversation?.media?.find(
+			(m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && m.thumbnail.status !== 'ok')
+		);
+	});
 
+	let totalUploadProgress = $derived.by(() => {
+		let progress = A.conversation?.media
+			?.map((m) => {
+				let p = 0;
+				let count = 0;
+				if (m.original && m.original.status === 'progress') {
+					p += m.original.uploadProgress ?? 0;
+					count++;
+				}
+				if (m.thumbnail && m.thumbnail.status === 'progress') {
+					p += m.thumbnail.uploadProgress ?? 0;
+					count++;
+				}
+				return count ? p / count : 0;
+			})
+			.filter((p) => p > 0);
+
+		if (progress?.length) {
+			const totalProgress = progress.reduce((a, b) => a + b, 0) / progress.length;
+
+			debug('totalUploadProgress', totalProgress);
+
+			return progress.reduce((a, b) => a + b, 0) / progress.length;
+		} else {
+			return undefined;
+		}
+	});
 
 	// let _ = $derived.by(() => debug('A.conversation', A.conversation));
 
@@ -153,11 +192,18 @@
 			<PlusCircle size={32} />
 		</button>
 		<button
-			class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
-			disabled={!A.conversation?.media?.length}
+			class="btn btn-disabled carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
+			class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
+			disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
 			onclick={async () => {
 				await uploadConversationMedia();
 			}}>
+			{#if totalUploadProgress !== undefined}
+				<progress
+					class="progress-success absolute h-full w-full -rotate-90 opacity-50"
+					value={totalUploadProgress}
+					max={100}></progress>
+			{/if}
 			<Upload size={32} />
 		</button>
 	</div>
@@ -167,7 +213,7 @@
 	<!-- Display uploaded images or videos -->
 	{#if A.conversation?.media}
 		{#each A.conversation?.media as m, i}
-			<div class="carousel-item">
+			<div class="carousel-item flex h-32 w-32 flex-col">
 				<MediaPreview bind:media={A.conversation.media[i]} />
 			</div>
 		{/each}

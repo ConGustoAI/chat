@@ -42,8 +42,6 @@
 			})
 			.map(([id]) => id);
 
-		debug('Fetched conversations:', A.conversationOrder);
-
 		A.chatDataLoading = false;
 		debug(
 			'done fetching data',
@@ -60,12 +58,14 @@
 		debug('dbUser: %s %o', type, value);
 	});
 
+	
+
+
 	// $effect(() => {
 	// 	debug('A.conversation: ', $state.snapshot(A.conversation));
 	// });
 
 	let assistantSelectDropdown: HTMLDetailsElement;
-	let addMessageDropdown: HTMLDetailsElement | undefined = $state();
 
 	async function NewChat(assistantId?: string) {
 		assistantSelectDropdown.open = false;

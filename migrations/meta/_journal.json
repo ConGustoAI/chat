@@ -127,6 +127,20 @@
       "when": 1728913512640,
       "tag": "0017_secret_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1728977595448,
+      "tag": "0018_black_doctor_octopus",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1728978422463,
+      "tag": "0019_tired_dust",
+      "breakpoints": true
     }
   ]
 }

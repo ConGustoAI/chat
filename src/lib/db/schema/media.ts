@@ -17,8 +17,7 @@ export const mediaTable = pgTable('media', {
 	title: text('title').notNull(),
 	filename: text('filename').notNull(),
 	type: mediaTypes('type').notNull(),
-	reuse: boolean('reuse').default(true),
-	active: boolean('active').notNull(),
+	repeat: boolean('repeat').default(true),
 
 	originalWidth: integer('width'),
 	originalHeight: integer('height'),

@@ -11,6 +11,7 @@
 	import dbg from 'debug';
 	import Notification from '../Notification.svelte';
 	import ChatMessageControls from './ChatMessageControls.svelte';
+	import MediaPreview from '../MediaPreview.svelte';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -127,6 +128,23 @@
 {#if shouldShowDivider()}
 	<div class="divider w-full grow-0" style="margin: 0;"></div>
 {/if}
+
+{#if message.mediaIDs?.length}
+	<div
+		class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-200"
+		role="region"
+		aria-label="Image upload area">
+		{#each message.mediaIDs as mediaID}
+			{@const media = A.conversation?.media?.find((m) => m.id === mediaID)}
+			{#if media}
+				<div class="carousel-item flex h-24 w-24 items-center justify-center bg-base-300">
+					<MediaPreview {media} />
+				</div>
+			{/if}
+		{/each}
+	</div>
+{/if}
+
 <div class="relative flex items-start pt-2 text-message" class:bg-base-usermessage={message.role == 'user'}>
 	<div class="div items-start px-3 py-3 text-base-content">
 		{#if loading}
@@ -134,8 +152,8 @@
 		{:else if message.role == 'user'}
 			<Smile size="24" />
 		{:else}
-			<details class="dropdown dropdown-right" bind:open={detailsOpen} >
-				<summary class="block cursor-pointer text-center" >
+			<details class="dropdown dropdown-right" bind:open={detailsOpen}>
+				<summary class="block cursor-pointer text-center">
 					<Computer />
 				</summary>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->

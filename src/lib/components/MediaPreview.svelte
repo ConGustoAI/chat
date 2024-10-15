@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { RefreshCcw, RefreshCwOff } from 'lucide-svelte';
+	import { RefreshCcw, RefreshCwOff, Upload } from 'lucide-svelte';
 	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:components:MediaPreview');
 
@@ -42,7 +42,7 @@
 	// 	debug('media', t, c);
 	// });
 
-	let isHovered = false;
+	let isHovered = $state(false);
 
 	let thumbnailURL: string | undefined = $state();
 	let mediaWidth: number | undefined = $state();
@@ -79,11 +79,21 @@
 	});
 
 	$inspect(thumbnailURL).with((t, u) => debug('thumbnailURL', t, u));
+
+	let fullyUploaded = $derived.by(() => {
+		return (
+			(!media.original || media.original.status === 'ok') &&
+			(!media.resized || media.resized.status === 'ok') &&
+			(!media.thumbnail || media.thumbnail.status === 'ok')
+		);
+	});
+
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="relative flex h-32 w-32 flex-col gap-0.5 justify-between p-1 bg-base-300 rounded-md"
+	class="relative flex h-full w-full flex-col justify-between gap-0.5 rounded-md bg-base-300 p-1"
+	class:opacity-50={!media.active}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
 	{#if media.type === 'video'}
@@ -104,33 +114,46 @@
 	{:else if media.type === 'audio'}
 		TODO: Audio
 	{:else}
-		<img src={thumbnailURL} alt={media.filename} class="h-auto max-h-full w-full overflow-hidden object-contain" />
+		<div class="relative flex h-full w-full flex-col overflow-hidden">
+			<img
+				src={thumbnailURL}
+				alt={media.filename}
+				class="h-auto max-h-full w-full overflow-hidden bg-base-100 object-contain" />
+			<div class="absolute bottom-1 mr-2 flex h-fit w-full flex-col gap-0.5">
+				{#if media.original?.status === 'progress'}
+					<progress class="progress progress-success h-1 rounded-none" value={media.original.uploadProgress} max={100}>
+						{media.original.uploadProgress}%
+					</progress>
+				{:else if media.original?.status === 'failed'}
+					<p class=" text-xs text-error">Upload error: {media.original.uploadError}</p>
+				{/if}
+				{#if media.resized?.status === 'progress'}
+					<progress class="progress progress-success h-1 rounded-none" value={media.resized?.uploadProgress} max={100}>
+						{media.resized?.uploadProgress}%
+					</progress>
+				{:else if media.resized?.status === 'failed'}
+					<p class=" text-xs text-error">Upload error: {media.resized?.uploadError}</p>
+				{/if}
+				{#if media.thumbnail?.status === 'progress'}
+					<progress
+						class="progress progress-success h-1 rounded-none"
+						value={media.thumbnail?.uploadProgress}
+						max={100}>
+						{media.thumbnail?.uploadProgress}%
+					</progress>
+				{:else if media.thumbnail?.status === 'failed'}
+					<p class=" text-xs text-error">Upload error: {media.thumbnail?.uploadError}</p>
+				{/if}
+			</div>
+			{#if fullyUploaded}
+				<div class="absolute bottom-1 left-1 z-30">
+					<Upload size={14} color="green" strokeWidth={3} />
+				</div>
+			{/if}
+
+		</div>
 
 		<div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div>
-
-		<div class="absolute bottom-1 w-full bg-blue-500">
-			{#if media.original?.status === 'progress'}
-				<progress class="progress progress-success" value={media.original.uploadProgress} max={100}>
-					{media.original.uploadProgress}%
-				</progress>
-			{:else if media.original?.status === 'failed'}
-				<p class=" text-xs text-error">Upload error: {media.original.uploadError}</p>
-			{/if}
-			{#if media.resized?.status === 'progress'}
-				<progress class="progress progress-success" value={media.resized?.uploadProgress} max={100}>
-					{media.resized?.uploadProgress}%
-				</progress>
-			{:else if media.resized?.status === 'failed'}
-				<p class=" text-xs text-error">Upload error: {media.resized?.uploadError}</p>
-			{/if}
-			{#if media.thumbnail?.status === 'progress'}
-				<progress class="progress progress-success" value={media.thumbnail?.uploadProgress} max={100}>
-					{media.thumbnail?.uploadProgress}%
-				</progress>
-			{:else if media.thumbnail?.status === 'failed'}
-				<p class=" text-xs text-error">Upload error: {media.thumbnail?.uploadError}</p>
-			{/if}
-		</div>
 	{/if}
 
 	<label class="swap swap-rotate absolute right-1 top-1 z-30">
@@ -140,7 +163,8 @@
 	</label>
 
 	{#if media.originalWidth != undefined}
-		<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+		<div
+			class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-black bg-opacity-50 p-1 text-white">
 			{media.originalWidth}x{media.originalHeight}
 			{#if media.newResizedWidth != undefined || media.resizedWidth != undefined}
 				<p>↓</p>

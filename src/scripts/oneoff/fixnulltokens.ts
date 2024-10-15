@@ -10,6 +10,8 @@ import { config } from 'dotenv';
 import { DefaultLogger, eq, type LogWriter } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+
+// @ts-expect-error - This is a one-off script, so the package is not installed by default.
 import cliProgress from 'cli-progress';
 
 export const run = async () => {
