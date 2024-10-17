@@ -21,7 +21,7 @@
 		allowHiding?: boolean;
 	} = $props();
 
-	let status: string|null|undefined = $state(null);
+	let status: string | null | undefined = $state(null);
 	let errorMessage: string | null = $state(null);
 	let updateTimer: number | undefined | NodeJS.Timeout;
 
@@ -78,7 +78,6 @@
 	}
 
 	$inspect(status);
-
 </script>
 
 <input
@@ -109,8 +108,7 @@
 	onblur={() => {
 		clearTimeout(updateTimer);
 		updatModelNow();
-	}}
-	/>
+	}} />
 <input
 	type="number"
 	class="input input-bordered w-28"
@@ -256,13 +254,13 @@
 </button>
 
 <DeleteButton
-	btnClass="btn btn-outline"
+	btnClass="btn btn-outline h-full w-full"
+	class=""
 	deleteAction={async () => {
 		status = 'deleting';
 		await deleteModel(model);
 		status = null;
 	}}
-	size={24}
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">

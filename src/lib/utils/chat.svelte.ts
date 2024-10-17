@@ -132,9 +132,37 @@ export async function _submitConversationClientSide() {
 				assert(media.type === 'image');
 
 				assert(media.original);
-				assert(media.original?.file);
+				assert(media.originalWidth);
+				assert(media.originalHeight);
 
-				const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || (message === UM));
+				//Either both are set or both are not set
+				assert( (media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth) );
+
+
+				let file: FileInterface;
+				let width: number;
+				let height: number;
+
+				if (
+					media.resizedWidth &&
+					media.resizedWidth !== media.originalWidth &&
+					media.resizedHeight &&
+					media.resizedHeight !== media.originalHeight
+				) {
+					assert(media.resized);
+					assert(media.resized.file);
+					file = media.resized;
+					assert(file.file);
+					width = media.resizedWidth;
+					height = media.resizedHeight;
+				} else {
+					file = media.original;
+					assert(file.file);
+					width = media.originalWidth;
+					height = media.originalHeight;
+				}
+
+				const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
 				if (shouldAddMedia) {
 					addedMedia.push(media.id);
@@ -144,14 +172,14 @@ export async function _submitConversationClientSide() {
 							`<Image ` +
 							`title="${media.title}" ` +
 							`filename="${media.filename}" ` +
-							`mimetype="${media.original?.mimeType ?? 'image/png'}" ` +
-							`resolution="${media.originalWidth}x${media.originalHeight}" ` +
+							`mimetype="${file.mimeType ?? 'image/png'}" ` +
+							`resolution="${width}x${height}" ` +
 							`>`
 					});
 
 					contentChunks.push({
 						type: 'image',
-						image: await media.original.file.arrayBuffer()
+						image: await file.file.arrayBuffer()
 					});
 
 					contentChunks.push({ type: 'text', text: '</Image>' });

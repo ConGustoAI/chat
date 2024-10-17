@@ -18,7 +18,7 @@
 		deleteKey: any;
 	} = $props();
 
-	let status: string|null|undefined = $state(null);
+	let status: string | null | undefined = $state(null);
 	let errorMessage: string | null = $state(null);
 	let updateTimer: number | undefined | NodeJS.Timeout = $state(undefined);
 
@@ -91,13 +91,13 @@
 	disabled={!edit || status === 'deleting'} />
 
 <DeleteButton
-	btnClass="btn btn-outline"
+	class=""
+	btnClass="btn btn-outline p-2 h-full w-full"
 	deleteAction={async () => {
 		status = 'deleting';
 		await deleteKey(apiKey);
 		status = null;
 	}}
-	size={24}
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">

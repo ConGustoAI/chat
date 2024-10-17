@@ -111,15 +111,18 @@
 		}
 	});
 
-	let uploadOpen: boolean = $state(false);
+	let uploadOpen: boolean = $state(true);
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
 
-	{#if uploadOpen && uploadEnabled}
-		<div class="absolute bottom-full flex max-h-[80vh] w-full flex-col bg-base-200" tabindex="-1">
+	{#if uploadEnabled}
+		<div
+			class="absolute bottom-full flex max-h-[80vh] w-full flex-col overflow-visible bg-base-200"
+			tabindex="-1"
+			class:invisible={!uploadOpen}>
 			<MediaCarousel />
 		</div>
 	{/if}

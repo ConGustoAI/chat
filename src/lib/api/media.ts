@@ -4,13 +4,13 @@ import { filterNull } from '$lib/utils/utils';
 
 const debug = dbg('app:lib:api:media');
 
-export async function APIfetchAllMedia(withURL: boolean = false) {
-	debug(`fetchMedia${withURL ? 'WithURL' : ''}`);
-	const res = await fetch(`/api/media${withURL ? '?url=true' : ''}`);
+export async function APIfetchAllMedia() {
+	debug("fetchMedia");
+	const res = await fetch(`/api/media`);
 
-	if (!res.ok) throw new Error(`Failed to fetch media${withURL ? ' with URL' : ''}: ${(await res.json()).message}`);
+	if (!res.ok) throw new Error(`Failed to fetch media: ${(await res.json()).message}`);
 	const data = (await res.json()).map((media: MediaInterface) => filterNull(media));
-	debug(`fetchMedia${withURL ? 'WithURL' : ''} -> %o`, data);
+	debug("fetchMedia -> %o", data);
 	return data as MediaInterface[];
 }
 
@@ -28,9 +28,9 @@ export async function APIupsertMedia(media: MediaInterface) {
 	return data as MediaInterface;
 }
 
-export async function APIfetchMedia(id: string, withURL: boolean = false) {
+export async function APIfetchMedia(id: string) {
 	debug('fetchMedia %o', id);
-	const res = await fetch(`/api/media/${id}${withURL ? '?url=true' : ''}`);
+	const res = await fetch(`/api/media/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch media by ID: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());

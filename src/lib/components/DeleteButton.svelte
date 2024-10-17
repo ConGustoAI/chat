@@ -4,20 +4,18 @@
 
 	let {
 		deleteAction,
-		size = 15,
 		btnClass = '',
 		class: className = '',
 		disabled = false,
 		children,
-		title='Delete'
+		title = 'Delete'
 	} = $props<{
 		deleteAction: () => Promise<void> | void;
-		size?: number;
 		btnClass?: string;
 		class?: string;
 		disabled?: boolean;
 		children?: any;
-		title?: string|undefined;
+		title?: string | undefined;
 	}>();
 
 	let deleting = $state(false);
@@ -31,17 +29,18 @@
 			<!-- svelte-ignore slot_element_deprecated -->
 			<div class="loading loading-sm"></div>
 		{:else}
-			<Trash2 {size} />
+			<Trash2 size="fit-h" />
 		{/if}
-		{@render children?.()}
+		<!-- {@render children?.()} -->
 	</div>
 
-	<ul class="dropdown-content w-fit p-2 z-20">
+	<ul class="dropdown-content z-50 w-fit p-2">
 		<li>
 			<button
 				bind:this={button}
 				class="btn btn-outline btn-sm text-nowrap rounded-md bg-primary"
 				onclick={async () => {
+					console.log('click');
 					disabled = true;
 					deleting = true;
 					button?.blur();

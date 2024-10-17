@@ -9,7 +9,13 @@
 
 	const debug = dbg('app:ui:components:ApiKeysGrid');
 
-	let { provider, edit, showDefault, showCustom, newChildUserID }: {
+	let {
+		provider,
+		edit,
+		showDefault,
+		showCustom,
+		newChildUserID
+	}: {
 		provider: ProviderInterface;
 		edit: boolean;
 		showDefault: boolean;
@@ -50,7 +56,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-4" id="#{provider.id}/keys">
-	<div class="grid grid-cols-[15rem,auto,min-content,min-content] items-center gap-4 gap-y-2">
+	<div class="grid grid-cols-[15rem,auto,3rem,min-content] items-center gap-4 gap-y-2">
 		<span class="text-sm">Key label</span>
 		<span class="text-sm">Key</span>
 		<span></span>
@@ -58,7 +64,6 @@
 
 		{#each Object.entries(A.apiKeys) as [id, key]}
 			{#if key.providerID === provider.id && ((showDefault && key.userID === defaultsUUID) || (showCustom && key.userID !== defaultsUUID))}
-
 				<ApiKey bind:apiKey={A.apiKeys[id]} {deleteKey} {edit} />
 			{/if}
 		{/each}

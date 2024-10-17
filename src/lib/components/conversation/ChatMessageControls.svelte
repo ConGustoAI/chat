@@ -4,8 +4,8 @@
 	import { addMessage, assert, updateMessage } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Copy, Edit, Menu, Repeat } from 'lucide-svelte';
-	import DeleteButton from '../DeleteButton.svelte';
-	import Cost from './Cost.svelte';
+	import { DeleteButton, Cost } from '$lib/components';
+
 	const debug = dbg('app:ui:components:ChatMessageControls');
 
 	let {
@@ -67,7 +67,6 @@
 		message.editing = false;
 	}
 
-
 	function shouldShowAssistantInfo() {
 		// previouis Assistant Message
 		let pAM: MessageInterface | undefined;
@@ -86,11 +85,9 @@
 		)
 			return true;
 	}
-
-
 </script>
 
-<div class="absolute right-0 top-0 flex h-full flex-col pr-2">
+<div class="absolute right-0 top-0 flex flex-col pr-2">
 	<div class="flex w-full items-center justify-end gap-2 text-base-content">
 		{#if message.createdAt && message.role !== 'assistant'}
 			{new Date(message.createdAt).toLocaleString('en-GB', {
@@ -151,8 +148,7 @@
 				title="Delete message"
 				class="dropdown-end"
 				btnClass="btn-xs btn-ghost rounded-md p-1"
-				deleteAction={deleteMessage}
-				size={15} />
+				deleteAction={deleteMessage} />
 		{/if}
 		{#if !A.dbUser || A.dbUser.hacker || isPublic}
 			<button
@@ -207,7 +203,7 @@
 							onclick={async (e) => {
 								const target = e.target as HTMLButtonElement;
 								target.blur();
-								await addMessage({ parent: message,role: 'assistant', above: false, editing: true });
+								await addMessage({ parent: message, role: 'assistant', above: false, editing: true });
 							}}>assistant</button>
 					</li>
 					<li>
@@ -216,7 +212,7 @@
 							onclick={async (e) => {
 								const target = e.target as HTMLButtonElement;
 								target.blur();
-								await addMessage({ parent: message,role: 'user', above: false, editing: true });
+								await addMessage({ parent: message, role: 'user', above: false, editing: true });
 							}}>user</button>
 					</li>
 				</ul>

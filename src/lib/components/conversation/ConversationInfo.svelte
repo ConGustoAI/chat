@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
-	import TokenStats from './TokenStats.svelte';
+	import { TokenStats } from '$lib/components';
 	const debug = dbg('app:ui:components:ConversationInfo');
 
 	let { isPublic }: { isPublic?: boolean } = $props();
@@ -132,7 +132,7 @@
 		<div class="card-body w-full p-0">
 			{#if info.length}
 				{#if !compareStats(statsFromMessages, statsFromConversation) && (statsFromConversation.tokensIn || statsFromConversation.tokensOut) && !isPublic}
-					<div class="grid grid-cols-[1fr,1fr] w-fit">
+					<div class="grid w-fit grid-cols-[1fr,1fr]">
 						<div class="font-bold">Conversatoin tokens</div>
 						<div class="font-bold">With deleted messages</div>
 						<TokenStats stats={statsFromMessages} />

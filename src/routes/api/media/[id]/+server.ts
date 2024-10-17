@@ -1,25 +1,14 @@
-import { DBgetMedia, DBdeleteMedia } from '$lib/db/utils';
-import { getDownloadURL } from '$lib/utils/files_server';
+import { DBdeleteMedia, DBgetMedia } from '$lib/db/utils';
 import { error, json } from '@sveltejs/kit';
 import dbg from 'debug';
 
 const debug = dbg('app:api:media:id');
 
-export async function GET({ params: { id }, locals: { dbUser }, url }) {
+export async function GET({ params: { id }, locals: { dbUser }}) {
 	debug('GET <- %o', { id, dbUser: dbUser?.id ?? 'anon' });
 	if (!dbUser) error(401, 'Unauthorized');
 
-	const withURL = url.searchParams.get('url') === 'true';
-
 	const media = await DBgetMedia({ dbUser, id });
-
-	if (withURL) {
-		if (media.original) (media.original as FileInterface).url = await getDownloadURL(media.original as FileInterface);
-		if (media.resized) (media.resized as FileInterface).url = await getDownloadURL(media.resized as FileInterface);
-		if (media.cropped) (media.cropped as FileInterface).url = await getDownloadURL(media.cropped as FileInterface);
-		if (media.thumbnail)
-			(media.thumbnail as FileInterface).url = await getDownloadURL(media.thumbnail as FileInterface);
-	}
 
 	debug('GET %o -> %o', id, media);
 	return json(media);

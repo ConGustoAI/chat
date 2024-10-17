@@ -19,7 +19,7 @@
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:MarkdownMessage');
 
-	let { message }: { message: MessageInterface } = $props();
+	let { message = $bindable() }: { message: MessageInterface } = $props();
 
 	import type { Element, Root } from 'hast';
 	import { visit } from 'unist-util-visit';
@@ -27,6 +27,7 @@
 	import { assert } from '$lib/utils/utils';
 	import { h, s } from 'hastscript';
 	import type { Node } from 'unist';
+	import { untrack } from 'svelte';
 
 	// Make math blocks clickable to toggle display or raw content.
 	function nodeClickFormulasBlock(node: Element): Element[] | Element {
@@ -243,13 +244,10 @@
 		};
 	}
 
-	function getMarkdown(msg: MessageInterface) {
-		// The cache should be invalidated by the code that modifies the text.
-		if (msg.markdownCache) return msg.markdownCache;
-
+	function getMarkdown() {
 		// This is a bit of a hack to support the OpenAI markdown syntax.
 		// We convert \( ... \) to $ ... $ and \[ ... \] to $$ ... $$.
-		let convertedMsg = msg.text
+		let convertedMsg = message.text
 			.replace(/\\\((.*?)\\\)/g, '$$$1$$')
 			// Some LLMs output \[ ... \] without newlines, which does not get parsed as a math block.
 			.replace(/^\\\[(.*?)\\\]$/gm, '\n$$$$\n$1\n$$$$\n')
@@ -274,13 +272,20 @@
 			.processSync(convertedMsg);
 
 		const str = res.toString();
-		msg.markdownCache = str;
+		message.markdownCache = str;
 		const processingTime = Date.now() - timestamp;
 		debug('parseMarkdown processing time', processingTime + 'ms');
-		return str;
 	}
+
+	$effect(() => {
+		// The cache should be invalidated by the code that modifies the text.
+		if (!message.markdownCache) {
+			untrack(() => getMarkdown());
+		}
+		// return str;
+	});
 </script>
 
 <div class="prose w-full grow pt-2 text-message">
-	{@html getMarkdown(message)}
+	{@html message.markdownCache}
 </div>

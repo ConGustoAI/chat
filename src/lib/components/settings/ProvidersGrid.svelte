@@ -58,13 +58,16 @@
 
 <div class="flex w-full flex-col gap-4">
 	<div
-		class="grid w-full grid-cols-[min-content,10rem,8rem,8rem,auto,6rem,6rem,min-content,min-content,0] items-center gap-4 gap-y-2">
+		class="grid w-full grid-cols-[min-content,10rem,8rem,8rem,auto,6rem,6rem,3rem,3rem,0] items-center gap-4 gap-y-2">
 		<div></div>
 		<div class="font-bold">Label</div>
 		<div class="font-bold">Type</div>
 		<div class="font-bold">
 			Stream usage<InfoPopup title="Request usage information at the end of text stream">
-				<p>OpenAI has introduced a feature that allows requesting token usage statistics at the conclusion of a text stream.</p>
+				<p>
+					OpenAI has introduced a feature that allows requesting token usage statistics at the conclusion of a text
+					stream.
+				</p>
 				<p>Some other providers are using an older version of the API that lacks this functionality.</p>
 				<p>Enable this option if your OpenAI-compatible provider supports</p>
 				<pre><code>stream_options: &lbrace; include_usage: true &rbrace;</code></pre>

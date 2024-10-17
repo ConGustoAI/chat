@@ -230,7 +230,7 @@
 </button>
 
 <button
-	class="btn btn-outline"
+	class="btn btn-outline p-2"
 	disabled={status === 'hiding' || !allowHiding}
 	onclick={async () => {
 		status = 'hiding';
@@ -247,13 +247,12 @@
 </button>
 
 <DeleteButton
-	btnClass="btn btn-outline"
+	btnClass="btn btn-outline w-full h-full p-2"
 	deleteAction={async () => {
 		status = 'deleting';
 		await deleteAssistant(assistant);
 		status = null;
 	}}
-	size={24}
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">

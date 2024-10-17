@@ -1,20 +1,16 @@
 <script lang="ts">
-	import { MediaEditor, MediaPreview } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
 	import { PlusCircle, Upload } from 'lucide-svelte';
+	import { ConversationMediaPreview, MediaEditor } from '.';
 
-	import { APIupsertConversation, APIupsertFile, APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { putFile } from '$lib/utils/files_client.svelte';
 	import {
 		mediaCreateThumbnail,
-		syncMediaFileURLs,
-		uploadChangedMedia,
+		mediaProcessResize,
+		syncMedia,
 		uploadConversationMedia
 	} from '$lib/utils/media_utils.svelte';
-	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { onMount, untrack } from 'svelte';
-	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:MediaCarousel');
 
 	// // Used for testing
@@ -74,7 +70,7 @@
 			}
 		};
 
-		await syncMediaFileURLs(m);
+		await syncMedia(m);
 		return m;
 	}
 
@@ -100,11 +96,12 @@
 
 			A.conversation.media.push(...newMedia);
 			debug('Files added: ', $state.snapshot(A.conversation));
+			input.value = '';
 		}
 	}
 
 	let meidaNeedsUpload = $derived.by(() => {
-		debug('meidaNeedsUpload', $state.snapshot(A.conversation));
+		untrack(() => debug('meidaNeedsUpload', $state.snapshot(A.conversation)));
 		return !!A.conversation?.media?.find(
 			(m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && m.thumbnail.status !== 'ok')
 		);
@@ -135,6 +132,18 @@
 			return progress.reduce((a, b) => a + b, 0) / progress.length;
 		} else {
 			return undefined;
+		}
+	});
+
+	$effect(() => {
+		untrack(() => {
+			debug('Effect ', $state.snapshot(A.conversation));
+		});
+		if (A.conversation?.media) {
+			for (const m of A.conversation.media) {
+				const { originalWidth, originalHeight, resizedWidth, resizedHeight } = m;
+				syncMedia(m).then(async () => Promise.all([mediaCreateThumbnail(m), mediaProcessResize(m)]));
+			}
 		}
 	});
 
@@ -180,44 +189,52 @@
 	<div class="divider my-0 w-full shrink-0"></div>
 {/if} -->
 
-<div
-	class="carousel carousel-center h-fit w-full shrink-0 space-x-4 bg-base-200 p-4"
-	role="region"
-	aria-label="Image upload area">
-	<!-- Clickable box for file upload -->
-	<div class="flex flex-col gap-3">
-		<button
-			class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
-			onclick={() => document.getElementById('fileInput')?.click()}>
-			<PlusCircle size={32} />
-		</button>
-		<button
-			class="btn btn-disabled carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
-			class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
-			disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
-			onclick={async () => {
-				await uploadConversationMedia();
-			}}>
-			{#if totalUploadProgress !== undefined}
-				<progress
-					class="progress-success absolute h-full w-full -rotate-90 opacity-50"
-					value={totalUploadProgress}
-					max={100}></progress>
-			{/if}
-			<Upload size={32} />
-		</button>
-	</div>
-	<!-- Hidden file input -->
-	<input id="fileInput" type="file" class="hidden" onchange={handleFileChange} multiple />
-
-	<!-- Display uploaded images or videos -->
-	{#if A.conversation?.media}
-		{#each A.conversation?.media as m, i}
-			<div class="carousel-item flex h-32 w-32 flex-col">
-				<MediaPreview bind:media={A.conversation.media[i]} />
-			</div>
-		{/each}
+<div class={'flex grow flex-col overflow-hidden ' + (A.editingMedia ? 'h-[66dvh]' : '')}>
+	{#if A.editingMedia}
+		<MediaEditor bind:media={A.editingMedia} />
+		<div class="divider w-full"></div>
 	{/if}
+
+	<div
+		class="carousel carousel-center h-fit w-full shrink-0 space-x-4 bg-base-200 p-4"
+		role="region"
+		aria-label="Image upload area">
+		<!-- Clickable box for file upload -->
+
+		<div class="flex flex-col gap-3">
+			<button
+				class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
+				onclick={() => document.getElementById('fileInput')?.click()}>
+				<PlusCircle size={32} />
+			</button>
+			<button
+				class="btn btn-disabled carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
+				class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
+				disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
+				onclick={async () => {
+					await uploadConversationMedia();
+				}}>
+				{#if totalUploadProgress !== undefined}
+					<progress
+						class="progress-success absolute h-full w-full -rotate-90 opacity-50"
+						value={totalUploadProgress}
+						max={100}></progress>
+				{/if}
+				<Upload size={32} />
+			</button>
+		</div>
+		<!-- Hidden file input -->
+		<input id="fileInput" type="file" class="hidden" onchange={handleFileChange} multiple />
+
+		<!-- Display uploaded images or videos -->
+		{#if A.conversation?.media}
+			{#each A.conversation?.media as m, i}
+				<div class="carousel-item flex h-32 w-32 flex-col">
+					<ConversationMediaPreview bind:media={A.conversation.media[i]} />
+				</div>
+			{/each}
+		{/if}
+	</div>
 </div>
 <!-- </div> -->
 <!--

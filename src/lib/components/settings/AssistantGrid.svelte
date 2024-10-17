@@ -9,7 +9,12 @@
 	import { goto } from '$app/navigation';
 	const debug = dbg('app:ui:components:AssistantGrid');
 
-	let { edit = false, allowHiding = true, showDefault = false, newItemUserID = defaultsUUID }: {
+	let {
+		edit = false,
+		allowHiding = true,
+		showDefault = false,
+		newItemUserID = defaultsUUID
+	}: {
 		edit?: boolean;
 		allowHiding?: boolean;
 		showDefault?: boolean;
@@ -65,7 +70,7 @@
 </script>
 
 <div class="mb-10 flex w-full flex-col gap-4">
-	<div class="grid w-full grid-cols-[min-content,10rem,15rem,12rem,auto,6rem,4rem,4rem,0] gap-4 gap-y-2">
+	<div class="grid w-full grid-cols-[min-content,10rem,15rem,12rem,auto,6rem,3rem,3rem,0] gap-4 gap-y-2">
 		<div></div>
 		<div class="font-bold">Name</div>
 		<div class="font-bold">Model</div>
@@ -78,7 +83,13 @@
 
 		{#each Object.entries(A.assistants) as [i, assistant]}
 			{#if (!showDefault && assistant.userID !== defaultsUUID) || (showDefault && assistant.userID === defaultsUUID)}
-				<Assistant bind:assistant={A.assistants[i]} {deleteAssistant} {copyAssistant} {showDefault} {edit} {allowHiding} />
+				<Assistant
+					bind:assistant={A.assistants[i]}
+					{deleteAssistant}
+					{copyAssistant}
+					{showDefault}
+					{edit}
+					{allowHiding} />
 			{/if}
 		{/each}
 		{#if edit}

@@ -1,12 +1,11 @@
 import { DBdeleteFile, DBgetFile } from '$lib/db/utils';
-import { deleteFile, getDownloadURL, s3 } from '$lib/utils/files_server';
+import { deleteFile, s3 } from '$lib/utils/files_server';
 import { error, json } from '@sveltejs/kit';
 import dbg from 'debug';
 
 const debug = dbg('app:api:file:id');
 
-export async function GET({ params: { id }, locals: { dbUser }, url }) {
-	const withURL = url.searchParams.get('url') === 'true';
+export async function GET({ params: { id }, locals: { dbUser } }) {
 
 	debug('GET <- %o', { id, dbUser: dbUser?.id ?? 'anon' });
 	if (!dbUser) return json({ error: 'Unauthorized' }, { status: 401 });
@@ -14,8 +13,6 @@ export async function GET({ params: { id }, locals: { dbUser }, url }) {
 
 	// Will throw if not found.
 	const file = (await DBgetFile({ dbUser, id })) as FileInterface;
-
-	if (withURL) file.url = await getDownloadURL(file);
 
 	debug('GET %o -> %o', file);
 

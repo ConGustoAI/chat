@@ -220,8 +220,8 @@ declare global {
 		trimEnd?: number;
 
 		originalID?: string | null;
-		resizedID?: string | null;
-		croppedID?: string | null;
+		// resizedID?: string | null;
+		// croppedID?: string | null;
 		thumbnailID?: string | null;
 
 		createdAt?: Date;
@@ -231,22 +231,23 @@ declare global {
 
 		// From relations, not in database.
 		original?: FileInterface;
-		resized?: FileInterface;
-		cropped?: FileInterface;
 		thumbnail?: FileInterface;
 
 		// Used by the frontend
+		resized?: FileInterface;
+		cropped?: FileInterface;
+
 		active?: boolean;
-		newResizedWidth?: number;
-		newResizedHeight?: number;
+		// newResizedWidth?: number;
+		// newResizedHeight?: number;
 
-		newCropStartX?: number;
-		newCropStartY?: number;
-		newCropEndX?: number;
-		newCropEndY?: number;
+		// newCropStartX?: number;
+		// newCropStartY?: number;
+		// newCropEndX?: number;
+		// newCropEndY?: number;
 
-		newTrimStart?: number;
-		newTrimEnd?: number;
+		// newTrimStart?: number;
+		// newTrimEnd?: number;
 	}
 
 	interface FileInterface {

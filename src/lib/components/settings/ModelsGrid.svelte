@@ -73,7 +73,7 @@
 	{#if modelsToShow.length !== 0}
 		<h2 class="text-xl font-bold">{provider.name} Models</h2>
 		<div
-			class="grid grid-cols-[15rem,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content] items-center gap-4 gap-y-2">
+			class="grid grid-cols-[15rem,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,3.5rem,min-content] items-center gap-4 gap-y-2">
 			<div class="font-bold">Display name</div>
 			<div class="font-bold">Model name</div>
 			<div class="relative font-bold">

@@ -28,12 +28,12 @@ export async function APIfetchConversations() {
 	return data as ConversationInterface[];
 }
 
-export async function APIfetchConversation(id: string, withURLs: boolean = false) {
+export async function APIfetchConversation(id: string) {
 	debug('fetchConversation %o', { id });
 
 	if (!id) return filterNull({ userID: '' } as ConversationInterface);
 
-	const res = await fetch(`/api/conversation/${id}?url=${!!withURLs}`);
+	const res = await fetch(`/api/conversation/${id}`);
 
 	if (!res.ok) throw new Error(`Failed to fetch conversation: ${(await res.json()).message}`);
 	const data = filterNull(await res.json());

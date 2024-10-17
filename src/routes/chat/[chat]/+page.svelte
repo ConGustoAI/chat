@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { syncMediaFileURLs } from '$lib/utils/media_utils.svelte';
+	import { syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
@@ -18,13 +18,15 @@
 		if (!A.conversation?.messages && !A.chatDataLoading) {
 			A.chatDataLoading = true;
 			let promise;
-			promise = APIfetchConversation(convID, true);
+			promise = APIfetchConversation(convID);
 
 			promise
 				.then((data) => {
 					A.conversations[data.id!] = { ...A.conversations[data.id!], ...data };
 					A.conversation = A.conversations[data.id!];
-					(A.conversation.media ?? []).map(syncMediaFileURLs);
+					A.conversation.media ?? [];
+					A.conversation.messages?.map((m) => (m.markdownCache = undefined));
+					// syncMedia;
 				})
 				.catch((e) => {
 					debug('Failed to fetch conversation:', e.message);
@@ -45,5 +47,4 @@
 	// $effect(() => {
 	// 	debug('A.conversation changed: ', A.conversation);
 	// })
-
 </script>

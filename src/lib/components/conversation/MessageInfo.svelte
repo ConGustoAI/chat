@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
-	import TokenStats from './TokenStats.svelte';
+	import { TokenStats } from '$lib/components';
 
 	let { message }: { message: MessageInterface } = $props();
 	let provider = $derived(A.providers[A.models[message.model ?? 'unknown']?.providerID ?? 'Unknown']);
@@ -21,7 +21,6 @@
 	}
 
 	let tokenStats = $derived(tokenStatsFromMessage());
-
 </script>
 
 <div class="flex w-max max-w-md flex-col whitespace-pre-line rounded-sm bg-base-300 p-2 lg:max-w-screen-md">

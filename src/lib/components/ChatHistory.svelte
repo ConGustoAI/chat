@@ -206,9 +206,8 @@
 			{:else}
 				<DeleteButton
 					class="dropdown-right absolute right-3 top-1/2 z-10 -translate-y-1/2"
-					btnClass="btn btn-sm m-0 btn-outline rounded-md p-0 px-1"
-					deleteAction={deleteSelected}
-					size={19} />
+					btnClass="btn btn-sm m-0 btn-outline rounded-md p-1"
+					deleteAction={deleteSelected} />
 			{/if}
 		{/if}
 

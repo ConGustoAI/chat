@@ -2,12 +2,12 @@
 	import { Check } from 'lucide-svelte';
 
 	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { mediaResizeOriginal, resizePresets } from '$lib/utils/media_utils.svelte';
+	import { mediaResizeFromPreset, resizePresets } from '$lib/utils/media_utils.svelte';
 	import dbg from 'debug';
 
 	const debug = dbg('app:ui:components:MediaEditor');
 
-	let { media = $bindable(), onchange }: { media: MediaInterface; onchange: () => void } = $props();
+	let { media = $bindable() }: { media: MediaInterface } = $props();
 	let progressBar: HTMLProgressElement;
 
 	function isVideo(media: MediaInterface) {
@@ -26,41 +26,67 @@
 	let resizeWidth: number | undefined = $state();
 	let resizeHeight: number | undefined = $state();
 
-	let displayedImageURL: string | undefined = $state();
-	// $: {
-	// 	debug('displayedImageURL', media);
-	// 	if (displayedImageURL) {
-	// 		URL.revokeObjectURL(displayedImageURL);
-	// 	}
-	// 	if (
-	// 		media.resized?.file &&
-	// 		(media.newResizedWidth !== media.originalWidth || media.newResizedHeight !== media.originalHeight) &&
-	// 		selectedResizePreset !== 'original'
-	// 	) {
-	// 		debug('displaying resized image');
-	// 		displayedImageURL = URL.createObjectURL(media.resized.file);
-	// 	} else if (media.original?.file) {
-	// 		debug('displaying original image');
-	// 		displayedImageURL = URL.createObjectURL(media.original.file);
-	// 	}
-	// 	debug('displayedImageURL', displayedImageURL);
-	// }
+	// let displayedImageURL: string | undefined = $state();
 
-	// $: debug('media', media);
+	let displayedImageURL = $derived.by(() => {
+		if (media.resized?.url) {
+			debug('displayedImageURL: Picking rezied');
+			return media.resized.url;
+		} else if (media.original?.url) {
+			debug('displayedImageURL: Picking original');
+			return media.original.url;
+		} else {
+			debug('thumbnailURL: No preview URL available');
+			return undefined;
+		}
+	});
+
+	// let thumbnailURL: string | undefined = $state();
+
+	// $effect(() => {
+	// 	if (media.thumbnail?.url) {
+	// 		debug('thumbnailURL: Picking thumbnail');
+	// 		thumbnailURL = media.thumbnail.url;
+	// 	} else if (media.original?.url) {
+	// 		debug('thumbnailURL: Picking original');
+	// 		displayedImageURL = media.original.url;
+	// 	} else {
+	// 		debug('thumbnailURL: No preview URL available');
+	// 		thumbnailURL = undefined;
+	// 	}
+
+	// 	// if (media.newResizedWidth != undefined) {
+	// 	// 	assert(media.newResizedHeight != undefined);
+	// 	// 	mediaHeight = media.newResizedHeight;
+	// 	// 	mediaWidth = media.newResizedWidth;
+	// 	// } else if (media.resizedWidth != undefined) {
+	// 	// 	assert(media.resizedHeight != undefined);
+	// 	// 	mediaWidth = media.resizedWidth;
+	// 	// 	mediaHeight = media.resizedHeight;
+	// 	// } else if (media.originalWidth != undefined) {
+	// 	// 	assert(media.originalWidth != undefined);
+	// 	// 	mediaWidth = media.originalWidth;
+	// 	// 	mediaHeight = media.originalHeight;
+	// 	// } else {
+	// 	// 	mediaWidth = undefined;
+	// 	// 	mediaHeight = undefined;
+	// 	// }
+	// });
 
 	let titleUpdating: boolean = $state(false);
 </script>
 
-<div class="flex h-[100vh] max-h-full min-h-full shrink-0 grow">
-	<!-- <div class="flex h-full max-h-full min-h-0 shrink flex-col items-start p-2"> -->
-	<img
-		src={displayedImageURL}
-		alt={media.title}
-		class="pixilated ml-auto h-full max-h-full min-h-full shrink grow justify-self-center object-contain align-middle" />
+<div class="flex h-full w-full grow items-stretch justify-start overflow-hidden p-1">
+	<div class="flex-grow-1 mx-auto flex-shrink-0">
+		<img
+			src={displayedImageURL}
+			alt={media.title}
+			class="pixilated bg-checkered mx-auto h-full max-h-full max-w-full object-contain" />
+	</div>
 
-	<div class="divider divider-horizontal mx-1 grow-0 px-1"></div>
+	<!-- <div class="backgroud-blue-300 ml-auto w-full grow bg-blue-300"></div> -->
 
-	<div class="m-1 flex grow-0 flex-col items-end gap-1">
+	<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
 		<div class="flex items-baseline justify-start gap-2">
 			<p class="label mr-auto">Title</p>
 			{#if titleUpdating}
@@ -85,7 +111,7 @@
 				bind:value={selectedResizePreset}
 				onchange={async () => {
 					debug('resizePreset', selectedResizePreset);
-					await mediaResizeOriginal(media, selectedResizePreset);
+					await mediaResizeFromPreset(media, selectedResizePreset);
 					media = media;
 				}}>
 				{#each Object.keys(resizePresets) as preset}
@@ -109,18 +135,15 @@
 			<button
 				class="align-self-end btn btn-outline btn-sm w-fit"
 				onclick={async () => {
-					await mediaResizeOriginal(media, selectedResizePreset, resizeHeight, resizeHeight);
+					await mediaResizeFromPreset(media, selectedResizePreset, resizeHeight, resizeHeight);
 				}}><Check /></button>
 		{/if}
 
 		<div class="mt-auto flex flex-col items-end justify-self-end">
 			<img src={media.thumbnail?.url} alt="preview" class="h-32 w-32 border object-contain" />
 			<p class="">{media.filename}</p>
-			<!-- <p>Original size: {hiddenImageOriginal?.naturalWidth}x{hiddenImageOriginal?.naturalHeight}</p>
-			<p>Resized size: {hiddenImageResized?.naturalWidth}x{hiddenImageResized?.naturalHeight}</p> -->
 			<p>Media original size: {media.originalWidth}x{media.originalHeight}</p>
 			<p>Media resized size: {media.resizedWidth}x{media.resizedHeight}</p>
-			<p>Media new resized size: {media.newResizedWidth}x{media.newResizedHeight}</p>
 		</div>
 	</div>
 

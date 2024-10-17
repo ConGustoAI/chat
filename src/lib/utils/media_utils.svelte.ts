@@ -1,9 +1,9 @@
+import { goto } from '$app/navigation';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
-import { APIupsertConversation, APIupsertMedia, mediaInterfaceFilter } from '../api';
+import { APIupsertConversation, APIupsertMedia } from '$lib/api';
 import { assert } from './utils';
-import { goto } from '$app/navigation';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -33,9 +33,9 @@ export async function resizeImage(
 	canvas.width = width;
 	canvas.height = height;
 
+	context.clearRect(0, 0, width, height);
 	if (pad) {
 		// Clear the canvas with a transparent background
-		context.clearRect(0, 0, width, height);
 
 		const aspectRatio = image.width / image.height;
 		let drawWidth = width;
@@ -72,9 +72,10 @@ export async function resizeImage(
 	};
 }
 
-export async function syncFileURL(file: FileInterface) {
+export async function syncFileURL(file: FileInterface, filename: string = 'file') {
 	if (!file.file && !file.url) {
-		throw new Error('FileInterface must have either file or url');
+		if (!file.id) throw new Error('FileInterface must have either file or url or id');
+		file.url = `/api/bucket/${file.id}`;
 	}
 
 	if (!file.file && file.url) {
@@ -83,7 +84,7 @@ export async function syncFileURL(file: FileInterface) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 		const blob = await response.blob();
-		file.file = new File([blob], file.url.split('/').pop() || 'file', { type: file.mimeType });
+		file.file = new File([blob], filename, { type: file.mimeType });
 	}
 
 	if (!file.url && file.file) {
@@ -91,14 +92,11 @@ export async function syncFileURL(file: FileInterface) {
 	}
 }
 
-export async function syncMediaFileURLs(media: MediaInterface) {
+export async function syncMedia(media: MediaInterface) {
 	if (!media.original) throw new Error('MediaInterface must have an original file');
 
 	A.mediaProcessing = true;
-	if (media.original) await syncFileURL(media.original);
-	if (media.thumbnail) await syncFileURL(media.thumbnail);
-	if (media.resized) await syncFileURL(media.resized);
-	if (media.cropped) await syncFileURL(media.cropped);
+	if (media.original) await syncFileURL(media.original, media.filename);
 
 	// This will only run once, when the new media is processed for the first time.
 	if ((!media.originalWidth || !media.originalHeight) && media.original?.file) {
@@ -123,17 +121,6 @@ export async function syncMediaFileURLs(media: MediaInterface) {
 	}
 
 	A.mediaProcessing = false;
-
-	// if (media.resizedWidth && media.resizedHeight && !media.resized) {
-	// 	media.resized = await resizeImage(media.original, media.resizedWidth, media.resizedHeight);
-	// }
-
-	// if (!media.thumbnail) {
-	// 	media.thumbnail = await resizeImage(media.original, 128, 128, true);
-	// }
-
-	// media.newResizedHeight = media.resizedHeight;
-	// media.newResizedWidth = media.resizedWidth;
 }
 
 interface ResizePreset {
@@ -149,25 +136,48 @@ export const resizePresets: { [key: string]: ResizePreset } = {
 	md: { pixels: 512 * 512, label: '0.25 MP (~ 512x512)' },
 	lg: { pixels: 1024 * 1024, label: '1 MP (~ 1024x1024)' },
 	xl: { pixels: 2048 * 2048, label: '4 MP (~ 2048x2048)' },
-	'long-xs': { long: 256, label: 'Long side to 128px' },
-	'long-sm': { long: 512, label: 'Long side to 256px' },
-	'long-md': { long: 1024, label: 'Long side to 512px' },
-	'long-lg': { long: 2048, label: 'Long side to 1024px' },
-	'long-xl': { long: 4096, label: 'Long side to 2048px' },
+	// 'long-xs': { long: 256, label: 'Long side to 128px' },
+	// 'long-sm': { long: 512, label: 'Long side to 256px' },
+	// 'long-md': { long: 1024, label: 'Long side to 512px' },
+	// 'long-lg': { long: 2048, label: 'Long side to 1024px' },
+	// 'long-xl': { long: 4096, label: 'Long side to 2048px' },
 	custom: { label: 'Custom' }
 };
+
+export async function mediaProcessResize(media: MediaInterface) {
+	assert(media.original);
+	assert(media.original.file);
+	await syncMedia(media);
+	if (!media.resized) {
+		assert(media.originalWidth);
+		assert(media.originalHeight);
+
+		if (
+			media.resizedWidth &&
+			media.resizedWidth !== media.originalWidth &&
+			media.resizedHeight &&
+			media.resizedHeight !== media.originalHeight
+		) {
+			media.resized = await resizeImage(media.original, media.resizedWidth, media.resizedHeight);
+			debug('Resized media for %o', media);
+		}
+	}
+}
 
 export async function mediaCreateThumbnail(media: MediaInterface) {
 	assert(media.original);
 	assert(media.original.file);
-	await syncMediaFileURLs(media);
+	await syncMedia(media);
 	if (!media.thumbnail) {
-		media.thumbnail = await resizeImage(media.original, 128, 128);
+		assert(media.originalWidth);
+		assert(media.originalHeight);
+		const scale = (media.originalWidth * media.originalHeight) / (128 * 128);
+		media.thumbnail = await resizeImage(media.original, media.originalWidth * scale, media.originalHeight * scale);
 		debug('Created thumbnail for %o', media);
 	}
 }
 
-export async function mediaResizeOriginal(
+export async function mediaResizeFromPreset(
 	media: MediaInterface,
 	preset: string,
 	resizeWidth?: number,
@@ -188,10 +198,10 @@ export async function mediaResizeOriginal(
 		const ratio = Math.sqrt(pixels / (media.originalWidth * media.originalHeight));
 		width = media.originalWidth * ratio;
 		height = media.originalHeight * ratio;
-	} else if (long) {
-		const ratio = long / Math.max(media.originalWidth, media.originalHeight);
-		width = media.originalWidth * ratio;
-		height = media.originalHeight * ratio;
+		// } else if (long) {
+		// 	const ratio = long / Math.max(media.originalWidth, media.originalHeight);
+		// 	width = media.originalWidth * ratio;
+		// 	height = media.originalHeight * ratio;
 	} else if (preset === 'custom') {
 		if (!resizeWidth || !resizeHeight) throw new Error('Custom resize width/height not found');
 		width = resizeWidth;
@@ -199,11 +209,15 @@ export async function mediaResizeOriginal(
 	}
 	width = Math.round(width);
 	height = Math.round(height);
-	if (width !== media.originalWidth || height !== media.originalHeight) {
+	// if (width !== media.originalWidth || height !== media.originalHeight) {
+	// 	media.resized = await resizeImage(media.original, width, height);
+	// }
+	if (width !== media.resizedWidth || height !== media.resizedHeight) {
+		media.resizedWidth = width;
+		media.resizedHeight = height;
 		media.resized = await resizeImage(media.original, width, height);
+		Object.assign(media, await APIupsertMedia(media));
 	}
-	media.newResizedWidth = width;
-	media.newResizedHeight = height;
 }
 
 export async function uploadChangedMedia(media: MediaInterface) {
@@ -221,17 +235,17 @@ export async function uploadChangedMedia(media: MediaInterface) {
 		});
 	}
 
-	if (!media.resized && media.resizedID) mediaNeedsUpdate = true;
-	if (
-		media.resized &&
-		(!media.resized.id || media.resizedHeight != media.newResizedHeight || media.resizedWidth != media.newResizedWidth)
-	) {
-		mediaNeedsUpdate = true;
-		uploadPromises.push(async () => {
-			assert(media.resized);
-			Object.assign(media.resized, await uploadFile(media.resized));
-		});
-	}
+	// if (!media.resized && media.resizedID) mediaNeedsUpdate = true;
+	// if (
+	// 	media.resized &&
+	// 	(!media.resized.id || media.resizedHeight != media.newResizedHeight || media.resizedWidth != media.newResizedWidth)
+	// ) {
+	// 	mediaNeedsUpdate = true;
+	// 	uploadPromises.push(async () => {
+	// 		assert(media.resized);
+	// 		Object.assign(media.resized, await uploadFile(media.resized));
+	// 	});
+	// }
 
 	if (!media.thumbnail && media.thumbnailID) mediaNeedsUpdate = true;
 	if (media.thumbnail && !media.thumbnail.id) {
@@ -246,11 +260,11 @@ export async function uploadChangedMedia(media: MediaInterface) {
 		await Promise.all(uploadPromises.map((p) => p()));
 
 		media.originalID = media.original?.id ?? null;
-		media.resizedID = media.resized?.id ?? null;
 		media.thumbnailID = media.thumbnail?.id ?? null;
 		media.conversationID = A.conversation.id ?? null;
+		// media.resizedID = media.resized?.id ?? null;
 
-		const updatedMedia = await APIupsertMedia(mediaInterfaceFilter(media));
+		const updatedMedia = await APIupsertMedia(media);
 		debug('media uploaded!', updatedMedia);
 		Object.assign(media, updatedMedia);
 	}

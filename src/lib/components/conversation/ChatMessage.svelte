@@ -2,16 +2,22 @@
 	import { goto } from '$app/navigation';
 	import { APIdeleteMessages, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { Cost, CostEstimate, DeleteButton, GrowInput, MarkdownMessage, MessageInfo } from '$lib/components';
+	import {
+		Cost,
+		CostEstimate,
+		DeleteButton,
+		GrowInput,
+		MarkdownMessage,
+		MessageInfo,
+		MessageMediaPreview
+	} from '$lib/components';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
 	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
 
 	import { trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import Notification from '../Notification.svelte';
-	import ChatMessageControls from './ChatMessageControls.svelte';
-	import MediaPreview from '../MediaPreview.svelte';
+	import { ConversationMediaPreview, Notification, ChatMessageControls } from '$lib/components';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -131,14 +137,14 @@
 
 {#if message.mediaIDs?.length}
 	<div
-		class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-200"
+		class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-200 p-2"
 		role="region"
 		aria-label="Image upload area">
 		{#each message.mediaIDs as mediaID}
 			{@const media = A.conversation?.media?.find((m) => m.id === mediaID)}
 			{#if media}
 				<div class="carousel-item flex h-24 w-24 items-center justify-center bg-base-300">
-					<MediaPreview {media} />
+					<MessageMediaPreview {media} bind:message />
 				</div>
 			{/if}
 		{/each}
@@ -232,7 +238,7 @@
 				</div>
 			</div>
 		{:else if markdown}
-			<MarkdownMessage {message} />
+			<MarkdownMessage bind:message />
 		{:else}
 			<div class="w-full whitespace-pre-wrap break-words py-2">{message.text}</div>
 		{/if}

@@ -33,7 +33,7 @@
 		newProviderUserID: string;
 	} = $props();
 
-	let status: string|null|undefined = $state(null);
+	let status: string | null | undefined = $state(null);
 	let errorMessage: string | null = $state(null);
 	let updateTimer: number | NodeJS.Timeout | undefined;
 
@@ -242,7 +242,7 @@
 </button>
 
 <button
-	class="btn btn-outline"
+	class="btn btn-outline p-2.5"
 	disabled={status === 'hiding' || !allowHiding}
 	onclick={async () => {
 		status = 'hiding';
@@ -252,20 +252,19 @@
 	{#if status === 'hiding'}
 		<div class="loading"></div>
 	{:else if A.hiddenItems.has(provider.id ?? '') && allowHiding}
-		<EyeOff />
+		<EyeOff size="fit-h" />
 	{:else}
-		<Eye />
+		<Eye size="fit-h" />
 	{/if}
 </button>
 
 <DeleteButton
-	btnClass="btn btn-outline"
+	btnClass="btn btn-outline h-full w-full p-2.5"
 	deleteAction={async () => {
 		status = 'deleting';
 		await deleteProvider(provider);
 		status = null;
 	}}
-	size={24}
 	disabled={!edit || status === 'deleting'} />
 
 <div class="relative self-center">
