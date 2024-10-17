@@ -10,7 +10,7 @@ export async function GET({ params: {id}, locals: { dbUser }, }) {
 
     const file = await DBgetFile({ dbUser, id });
     if (file) {
-        redirect(303, await getDownloadURL(file as FileInterface));
+        redirect(307, await getDownloadURL(file as FileInterface));
     }
 
     error(404, 'File not found');

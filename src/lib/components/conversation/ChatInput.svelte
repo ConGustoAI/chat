@@ -111,7 +111,7 @@
 		}
 	});
 
-	let uploadOpen: boolean = $state(true);
+	let uploadOpen: boolean = $state(false);
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 </script>
 
