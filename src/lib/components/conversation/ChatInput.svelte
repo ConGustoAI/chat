@@ -29,17 +29,26 @@
 
 		if (!A.conversation.messages) A.conversation.messages = [];
 
+		const UM: MessageInterface = { userID: A.conversation.userID, role: 'user', text: input };
+		const AM: MessageInterface = { userID: A.conversation.userID, role: 'assistant', text: prefill };
+
+		A.conversation.messages.push(UM, AM);
+
 		await uploadConversationMedia();
+
+		const previouslyIncludedMedia = new Set(A.conversation.messages.map((m) => m.mediaIDs).flat());
 
 		const mediaIDs = [];
 		for (const media of A.conversation.media ?? []) {
-			if (media.active) mediaIDs.push(media.id!);
+			if (media.active && !previouslyIncludedMedia.has(media.id) ) mediaIDs.push(media.id!);
 		}
 
-		A.conversation.messages.push(
-			{ userID: A.conversation.userID, role: 'user', text: input, mediaIDs },
-			{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
-		);
+		A.conversation.messages[A.conversation.messages.length - 2].mediaIDs = mediaIDs;
+
+		// A.conversation.messages.push(
+		// 	{ userID: A.conversation.userID, role: 'user', text: input, mediaIDs },
+		// 	{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
+		// );
 
 		debug('onSubmit after pushing messages: ', $state.snapshot(A.conversation));
 
@@ -74,6 +83,7 @@
 			!event.shiftKey
 		) {
 			event.preventDefault();
+			uploadOpen = false;
 			await onSubmit();
 		}
 	}

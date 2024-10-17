@@ -41,37 +41,18 @@
 		}
 	});
 
-	// let thumbnailURL: string | undefined = $state();
-
-	// $effect(() => {
-	// 	if (media.thumbnail?.url) {
-	// 		debug('thumbnailURL: Picking thumbnail');
-	// 		thumbnailURL = media.thumbnail.url;
-	// 	} else if (media.original?.url) {
-	// 		debug('thumbnailURL: Picking original');
-	// 		displayedImageURL = media.original.url;
-	// 	} else {
-	// 		debug('thumbnailURL: No preview URL available');
-	// 		thumbnailURL = undefined;
-	// 	}
-
-	// 	// if (media.newResizedWidth != undefined) {
-	// 	// 	assert(media.newResizedHeight != undefined);
-	// 	// 	mediaHeight = media.newResizedHeight;
-	// 	// 	mediaWidth = media.newResizedWidth;
-	// 	// } else if (media.resizedWidth != undefined) {
-	// 	// 	assert(media.resizedHeight != undefined);
-	// 	// 	mediaWidth = media.resizedWidth;
-	// 	// 	mediaHeight = media.resizedHeight;
-	// 	// } else if (media.originalWidth != undefined) {
-	// 	// 	assert(media.originalWidth != undefined);
-	// 	// 	mediaWidth = media.originalWidth;
-	// 	// 	mediaHeight = media.originalHeight;
-	// 	// } else {
-	// 	// 	mediaWidth = undefined;
-	// 	// 	mediaHeight = undefined;
-	// 	// }
-	// });
+	let thumbnailURL = $derived.by(() => {
+		if (media.thumbnail?.url) {
+			debug('thumbnailURL: Picking thumbnail');
+			return media.thumbnail.url;
+		} else if (media.original?.url) {
+			debug('thumbnailURL: Picking original');
+			return media.original.url;
+		} else {
+			debug('thumbnailURL: No preview URL available');
+			return undefined;
+		}
+	});
 
 	let titleUpdating: boolean = $state(false);
 </script>
@@ -140,10 +121,15 @@
 		{/if}
 
 		<div class="mt-auto flex flex-col items-end justify-self-end">
-			<img src={media.thumbnail?.url} alt="preview" class="h-32 w-32 border object-contain" />
+			<div class="flex max-h-32 w-32 items-center bg-black">
+				<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
+			</div>
 			<p class="">{media.filename}</p>
 			<p>Media original size: {media.originalWidth}x{media.originalHeight}</p>
 			<p>Media resized size: {media.resizedWidth}x{media.resizedHeight}</p>
+			{#if (media.resizedWidth ?? 0) > (media.originalWidth ?? 0) || (media.resizedHeight ?? 0) > (media.originalHeight ?? 0)}
+				<p class="text-warning">Image upscaled</p>
+			{/if}
 		</div>
 	</div>
 

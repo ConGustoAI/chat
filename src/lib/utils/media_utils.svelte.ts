@@ -171,9 +171,9 @@ export async function mediaCreateThumbnail(media: MediaInterface) {
 	if (!media.thumbnail) {
 		assert(media.originalWidth);
 		assert(media.originalHeight);
+		debug('Creating thumbnail for %o from original', $state.snapshot(media));
 		const scale = (media.originalWidth * media.originalHeight) / (128 * 128);
 		media.thumbnail = await resizeImage(media.original, media.originalWidth * scale, media.originalHeight * scale);
-		debug('Created thumbnail for %o', media);
 	}
 }
 
@@ -216,6 +216,7 @@ export async function mediaResizeFromPreset(
 		media.resizedWidth = width;
 		media.resizedHeight = height;
 		media.resized = await resizeImage(media.original, width, height);
+		mediaCreateThumbnail(media);
 		Object.assign(media, await APIupsertMedia(media));
 	}
 }
