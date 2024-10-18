@@ -19,7 +19,7 @@
 		debug('Mounted, fetching data');
 
 		// Sidebar closed by default on small screens
-		if (window.innerWidth < 768) {
+		if (window.innerWidth < 640) {
 			A.sidebarOpen = false; // Open drawer on larger screens
 			A.isMobile = true;
 		}
@@ -87,10 +87,10 @@
 	}
 </script>
 
-<main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
+<main class="relative m-0 flex h-full max-h-full w-full flex-col sm:flex-row">
 	{#if A.sidebarOpen}
 		<div
-			class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 md:w-56"
+			class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 sm:w-56"
 			transition:slide={{ duration: 100, axis: 'x' }}>
 			<div class="join flex w-full">
 				<button
@@ -121,7 +121,7 @@
 		</div>
 	{/if}
 
-	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!A.sidebarOpen}></div>
+	<div class="divider divider-horizontal hidden w-1 sm:block" class:hidden={!A.sidebarOpen}></div>
 
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle />
@@ -204,7 +204,7 @@
 		<div class="navbar m-2 h-fit shrink-0 grow-0 py-0">
 			<div class="navbar-start max-w-fit">
 				{#if !A.sidebarOpen}
-					<div class="btn btn-circle md:hidden" style="visibility: hidden;"></div>
+					<div class="btn btn-circle sm:hidden" style="visibility: hidden;"></div>
 				{/if}
 			</div>
 			<div class="navbar-center mx-auto h-fit max-w-full grow p-0 md:max-w-[95%]">

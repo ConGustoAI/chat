@@ -192,7 +192,7 @@
 
 		<Cost total={(A.conversation?.tokensInCost ?? 0) + (A.conversation?.tokensOutCost ?? 0)} />
 
-		<details class="dropdown-botton dropdown dropdown-end hidden md:block" bind:open={detailsOpen}>
+		<details class="dropdown-botton dropdown dropdown-end hidden sm:block" bind:open={detailsOpen}>
 			<summary class="mt-auto block text-center"><Info /></summary>
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
@@ -205,17 +205,6 @@
 		{#if detailsOpen}
 			<button class="fixed inset-0 z-20" onclick={closeDetails} aria-label="Close modal"></button>
 		{/if}
-
-		<!-- <div class="dropdown-botton dropdown dropdown-end hidden md:block">
-			<button class="mt-auto block text-center"><Info /></button>
-			<ul
-				class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20"
-				tabindex="-1">
-				<li>
-					<ConversationInfo {isPublic} />
-				</li>
-			</ul>
-		</div> -->
 
 		{#if !isPublic}
 			<ProfileCircle />
