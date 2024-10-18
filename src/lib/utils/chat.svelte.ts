@@ -9,6 +9,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, type CoreAssistantMessage, type CoreUserMessage, type UserContent } from 'ai';
 import dbg from 'debug';
 import { assert, promptHash } from './utils';
+import { uploadConversationMedia } from './media_utils.svelte';
 const debug = dbg('app:lib:utils:chat');
 
 export let abortController: AbortController | undefined = undefined;
@@ -56,6 +57,21 @@ export async function _submitConversationClientSide() {
 	}
 	const [UM, AM] = A.conversation.messages.slice(-2);
 	if (AM.text && !assistant.prefill) throw new Error('Assistant does not support prefill');
+
+	await uploadConversationMedia();
+
+	const mediaIDs =
+		UM.media?.map((m) => {
+			assert(m.id);
+			return m.id;
+		}) ?? [];
+
+	if (mediaIDs.toSorted().join(',') !== UM.mediaIDs?.toSorted().join(',')) {
+		UM.mediaIDs = mediaIDs;
+	}
+
+
+	debug('onSubmit after uploading media: ', $state.snapshot(A.conversation));
 
 	abortController = new AbortController();
 
@@ -136,8 +152,7 @@ export async function _submitConversationClientSide() {
 				assert(media.originalHeight);
 
 				//Either both are set or both are not set
-				assert( (media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth) );
-
+				assert((media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth));
 
 				let file: FileInterface;
 				let width: number;

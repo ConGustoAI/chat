@@ -11,6 +11,7 @@
 	import GitHub from '$lib/components/icons/GitHub.svelte';
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
+	import { slide } from 'svelte/transition';
 	const debug = dbg('app:ui:chat');
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
@@ -58,15 +59,14 @@
 		debug('dbUser: %s %o', type, value);
 	});
 
-
 	// $effect(() => {
 	// 	debug('A.conversation: ', $state.snapshot(A.conversation));
 	// });
 
-	let assistantSelectDropdown: HTMLDetailsElement;
+	let assistantSelectDropdown: HTMLDetailsElement | null = $state(null);
 
 	async function NewChat(assistantId?: string) {
-		assistantSelectDropdown.open = false;
+		if (assistantSelectDropdown) assistantSelectDropdown.open = false;
 		if (A.isMobile) A.sidebarOpen = false;
 		// debug('NewChat', { assistantId, assistants: A.assistants });
 
@@ -88,36 +88,38 @@
 </script>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col md:flex-row">
-	<div
-		class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 md:w-56"
-		class:hidden={!A.sidebarOpen}>
-		<div class="join flex w-full">
-			<button
-				class="btn btn-outline join-item btn-sm h-full grow"
-				onclick={async () => await NewChat(A.dbUser?.assistant)}>New chat</button>
-			<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={assistantSelectDropdown}>
-				<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
-				<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
-					<div class="divider w-full py-2">Your assistants</div>
-					{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
-						{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
-								>{assistant.name}</button>
-						{/if}
-					{/each}
-					<div class="divider w-full py-2">Default assistants</div>
-					{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
-						{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
-							<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
-								>{assistant.name}</button>
-						{/if}
-					{/each}
-				</ul>
-			</details>
-		</div>
+	{#if A.sidebarOpen}
+		<div
+			class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 md:w-56"
+			transition:slide={{ duration: 100, axis: 'x' }}>
+			<div class="join flex w-full">
+				<button
+					class="btn btn-outline join-item btn-sm h-full grow"
+					onclick={async () => await NewChat(A.dbUser?.assistant)}>New chat</button>
+				<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={assistantSelectDropdown}>
+					<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
+					<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
+						<div class="divider w-full py-2">Your assistants</div>
+						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+							{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
+									>{assistant.name}</button>
+							{/if}
+						{/each}
+						<div class="divider w-full py-2">Default assistants</div>
+						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
+							{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
+									>{assistant.name}</button>
+							{/if}
+						{/each}
+					</ul>
+				</details>
+			</div>
 
-		<ChatHistory {deleteConversations} />
-	</div>
+			<ChatHistory {deleteConversations} />
+		</div>
+	{/if}
 
 	<div class="divider divider-horizontal hidden w-1 md:block" class:hidden={!A.sidebarOpen}></div>
 

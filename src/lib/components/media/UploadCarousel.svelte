@@ -3,45 +3,12 @@
 	import { PlusCircle, Upload } from 'lucide-svelte';
 	import { ConversationMediaPreview, MediaEditor } from '.';
 
-	import {
-		mediaCreateThumbnail,
-		mediaProcessResize,
-		syncMedia,
-		uploadConversationMedia
-	} from '$lib/utils/media_utils.svelte';
+	import { syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import dbg from 'debug';
-	import { onMount, untrack } from 'svelte';
+	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:components:MediaCarousel');
 
-	// // Used for testing
-	function makeFakeImage(): MediaInterface {
-		// fakeImage.src =
-		// fakeImage.src = `/cat.jpg`;
-
-		return {
-			active: true,
-			userID: 'anon',
-			filename: 'cat.jpg',
-			type: 'image',
-			title: 'Cat',
-			original: {
-				mimeType: 'image/jpeg',
-				userID: 'anon',
-				size: 1024 * 1024,
-				url: `https://cataas.com/cat?d=${Math.floor(Math.random() * 1000)}`
-			}
-		};
-	}
-
-	onMount(async () => {
-		// debug('onMount');
-		// newMedia = [makeFakeImage()];
-		// await populateMedia(newMedia[0]);
-		// newMedia = newMedia
-		// debug('newMedia', newMedia);
-	});
-
-	// let dialog: HTMLDialogElement;
+	let { message = $bindable() }: { message?: MessageInterface } = $props();
 
 	function typeFromMimeType(mimeType: string): 'image' | 'video' | 'audio' {
 		if (mimeType.startsWith('image/')) return 'image';
@@ -52,8 +19,6 @@
 
 	async function fileToMedia(file: File): Promise<MediaInterface> {
 		if (!A.dbUser) throw new Error('User not logged in');
-
-		// fakeImage.src = URL.createObjectURL(file);
 
 		const m: MediaInterface = {
 			active: true,
@@ -134,69 +99,18 @@
 			return undefined;
 		}
 	});
-
-	$effect(() => {
-		untrack(() => {
-			debug('Effect ', $state.snapshot(A.conversation));
-		});
-		if (A.conversation?.media) {
-			for (const m of A.conversation.media) {
-				const { originalWidth, originalHeight, resizedWidth, resizedHeight } = m;
-				syncMedia(m).then(async () => Promise.all([mediaCreateThumbnail(m), mediaProcessResize(m)]));
-			}
-		}
-	});
-
-	// let _ = $derived.by(() => debug('A.conversation', A.conversation));
-
-	// $inspect(A.conversation).with((c, t) => {
-	// 	debug('A.conversation', c, t);
-	// });
-
-	// Handle drag-and-drop
-	// function handleDrop(event: DragEvent) {
-	// 	event.preventDefault();
-	// 	media = event.dataTransfer?.files || null;
-	// 	console.log(media);
-	// }
-
-	// 	function handleDragOver(event: DragEvent) {
-	// 		event.preventDefault();
-	// 	}
-
-	// on:dragover={handleDragOver}
 </script>
 
-<!-- {#if mediaToUpload}
-	<div class="tabs tabs-lifted h-full min-h-full w-full grow items-start bg-base-200">
-		{#each mediaToUpload as m, i}
-			<input
-				type="radio"
-				name="my_tabs_1"
-				role="tab"
-				class="tab text-nowrap"
-				aria-label="{i + 1}: {m.title}"
-				checked={i === 0} />
-			<div role="tabpanel" class="tab-content h-full max-h-full min-h-full w-full grow">
-				<MediaEditor
-					bind:media={mediaToUpload[i]}
-					onchange={() => {
-						debug('change!');
-					}} />
-			</div>
-		{/each}
-	</div>
-	<div class="divider my-0 w-full shrink-0"></div>
-{/if} -->
+<div class={'flex shrink-0 flex-col overflow-hidden' + (A.mediaEditing ? ' h-[66dvh]' : '')}>
 
-<div class={'flex grow flex-col overflow-hidden ' + (A.editingMedia ? 'h-[66dvh]' : '')}>
-	{#if A.editingMedia}
-		<MediaEditor bind:media={A.editingMedia} />
+	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
+	{#if A.mediaEditing && !message}
+		<MediaEditor bind:media={A.mediaEditing} />
 		<div class="divider w-full"></div>
 	{/if}
 
 	<div
-		class="carousel carousel-center h-fit w-full shrink-0 space-x-4 bg-base-200 p-4"
+		class="carousel carousel-center h-fit w-full shrink-0 space-x-4 p-4"
 		role="region"
 		aria-label="Image upload area">
 		<!-- Clickable box for file upload -->
@@ -207,6 +121,7 @@
 				onclick={() => document.getElementById('fileInput')?.click()}>
 				<PlusCircle size={32} />
 			</button>
+
 			<button
 				class="btn btn-disabled carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
 				class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
@@ -229,18 +144,19 @@
 		<!-- Display uploaded images or videos -->
 		{#if A.conversation?.media}
 			{#each A.conversation?.media as m, i}
-				<div class="carousel-item flex h-32 w-32 flex-col">
-					<ConversationMediaPreview bind:media={A.conversation.media[i]} />
-				</div>
+				{#if !message || !message.media?.includes(m)}
+					<div class="carousel-item flex h-32 w-32 flex-col">
+						<ConversationMediaPreview bind:media={A.conversation.media[i]} bind:message />
+					</div>
+				{/if}
 			{/each}
 		{/if}
 	</div>
+
+	{#if A.mediaEditing && message}
+		<MediaEditor bind:media={A.mediaEditing} />
+		<div class="divider w-full"></div>
+	{/if}
+
+
 </div>
-<!-- </div> -->
-<!--
-<dialog
-	bind:this={dialog}
-	id="my_modal_1"
-	class="modal fixed inset-1 flex h-full w-full flex-col items-center justify-center bg-red-100 opacity-10"
-	open={newMedia.length > 0}>
-</dialog> -->

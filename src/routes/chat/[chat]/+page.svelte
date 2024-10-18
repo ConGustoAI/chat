@@ -2,13 +2,13 @@
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { syncMedia } from '$lib/utils/media_utils.svelte';
+	import { mediaCreateThumbnail, mediaProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:[id]');
 
-	function fetchConversation(convID: string) {
+	async function fetchConversation(convID: string): Promise<void> {
 		assert(convID);
 
 		// If the message is already loaded, use it.
@@ -17,23 +17,38 @@
 		// If the conversation has no messages loaded, fetch them.
 		if (!A.conversation?.messages && !A.chatDataLoading) {
 			A.chatDataLoading = true;
-			let promise;
-			promise = APIfetchConversation(convID);
 
-			promise
-				.then((data) => {
-					A.conversations[data.id!] = { ...A.conversations[data.id!], ...data };
-					A.conversation = A.conversations[data.id!];
-					A.conversation.media ?? [];
-					A.conversation.messages?.map((m) => (m.markdownCache = undefined));
-					// syncMedia;
-				})
-				.catch((e) => {
-					debug('Failed to fetch conversation:', e.message);
-				})
-				.finally(() => {
-					A.chatDataLoading = false;
+			try {
+				const fc = await APIfetchConversation(convID);
+				assert(fc.id);
+
+				A.conversations[fc.id] = { ...A.conversations[fc.id!], ...fc };
+				A.conversation = A.conversations[fc.id!];
+				if (!A.conversation.media) A.conversation.media = [];
+
+				for (const m of A.conversation.media) {
+					await syncMedia(m);
+					await Promise.all([mediaCreateThumbnail(m), mediaProcessResize(m)]);
+				}
+
+				A.conversation.messages?.map((m) => {
+					m.markdownCache = undefined;
+					if (m.mediaIDs?.length) {
+						m.media = [];
+						for (const mediaID of m.mediaIDs) {
+							const media = A.conversation?.media?.find((m) => m.id === mediaID);
+							if (media) {
+								m.media.push(media);
+							}
+						}
+					}
 				});
+			} catch (e) {
+				debug('error fetching conversation', e);
+			} finally {
+				A.chatDataLoading = false;
+				debug('done fetching conversation', $state.snapshot(A.conversation));
+			}
 		}
 	}
 
@@ -44,7 +59,4 @@
 		}
 	});
 
-	// $effect(() => {
-	// 	debug('A.conversation changed: ', A.conversation);
-	// })
 </script>

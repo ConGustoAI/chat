@@ -8,16 +8,18 @@
 		DeleteButton,
 		GrowInput,
 		MarkdownMessage,
+		MediaCarousel,
 		MessageInfo,
 		MessageMediaPreview
 	} from '$lib/components';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
-	import { Computer, Copy, Edit, Repeat, Smile } from 'lucide-svelte';
+	import { Computer, Copy, Edit, Repeat, Smile, PlusCircle } from 'lucide-svelte';
 
-	import { trimLineLength } from '$lib/utils/utils';
+	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ConversationMediaPreview, Notification, ChatMessageControls } from '$lib/components';
+	import { uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -78,6 +80,8 @@
 
 	async function saveMessage() {
 		debug('updateMessage', { conversation: A.conversation, message });
+
+		message.uploadOpen = false;
 		let newConversation = false;
 		if (!A.conversation || !A.conversation.messages || !A.conversation.messages.length || !message) return;
 
@@ -95,6 +99,9 @@
 			m.conversationID = A.conversation.id;
 		}
 
+		await uploadConversationMedia();
+		message.mediaIDs = message.media?.map((m) => m.id!) ?? [];
+
 		savingMessage = true;
 		Object.assign(message, await APIupsertMessage(message));
 		savingMessage = false;
@@ -107,6 +114,8 @@
 				event.preventDefault();
 				message.markdownCache = undefined;
 				message.editing = false;
+				A.conversationUploadOpen = false;
+				message.uploadOpen = false;
 				await sendEditedMessage();
 			} else if (event.key === 'Escape') {
 				message.text = message.originalText ?? '';
@@ -135,19 +144,38 @@
 	<div class="divider w-full grow-0" style="margin: 0;"></div>
 {/if}
 
-{#if message.mediaIDs?.length}
-	<div
-		class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-200 p-2"
-		role="region"
-		aria-label="Image upload area">
-		{#each message.mediaIDs as mediaID}
-			{@const media = A.conversation?.media?.find((m) => m.id === mediaID)}
-			{#if media}
+{#if message.media?.length || (message.editing && message.role === 'user')}
+	<div class="flex flex-col bg-base-usermessage">
+		<div
+			class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-usermessage p-2"
+			role="region"
+			aria-label="Image upload area">
+			{#if message.editing && message.role === 'user'}
+				<button
+					class="btn btn-outline h-12 w-12 p-2"
+					onclick={() => {
+						message.uploadOpen = !message.uploadOpen;
+						if (message.uploadOpen) {
+							A.conversationUploadOpen = false;
+							A.mediaEditing = undefined;
+						}
+					}}
+					title="Add media">
+					<PlusCircle size="fit-h" />
+				</button>
+			{/if}
+			{#each message.media ?? [] as media}
+				<!-- {@const media = A.conversation?.media?.find((m) => m.id === mediaID)} -->
 				<div class="carousel-item flex h-24 w-24 items-center justify-center bg-base-300">
 					<MessageMediaPreview {media} bind:message />
 				</div>
-			{/if}
-		{/each}
+			{/each}
+		</div>
+		{#if message.uploadOpen && message.editing && message.role === 'user'}
+			<div class="bg-base-300 md:mr-16">
+				<MediaCarousel bind:message />
+			</div>
+		{/if}
 	</div>
 {/if}
 

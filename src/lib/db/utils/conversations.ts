@@ -52,8 +52,6 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
 					original: true,
-					resized: true,
-					cropped: true,
 					thumbnail: true
 				}
 			}
@@ -71,10 +69,6 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
-		if (m.resized && m.resized?.userID !== conversation.userID)
-			throw new Error("Media file 'resized' user ID mismatch");
-		if (m.cropped && m.cropped?.userID !== conversation.userID)
-			throw new Error("Media file 'cropped' user ID mismatch");
 		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
 			throw new Error("Media file 'thumbnail' user ID mismatch");
 	}
@@ -107,8 +101,6 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
 					original: true,
-					resized: true,
-					cropped: true,
 					thumbnail: true
 				}
 			}
@@ -126,10 +118,6 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
-		if (m.resized && m.resized?.userID !== conversation.userID)
-			throw new Error("Media file 'resized' user ID mismatch");
-		if (m.cropped && m.cropped?.userID !== conversation.userID)
-			throw new Error("Media file 'cropped' user ID mismatch");
 		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
 			throw new Error("Media file 'thumbnail' user ID mismatch");
 	}
@@ -145,8 +133,7 @@ export async function DBupsertConversation({
 	conversation: ConversationInterface;
 }) {
 	if (!dbUser) error(401, 'Unauthorized');
-	if (conversation.userID != dbUser.id)
-		error(401, 'Tried to update a conversation that does not belong to the user');
+	if (conversation.userID != dbUser.id) error(401, 'Tried to update a conversation that does not belong to the user');
 
 	conversation = conversationInterfaceFilter(conversation);
 	if (conversation.summary) conversation.summary = trimLineLength(conversation.summary, 128);

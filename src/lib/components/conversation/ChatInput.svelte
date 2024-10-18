@@ -2,11 +2,18 @@
 	import { goto } from '$app/navigation';
 	import { CostEstimate, GrowInput, Notification, MediaCarousel } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
-	import { trimLineLength } from '$lib/utils/utils';
+	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
-	import { uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import {
+		mediaCreateThumbnail,
+		mediaProcessResize,
+		syncMedia,
+		uploadConversationMedia
+	} from '$lib/utils/media_utils.svelte';
+	import { slide } from 'svelte/transition';
+	import { untrack } from 'svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -29,28 +36,19 @@
 
 		if (!A.conversation.messages) A.conversation.messages = [];
 
-		const UM: MessageInterface = { userID: A.conversation.userID, role: 'user', text: input };
+		const previouslyIncludedMedia = new Set(A.conversation.messages.map((m) => m.mediaIDs).flat());
+		const newMedia = [];
+
+		for (const media of A.conversation.media ?? []) {
+			if (media.active && !previouslyIncludedMedia.has(media.id)) {
+				newMedia.push(media);
+			}
+		}
+
+		const UM: MessageInterface = { userID: A.conversation.userID, role: 'user', text: input, media: newMedia };
 		const AM: MessageInterface = { userID: A.conversation.userID, role: 'assistant', text: prefill };
 
 		A.conversation.messages.push(UM, AM);
-
-		await uploadConversationMedia();
-
-		const previouslyIncludedMedia = new Set(A.conversation.messages.map((m) => m.mediaIDs).flat());
-
-		const mediaIDs = [];
-		for (const media of A.conversation.media ?? []) {
-			if (media.active && !previouslyIncludedMedia.has(media.id) ) mediaIDs.push(media.id!);
-		}
-
-		A.conversation.messages[A.conversation.messages.length - 2].mediaIDs = mediaIDs;
-
-		// A.conversation.messages.push(
-		// 	{ userID: A.conversation.userID, role: 'user', text: input, mediaIDs },
-		// 	{ userID: A.conversation.userID, role: 'assistant', text: prefill } // TODO: Allow prefill
-		// );
-
-		debug('onSubmit after pushing messages: ', $state.snapshot(A.conversation));
 
 		let savedInput = input;
 		input = '';
@@ -83,7 +81,7 @@
 			!event.shiftKey
 		) {
 			event.preventDefault();
-			uploadOpen = false;
+			A.conversationUploadOpen = false;
 			await onSubmit();
 		}
 	}
@@ -121,18 +119,17 @@
 		}
 	});
 
-	let uploadOpen: boolean = $state(false);
+
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
 
-	{#if uploadEnabled}
+	{#if uploadEnabled && A.conversationUploadOpen}
 		<div
 			class="absolute bottom-full flex max-h-[80vh] w-full flex-col overflow-visible bg-base-200"
-			tabindex="-1"
-			class:invisible={!uploadOpen}>
+			transition:slide={{ duration: 200 }}>
 			<MediaCarousel />
 		</div>
 	{/if}
@@ -163,9 +160,7 @@
 					</div>
 				{/if}
 			{/if}
-			<!-- {#if !uploadOpen && !A.conversation?.media?.length}
 
-			{/if} -->
 			<GrowInput
 				bind:focused={inputFocus}
 				bind:value={input}
@@ -176,11 +171,23 @@
 			<div class="absolute bottom-1 left-2">
 				<button
 					class="btn btn-circle btn-sm relative"
-					onclick={() => (uploadOpen = !uploadOpen)}
+					onclick={() => {
+						A.conversationUploadOpen = !A.conversationUploadOpen;
+						if (!A.conversationUploadOpen) {
+							A.mediaEditing = undefined;
+						} else {
+							A.conversation?.messages?.forEach((m) => {
+								m.uploadOpen = false;
+							});
+						}
+					}}
 					disabled={!uploadEnabled || A.mediaUploading}>
 					<Upload size={20} />
-					{#if A.mediaUploading || A.mediaProcessing}
+					{#if A.mediaProcessing}
 						<span class="loading loading-spinner absolute h-full w-full"></span>
+					{/if}
+					{#if A.mediaUploading}
+						<span class="loading loading-spinner absolute h-full w-full text-success"></span>
 					{/if}
 				</button>
 			</div>

@@ -37,7 +37,7 @@ export function undefineExtras<T extends object>(obj: T): Omit<T, 'createdAt' | 
 
 export function assert(condition: unknown, message?: string): asserts condition {
 	if (!condition) {
-		debug('Stack trace: ', new Error().stack);
+		// debug('Stack trace: ', new Error().stack);
 		throw new Error(message ?? 'Assertion failed');
 	}
 }

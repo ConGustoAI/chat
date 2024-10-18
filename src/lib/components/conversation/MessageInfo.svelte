@@ -84,7 +84,7 @@
 
 	<div>
 		{#if message.prompt}
-			Prompt:
+			<strong>Prompt:</strong>
 			<pre class="prose w-full whitespace-pre-wrap text-sm">
 {message.prompt.text}
 </pre>

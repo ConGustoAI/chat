@@ -20,56 +20,63 @@ export async function resizeImage(
 	if (!file.file) throw new Error('File file not found');
 
 	A.mediaProcessing = true;
-	debug('resizeImage', file, width, height);
-	const image = new Image();
-	const p = new Promise((resolve, reject) => {
-		image.onload = resolve;
-		image.onerror = reject;
-	});
-	image.src = URL.createObjectURL(file.file);
-	await p;
-	debug('image', image);
+	debug('resizeImage', $state.snapshot(file), width, height);
+	try {
+		const image = new Image();
+		const p = new Promise((resolve, reject) => {
+			image.onload = resolve;
+			image.onerror = reject;
+			image.onabort= () => reject(new Error('Image loading aborted'));
+		});
+		image.src = URL.createObjectURL(file.file);
+		await p;
+		debug('image', image);
 
-	canvas.width = width;
-	canvas.height = height;
+		canvas.width = width;
+		canvas.height = height;
 
-	context.clearRect(0, 0, width, height);
-	if (pad) {
-		// Clear the canvas with a transparent background
+		context.clearRect(0, 0, width, height);
+		if (pad) {
+			// Clear the canvas with a transparent background
 
-		const aspectRatio = image.width / image.height;
-		let drawWidth = width;
-		let drawHeight = height;
-		let offsetX = 0;
-		let offsetY = 0;
+			const aspectRatio = image.width / image.height;
+			let drawWidth = width;
+			let drawHeight = height;
+			let offsetX = 0;
+			let offsetY = 0;
 
-		if (width / height > aspectRatio) {
-			drawWidth = height * aspectRatio;
-			offsetX = (width - drawWidth) / 2;
+			if (width / height > aspectRatio) {
+				drawWidth = height * aspectRatio;
+				offsetX = (width - drawWidth) / 2;
+			} else {
+				drawHeight = width / aspectRatio;
+				offsetY = (height - drawHeight) / 2;
+			}
+
+			[drawWidth, drawHeight, offsetX, offsetY] = [drawWidth, drawHeight, offsetX, offsetY].map(Math.round);
+
+			context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
 		} else {
-			drawHeight = width / aspectRatio;
-			offsetY = (height - drawHeight) / 2;
+			context.drawImage(image, 0, 0, width, height);
 		}
 
-		[drawWidth, drawHeight, offsetX, offsetY] = [drawWidth, drawHeight, offsetX, offsetY].map(Math.round);
+		debug('canvas', canvas);
 
-		context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-	} else {
-		context.drawImage(image, 0, 0, width, height);
+		const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, file.mimeType));
+		if (!blob) throw new Error('Blob is null');
+		const resizedFile = new File([blob], 'resized');
+		debug('blob', blob);
+
+		return {
+			userID: A.dbUser?.id ?? 'anon',
+			url: URL.createObjectURL(blob),
+			mimeType: blob.type,
+			size: blob.size,
+			file: resizedFile
+		};
+	} finally {
+		A.mediaProcessing = false;
 	}
-
-	const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, file.mimeType));
-	if (!blob) throw new Error('Blob is null');
-	const resizedFile = new File([blob], 'resized');
-	debug('blob', blob);
-	A.mediaProcessing = false;
-	return {
-		userID: A.dbUser?.id ?? 'anon',
-		url: URL.createObjectURL(blob),
-		mimeType: blob.type,
-		size: blob.size,
-		file: resizedFile
-	};
 }
 
 export async function syncFileURL(file: FileInterface, filename: string = 'file') {
@@ -79,12 +86,24 @@ export async function syncFileURL(file: FileInterface, filename: string = 'file'
 	}
 
 	if (!file.file && file.url) {
-		const response = await fetch(file.url);
+		debug('Fetching file from %o', file.url);
+		let response = await fetch(file.url);
+
+		if (response.status > 300 && response.status < 400) {
+			// Handle redirect
+			const redirectUrl = response.headers.get('Location');
+			debug('Redirecting to %o', redirectUrl);
+			if (redirectUrl) {
+				response = await fetch(redirectUrl);
+			}
+		}
+
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 		const blob = await response.blob();
 		file.file = new File([blob], filename, { type: file.mimeType });
+		debug('Fetched file %o', file.file);
 	}
 
 	if (!file.url && file.file) {
@@ -96,31 +115,34 @@ export async function syncMedia(media: MediaInterface) {
 	if (!media.original) throw new Error('MediaInterface must have an original file');
 
 	A.mediaProcessing = true;
-	if (media.original) await syncFileURL(media.original, media.filename);
+	try {
+		if (media.original) await syncFileURL(media.original, media.filename);
+		if (media.thumbnail) await syncFileURL(media.thumbnail, media.filename);
 
-	// This will only run once, when the new media is processed for the first time.
-	if ((!media.originalWidth || !media.originalHeight) && media.original?.file) {
-		const img = new Image();
-		await new Promise<void>((resolve, reject) => {
-			img.onload = () => {
-				media.originalWidth = img.naturalWidth;
-				media.originalHeight = img.naturalHeight;
-				URL.revokeObjectURL(img.src);
-				resolve();
-			};
-			img.onerror = (error) => {
-				URL.revokeObjectURL(img.src);
-				reject(new Error('Failed to load image: ' + error));
-			};
-			if (media.original?.file) {
-				img.src = URL.createObjectURL(media.original.file);
-			} else {
-				reject(new Error('No original file available'));
-			}
-		});
+		// This will only run once, when the new media is processed for the first time.
+		if ((!media.originalWidth || !media.originalHeight) && media.original?.file) {
+			const img = new Image();
+			await new Promise<void>((resolve, reject) => {
+				img.onload = () => {
+					media.originalWidth = img.naturalWidth;
+					media.originalHeight = img.naturalHeight;
+					// URL.revokeObjectURL(img.src);
+					resolve();
+				};
+				img.onerror = (error) => {
+					// URL.revokeObjectURL(img.src);
+					reject(new Error('Failed to load image: ' + error));
+				};
+				if (media.original?.file) {
+					img.src = URL.createObjectURL(media.original.file);
+				} else {
+					reject(new Error('No original file available'));
+				}
+			});
+		}
+	} finally {
+		A.mediaProcessing = false;
 	}
-
-	A.mediaProcessing = false;
 }
 
 interface ResizePreset {
@@ -172,8 +194,19 @@ export async function mediaCreateThumbnail(media: MediaInterface) {
 		assert(media.originalWidth);
 		assert(media.originalHeight);
 		debug('Creating thumbnail for %o from original', $state.snapshot(media));
-		const scale = (media.originalWidth * media.originalHeight) / (128 * 128);
-		media.thumbnail = await resizeImage(media.original, media.originalWidth * scale, media.originalHeight * scale);
+		const targetPixels = 128 * 128;
+		const aspectRatio = media.originalWidth / media.originalHeight;
+		let newWidth, newHeight;
+
+		if (aspectRatio > 1) {
+			newWidth = Math.sqrt(targetPixels * aspectRatio);
+			newHeight = newWidth / aspectRatio;
+		} else {
+			newHeight = Math.sqrt(targetPixels / aspectRatio);
+			newWidth = newHeight * aspectRatio;
+		}
+
+		media.thumbnail = await resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
 	}
 }
 

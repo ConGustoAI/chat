@@ -3,7 +3,9 @@
 	import { A } from '$lib/appstate.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { RefreshCcw, RefreshCwOff, X } from 'lucide-svelte';
+	import { RefreshCcw, RefreshCcwIcon, RefreshCwOff, X } from 'lucide-svelte';
+	import { fade } from 'svelte/transition';
+	import DeleteButton from '../DeleteButton.svelte';
 	const debug = dbg('app:ui:components:MessageMediaPreview');
 
 	let { media = $bindable(), message = $bindable() }: { media: MediaInterface; message: MessageInterface } = $props();
@@ -18,11 +20,11 @@
 
 	$effect(() => {
 		if (media.thumbnail?.url) {
-			debug('thumbnailURL: Picking thumbnail');
 			thumbnailURL = media.thumbnail.url;
+			debug('thumbnailURL: Picking thumbnail:', $state.snapshot(thumbnailURL));
 		} else if (media.original?.file) {
-			debug('thumbnailURL: Picking original');
 			thumbnailURL = media.original.url;
+			debug('thumbnailURL: Picking original:', $state.snapshot(thumbnailURL));
 		} else {
 			debug('thumbnailURL: No preview URL available');
 			thumbnailURL = undefined;
@@ -42,17 +44,40 @@
 		}
 	});
 
-	$inspect(thumbnailURL).with((t, u) => debug('thumbnailURL', t, u));
+	let uploadProgress = $derived.by(() => {
+		let totalSize = 0;
+		let totalProgress = 0;
 
-	async function unlinnkMedia() {
+		if (media.original?.status === 'progress') {
+			totalSize += media.original.size ?? 0;
+			totalProgress += ((media.original.uploadProgress ?? 0) * (media.original.size ?? 0)) / 100;
+		}
+
+		if (media.thumbnail?.status === 'progress') {
+			totalSize += media.thumbnail.size ?? 0;
+			totalProgress += ((media.thumbnail.uploadProgress ?? 0) * (media.thumbnail.size ?? 0)) / 100;
+		}
+
+		if (totalSize) {
+			return (totalProgress / totalSize) * 100;
+		} else {
+			return undefined;
+		}
+	});
+
+	async function unlinkMedia() {
 		assert(message);
-		assert(media.id);
-		// const deleted = A.conversation.media.splice(A.conversation.media.indexOf(media), 1);
 
-		const index = message?.mediaIDs?.indexOf(media.id);
+		const index = message?.media?.findIndex((m) => m === media);
 		if (index !== -1 && index !== undefined) {
-			message.mediaIDs?.splice(index, 1);
-			Object.assign(message, await APIupsertMessage(message));
+			message.media?.splice(index, 1);
+			if (media.id && message.mediaIDs) {
+				const idIndex = message.mediaIDs.indexOf(media.id);
+				if (idIndex !== -1) {
+					message.mediaIDs.splice(idIndex, 1);
+					Object.assign(message, await APIupsertMessage(message));
+				}
+			}
 		}
 	}
 </script>
@@ -86,16 +111,33 @@
 		</div>
 
 		<div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div>
-	{/if}
 
-	<!-- <div class="absolute -right-2 -top-2 z-30 flex items-start gap-1 overflow-hidden rounded-md bg-primary p-1">
-		{#if !A.dbUser || A.dbUser.hacker}
-			<label class="btn swap swap-rotate btn-xs bg-black bg-opacity-70 p-0.5 hover:bg-opacity-100">
-				<input type="checkbox" class="" bind:checked={media.repeat} />
-				<RefreshCcw class="swap-on " size="fit-h" />
-				<RefreshCwOff class="swap-off " size="fit-h" />
-			</label>
+		{#if uploadProgress !== undefined}
+			<progress class="progress-success absolute h-full w-full -rotate-90 opacity-50" value={uploadProgress} max={100}
+			></progress>
 		{/if}
-		<button class="btn btn-xs p-0.5 text-error" onclick={unlinnkMedia}><X size="fit-h" /></button>
-	</div> -->
+
+		{#if isHovered}
+			<div
+				class="absolute right-0 top-0 flex items-start gap-1 rounded-md bg-primary bg-opacity-30 p-1"
+				transition:fade={{ duration: 100 }}>
+				{#if !A.dbUser || A.dbUser.hacker}
+					<label
+						class="swap swap-rotate btn-xs z-40 p-0.5"
+						title={media.repeat ? 'Send the image for every chat turn' : 'Send the image once'}>
+						<input type="checkbox" class="" bind:checked={media.repeat} />
+						<RefreshCcwIcon class="swap-on" size="fit-h" />
+						<RefreshCwOff class="swap-off " size="fit-h" />
+					</label>
+				{/if}
+			</div>
+			{#if message.editing}
+				<div class="absolute left-0 top-0 size-full p-6">
+					<button class="rounded-md bg-black bg-opacity-50 text-error" onclick={unlinkMedia}>
+						<X size="fit-h" />
+					</button>
+				</div>
+			{/if}
+		{/if}
+	{/if}
 </div>
