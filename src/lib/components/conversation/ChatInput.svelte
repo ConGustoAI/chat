@@ -1,19 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CostEstimate, GrowInput, Notification, MediaCarousel } from '$lib/components';
-	import { A } from '$lib/appstate.svelte';
-	import { assert, trimLineLength } from '$lib/utils/utils';
-	import dbg from 'debug';
-	import { Send, StopCircle, Upload, ChevronDown } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
-	import {
-		mediaCreateThumbnail,
-		mediaProcessResize,
-		syncMedia,
-		uploadConversationMedia
-	} from '$lib/utils/media_utils.svelte';
+	import { A } from '$lib/appstate.svelte';
+	import { CostEstimate, GrowInput, MediaCarousel, Notification } from '$lib/components';
+	import { trimLineLength } from '$lib/utils/utils';
+	import dbg from 'debug';
+	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
-	import { untrack } from 'svelte';
 
 	const debug = dbg('app:ui:components:ChatInput');
 

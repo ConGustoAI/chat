@@ -4,8 +4,11 @@
 	import { ConversationMediaPreview, MediaEditor } from '.';
 
 	import { syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { goto } from '$app/navigation';
+
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
+	import { assert } from '$lib/utils/utils';
 	const debug = dbg('app:ui:components:MediaCarousel');
 
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
@@ -102,7 +105,6 @@
 </script>
 
 <div class={'flex shrink-0 flex-col overflow-hidden' + (A.mediaEditing ? ' h-[66dvh]' : '')}>
-
 	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
 	{#if A.mediaEditing && !message}
 		<MediaEditor bind:media={A.mediaEditing} />
@@ -127,7 +129,11 @@
 				class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
 				disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
 				onclick={async () => {
-					await uploadConversationMedia();
+					const newConversation = await uploadConversationMedia();
+					if (newConversation) {
+						assert(A.conversation?.id);
+						goto(`/chat/${A.conversation?.id}`);
+					}
 				}}>
 				{#if totalUploadProgress !== undefined}
 					<progress
@@ -157,6 +163,4 @@
 		<MediaEditor bind:media={A.mediaEditing} />
 		<div class="divider w-full"></div>
 	{/if}
-
-
 </div>

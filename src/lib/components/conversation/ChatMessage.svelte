@@ -99,7 +99,7 @@
 			m.conversationID = A.conversation.id;
 		}
 
-		await uploadConversationMedia();
+		newConversation ||= await uploadConversationMedia();
 		message.mediaIDs = message.media?.map((m) => m.id!) ?? [];
 
 		savingMessage = true;

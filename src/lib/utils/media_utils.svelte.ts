@@ -1,8 +1,7 @@
-import { goto } from '$app/navigation';
+import { APIupsertConversation, APIupsertMedia } from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
-import { APIupsertConversation, APIupsertMedia } from '$lib/api';
 import { assert } from './utils';
 
 const debug = dbg('app:lib:media_utils');
@@ -326,5 +325,6 @@ export async function uploadConversationMedia() {
 	await Promise.all(A.conversation.media.map(uploadChangedMedia));
 	debug('All media uploaded!', $state.snapshot(A.conversation));
 	A.mediaUploading = false;
-	if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
+	return createdNewConversation
 }
+// if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);
