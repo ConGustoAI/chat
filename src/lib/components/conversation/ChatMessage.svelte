@@ -147,7 +147,7 @@
 {#if message.media?.length || (message.editing && message.role === 'user')}
 	<div class="flex flex-col bg-base-usermessage">
 		<div
-			class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-usermessage p-2"
+			class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-usermessage p-2 ml-10"
 			role="region"
 			aria-label="Image upload area">
 			{#if message.editing && message.role === 'user'}

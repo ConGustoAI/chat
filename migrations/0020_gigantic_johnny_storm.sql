@@ -1,0 +1,1 @@
+ALTER TYPE "media_types" ADD VALUE 'text';

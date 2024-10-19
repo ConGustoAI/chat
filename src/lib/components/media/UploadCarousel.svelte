@@ -102,13 +102,13 @@
 </script>
 
 <div
-	class={'flex shrink-0 flex-col overflow-hidden' +
-		(A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}>
+	class={'flex shrink-0 flex-col overflow-hidden'} >
+	  <!-- + (A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}> -->
 	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
-	{#if A.mediaEditing && !message && A.conversation?.media?.includes(A.mediaEditing)}
+	<!-- {#if A.mediaEditing && !message && A.conversation?.media?.includes(A.mediaEditing)}
 		<MediaEditor bind:media={A.mediaEditing} />
 		<div class="divider w-full"></div>
-	{/if}
+	{/if} -->
 
 	<div
 		class="carousel carousel-center h-fit w-full shrink-0 space-x-4 p-4"
@@ -158,8 +158,8 @@
 		{/if}
 	</div>
 
-	{#if A.mediaEditing && message}
+	<!-- {#if A.mediaEditing && message}
 		<MediaEditor bind:media={A.mediaEditing} />
 		<div class="divider w-full"></div>
-	{/if}
+	{/if} -->
 </div>

@@ -3,14 +3,11 @@
 	import { A } from '$lib/appstate.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { RefreshCcw, RefreshCcwIcon, RefreshCwOff, X } from 'lucide-svelte';
+	import { RefreshCcwIcon, RefreshCwOff, X, Edit } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
-	import DeleteButton from '../DeleteButton.svelte';
 	const debug = dbg('app:ui:components:MessageMediaPreview');
 
 	let { media = $bindable(), message = $bindable() }: { media: MediaInterface; message: MessageInterface } = $props();
-
-	let progressBar: HTMLProgressElement | null = $state(null);
 
 	let isHovered = $state(false);
 
@@ -109,6 +106,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class="relative flex h-full w-full flex-col justify-between gap-0.5 rounded-md bg-base-300 p-1"
 	class:opacity-50={!media.active}
@@ -124,7 +122,17 @@
 		{/if}
 	</div>
 
-	<div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div>
+	<div class="mx-1 flex w-full shrink-0 flex-col items-center text-nowrap text-center text-sm" title={media.title}>
+		{#if isHovered}
+			<div class="z-20 overflow-visible bg-base-300">
+				{media.title}
+			</div>
+		{:else}
+			<p class="mx-1 w-full shrink-0 truncate">{media.title}</p>
+		{/if}
+	</div>
+
+	<!-- <div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div> -->
 
 	{#if uploadProgress !== undefined}
 		<progress class="progress-success absolute h-full w-full -rotate-90 opacity-50" value={uploadProgress} max={100}
@@ -150,6 +158,20 @@
 			<div class="absolute left-0 top-0 size-full p-6">
 				<button class="rounded-md bg-black bg-opacity-50 text-error" onclick={unlinkMedia}>
 					<X size="fit-h" />
+				</button>
+			</div>
+		{:else}
+			<div class="absolute left-0 top-0 size-full p-8">
+				<button
+					class="rounded-md bg-black bg-opacity-50"
+					onclick={() => {
+						if (A.mediaEditing) {
+							A.mediaEditing = undefined;
+						} else {
+							A.mediaEditing = media;
+						}
+					}}>
+					<Edit size="fit-h" />
 				</button>
 			</div>
 		{/if}

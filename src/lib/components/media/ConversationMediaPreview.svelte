@@ -221,7 +221,7 @@
 		<div
 			class="absolute -right-2 -top-4 z-10 flex items-start gap-2 rounded-md bg-primary p-1"
 			transition:fade={{ duration: 100 }}>
-			<button
+			<!-- <button
 				class="btn-xs p-0"
 				title="Edit file"
 				onclick={() => {
@@ -232,7 +232,7 @@
 					}
 				}}>
 				<Edit size="fit-h" />
-			</button>
+			</button> -->
 
 			<DeleteButton
 				btnClass="btn-xs p-0 text-error"
@@ -254,6 +254,20 @@
 			<div class="absolute left-0 top-0 h-full w-full p-10">
 				<button class="bg-black bg-opacity-50 text-success" onclick={addMediaToMessage}>
 					<Plus size="fit-h" />
+				</button>
+			</div>
+		{:else}
+			<div class="absolute left-0 top-0 size-full p-10">
+				<button
+					class="rounded-md bg-black bg-opacity-50"
+					onclick={() => {
+						if (A.mediaEditing) {
+							A.mediaEditing = undefined;
+						} else {
+							A.mediaEditing = media;
+						}
+					}}>
+					<Edit size="fit-h" />
 				</button>
 			</div>
 		{/if}

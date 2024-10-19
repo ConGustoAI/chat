@@ -12,6 +12,7 @@
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
+	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
 	const debug = dbg('app:ui:chat');
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
@@ -218,6 +219,7 @@
 	<div class="absolute bottom-4 left-2 z-20">
 		<SidebarButton />
 	</div>
+	<MediaEditor />
 </main>
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
