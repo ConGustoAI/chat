@@ -204,7 +204,7 @@ declare global {
 
 		title: string;
 		filename: string;
-		type: 'image' | 'audio' | 'video';
+		type: 'image' | 'audio' | 'video' | 'text';
 
 		originalWidth?: number;
 		originalHeight?: number;
@@ -222,8 +222,6 @@ declare global {
 		trimEnd?: number;
 
 		originalID?: string | null;
-		// resizedID?: string | null;
-		// croppedID?: string | null;
 		thumbnailID?: string | null;
 
 		createdAt?: Date;
@@ -240,16 +238,6 @@ declare global {
 		cropped?: FileInterface;
 
 		active?: boolean;
-		// newResizedWidth?: number;
-		// newResizedHeight?: number;
-
-		// newCropStartX?: number;
-		// newCropStartY?: number;
-		// newCropEndX?: number;
-		// newCropEndY?: number;
-
-		// newTrimStart?: number;
-		// newTrimEnd?: number;
 	}
 
 	interface FileInterface {
@@ -267,9 +255,11 @@ declare global {
 		createdAt?: Date;
 		updatedAt?: Date;
 
+		// Used by the frontend only.
+		text?: string; // For text files, the text content.
+
 		file?: File; // A freshly selected file will have a file object.
 		url?: string; // A file that has been uploaded will have a URL.
-
 		uploadURL?: string;
 
 		uploadProgress?: number;

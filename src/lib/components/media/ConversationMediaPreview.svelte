@@ -41,10 +41,6 @@
 
 	$effect(() => debug('media: ', $state.snapshot(media)));
 
-	// $inspect(media).with((t, c) => {
-	// 	debug('media', t, c);
-	// });
-
 	let isHovered = $state(false);
 
 	let thumbnailURL = $derived.by(() => {
@@ -60,7 +56,18 @@
 		}
 	});
 
-	$inspect(thumbnailURL).with((t, u) => debug('thumbnailURL', t, u));
+	let thumbnailText = $derived.by(() => {
+		if (media?.thumbnail?.text) {
+			debug('thumbnailText: Picking thumbnail');
+			return media.thumbnail.text;
+		} else if (media?.original?.text) {
+			debug('thumbnailText: Picking original');
+			return media.original.text;
+		} else {
+			debug('thumbnailText: No preview text available');
+			return undefined;
+		}
+	});
 
 	let fullyUploaded = $derived.by(() => {
 		return (!media.original || media.original.status === 'ok') && (!media.thumbnail || media.thumbnail.status === 'ok');
@@ -120,25 +127,26 @@
 	class:opacity-50={!media.active}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
-	{#if media.type === 'video'}
-		<!-- svelte-ignore a11y_media_has_caption -->
-		<video
+	<!-- {#if media.type === 'video'} -->
+	<!-- svelte-ignore a11y_media_has_caption -->
+	<!-- <source src={URL.createObjectURL(media.url)} type={media.mimeType} /> -->
+	<!-- <video
 			class="grow object-cover"
 			onmousemove={(event) => handleVideoSeek(event)}
 			onmouseleave={handleVideoStop}
 			ontimeupdate={updateProgressBar}>
-			<!-- <source src={URL.createObjectURL(media.url)} type={media.mimeType} /> -->
 			Your browser does not support the video tag.
 		</video>
 		<progress
 			bind:this={progressBar}
 			class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
 			value={0}
-			max={100}></progress>
-	{:else if media.type === 'audio'}
+			max={100}></progress> -->
+	<!-- {:else if media.type === 'audio'}
 		TODO: Audio
-	{:else}
-		<div class="relative flex h-full w-full flex-col overflow-hidden bg-base-100">
+	{:else} -->
+	<div class="relative flex h-full w-full flex-col overflow-hidden bg-base-100">
+		{#if media.type === 'image'}
 			<img
 				src={thumbnailURL}
 				alt={media.filename}
@@ -181,16 +189,33 @@
 					{/if}
 				</div>
 			{/if}
+		{:else if media.type === 'text'}
+			<p class="m-0 line-clamp-5 h-full w-full overflow-hidden break-words text-sm">
+				{thumbnailText ?? ''}
+			</p>
+		{:else}
+			<div class="flex flex-grow items-center justify-center">
+				<p class="text-center">Unsupported media type</p>
+			</div>
+		{/if}
 
-			{#if fullyUploaded}
-				<div class="absolute bottom-0.5 left-0 z-30 text-success">
-					<Upload size={14} strokeWidth={3} />
-				</div>
-			{/if}
-		</div>
+		{#if fullyUploaded}
+			<div class="absolute bottom-0.5 left-0 z-30 text-success">
+				<Upload size={14} strokeWidth={3} />
+			</div>
+		{/if}
+	</div>
 
-		<div class="mx-1 w-full shrink-0 truncate text-nowrap text-sm">{media.title}</div>
-	{/if}
+	<div class="mx-1 flex w-full shrink-0 flex-col items-center text-nowrap text-center text-sm" title={media.title}>
+		{#if isHovered}
+			<div class="z-20 overflow-visible bg-base-300">
+				{media.title}
+			</div>
+		{:else}
+			<p class="mx-1 w-full shrink-0 truncate">{media.title}</p>
+		{/if}
+	</div>
+	<!-- {/if} -->
 
 	{#if isHovered}
 		<div
@@ -217,7 +242,7 @@
 			{#if !A.dbUser || A.dbUser.hacker}
 				<label
 					class="swap swap-rotate btn-xs p-0.5"
-					title={media.repeat ? 'Send the image for every chat turn' : 'Send the image once'}>
+					title={media.repeat ? 'Send the file for every chat turn' : 'Send the file once'}>
 					<input type="checkbox" class="" bind:checked={media.repeat} />
 					<RefreshCcwIcon class="swap-on" size="fit-h" />
 					<RefreshCwOff class="swap-off " size="fit-h" />

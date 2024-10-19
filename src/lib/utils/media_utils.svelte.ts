@@ -1,4 +1,4 @@
-import { APIupsertConversation, APIupsertMedia } from '$lib/api';
+import { APIupsertConversation, APIupsertFile, APIupsertMedia } from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
@@ -25,7 +25,7 @@ export async function resizeImage(
 		const p = new Promise((resolve, reject) => {
 			image.onload = resolve;
 			image.onerror = reject;
-			image.onabort= () => reject(new Error('Image loading aborted'));
+			image.onabort = () => reject(new Error('Image loading aborted'));
 		});
 		image.src = URL.createObjectURL(file.file);
 		await p;
@@ -86,16 +86,7 @@ export async function syncFileURL(file: FileInterface, filename: string = 'file'
 
 	if (!file.file && file.url) {
 		debug('Fetching file from %o', file.url);
-		let response = await fetch(file.url);
-
-		if (response.status > 300 && response.status < 400) {
-			// Handle redirect
-			const redirectUrl = response.headers.get('Location');
-			debug('Redirecting to %o', redirectUrl);
-			if (redirectUrl) {
-				response = await fetch(redirectUrl);
-			}
-		}
+		const response = await fetch(file.url);
 
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -119,7 +110,7 @@ export async function syncMedia(media: MediaInterface) {
 		if (media.thumbnail) await syncFileURL(media.thumbnail, media.filename);
 
 		// This will only run once, when the new media is processed for the first time.
-		if ((!media.originalWidth || !media.originalHeight) && media.original?.file) {
+		if (media.type === 'image' && (!media.originalWidth || !media.originalHeight) && media.original?.file) {
 			const img = new Image();
 			await new Promise<void>((resolve, reject) => {
 				img.onload = () => {
@@ -138,6 +129,9 @@ export async function syncMedia(media: MediaInterface) {
 					reject(new Error('No original file available'));
 				}
 			});
+		} else if (media.type === 'text' && media.original?.file) {
+			const text = await media.original.file.text();
+			media.original.text = text;
 		}
 	} finally {
 		A.mediaProcessing = false;
@@ -190,23 +184,87 @@ export async function mediaCreateThumbnail(media: MediaInterface) {
 	assert(media.original.file);
 	await syncMedia(media);
 	if (!media.thumbnail) {
-		assert(media.originalWidth);
-		assert(media.originalHeight);
-		debug('Creating thumbnail for %o from original', $state.snapshot(media));
-		const targetPixels = 128 * 128;
-		const aspectRatio = media.originalWidth / media.originalHeight;
-		let newWidth, newHeight;
+		if (media.type === 'image') {
+			assert(media.originalWidth);
+			assert(media.originalHeight);
+			debug('Creating image thumbnail from original %o', $state.snapshot(media));
+			const targetPixels = 128 * 128;
+			const aspectRatio = media.originalWidth / media.originalHeight;
+			let newWidth, newHeight;
 
-		if (aspectRatio > 1) {
-			newWidth = Math.sqrt(targetPixels * aspectRatio);
-			newHeight = newWidth / aspectRatio;
-		} else {
-			newHeight = Math.sqrt(targetPixels / aspectRatio);
-			newWidth = newHeight * aspectRatio;
+			if (aspectRatio > 1) {
+				newWidth = Math.sqrt(targetPixels * aspectRatio);
+				newHeight = newWidth / aspectRatio;
+			} else {
+				newHeight = Math.sqrt(targetPixels / aspectRatio);
+				newWidth = newHeight * aspectRatio;
+			}
+
+			media.thumbnail = await resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
+		} else if (media.type === 'text' && media.original?.text) {
+			debug('Creating text thumbnail from original %o ', $state.snapshot(media));
+			const text = media.original.text.slice(0, 200);
+			media.thumbnail = {
+				userID: media.userID,
+				mimeType: 'text/plain',
+				size: text.length,
+				text: text,
+				file: new File([text], 'thumbnail.txt', { type: 'text/plain' })
+				// url: URL.createObjectURL(new Blob([text.slice(0, maxChars)], { type: 'text/plain' }))
+			};
 		}
-
-		media.thumbnail = await resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
 	}
+}
+
+export async function mediaUpdateText(media: MediaInterface) {
+	assert(media.original);
+	assert(media.original.text !== undefined);
+
+	// Create a blob from the text
+	const file = new File([media.original.text], media.filename, { type: media.original.mimeType });
+
+	// Update the media.original FileInterface
+	media.original.file = file;
+	media.original.size = file.size;
+	media.original.mimeType = file.type;
+
+	if (media.original.url) URL.revokeObjectURL(media.original.url);
+	// Update the URL after successful upload
+	media.original.url = URL.createObjectURL(file);
+
+	if (media.original.id) {
+		// Use APIupsertFile to update the file
+		try {
+			const updatedFile = await APIupsertFile(media.original, true);
+
+			// Update media.original with the returned data
+			Object.assign(media.original, updatedFile);
+
+			assert(updatedFile.uploadURL, 'Updated file URL not found');
+
+			// If we got an upload URL, use it to upload the file
+
+			const uploadResponse = await fetch(updatedFile.uploadURL, {
+				method: 'PUT',
+				body: file,
+				headers: {
+					'Content-Type': file.type
+				}
+			});
+
+			if (!uploadResponse.ok) {
+				throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+			}
+
+			debug('Text media updated and uploaded successfully');
+		} catch (error) {
+			console.error('Failed to update or upload text media:', error);
+			throw error;
+		}
+	}
+
+	media.thumbnail = undefined;
+	await mediaCreateThumbnail(media);
 }
 
 export async function mediaResizeFromPreset(
@@ -217,11 +275,11 @@ export async function mediaResizeFromPreset(
 ): Promise<void> {
 	debug('resizeOriginal', media, preset);
 
-	if (!media.original) throw new Error('Original media not found');
-	if (!media.original.file) throw new Error('Original media file not found');
-	if (!media.originalWidth || !media.originalHeight) throw new Error('Media orignal width/height not found');
-
-	if (!preset) throw new Error('Invalid resize preset');
+	assert(media.original, 'Original media not found');
+	assert(media.original.file, 'Original media file not found');
+	assert(media.originalWidth && media.originalHeight, 'Media original width/height not found');
+	assert(preset, 'Invalid resize preset');
+	assert(media.type === 'image', 'Only images can be resized');
 
 	const { pixels, long } = resizePresets[preset];
 	let { width, height } = { width: media.originalWidth, height: media.originalHeight };
@@ -268,18 +326,6 @@ export async function uploadChangedMedia(media: MediaInterface) {
 		});
 	}
 
-	// if (!media.resized && media.resizedID) mediaNeedsUpdate = true;
-	// if (
-	// 	media.resized &&
-	// 	(!media.resized.id || media.resizedHeight != media.newResizedHeight || media.resizedWidth != media.newResizedWidth)
-	// ) {
-	// 	mediaNeedsUpdate = true;
-	// 	uploadPromises.push(async () => {
-	// 		assert(media.resized);
-	// 		Object.assign(media.resized, await uploadFile(media.resized));
-	// 	});
-	// }
-
 	if (!media.thumbnail && media.thumbnailID) mediaNeedsUpdate = true;
 	if (media.thumbnail && !media.thumbnail.id) {
 		mediaNeedsUpdate = true;
@@ -295,17 +341,12 @@ export async function uploadChangedMedia(media: MediaInterface) {
 		media.originalID = media.original?.id ?? null;
 		media.thumbnailID = media.thumbnail?.id ?? null;
 		media.conversationID = A.conversation.id ?? null;
-		// media.resizedID = media.resized?.id ?? null;
 
 		const updatedMedia = await APIupsertMedia(media);
 		debug('media uploaded!', updatedMedia);
 		Object.assign(media, updatedMedia);
 	}
 }
-
-// export async function conversationUploadChangedMedia() {
-// 	if (A.conversation?.media) await Promise.all(A.conversation.media.map(uploadChangedMedia));
-// }
 
 export async function uploadConversationMedia() {
 	if (!A.conversation) throw Error('Conversation missing');
@@ -325,6 +366,5 @@ export async function uploadConversationMedia() {
 	await Promise.all(A.conversation.media.map(uploadChangedMedia));
 	debug('All media uploaded!', $state.snapshot(A.conversation));
 	A.mediaUploading = false;
-	return createdNewConversation
+	return createdNewConversation;
 }
-// if (createdNewConversation) await goto(`/chat/${A.conversation.id}`);

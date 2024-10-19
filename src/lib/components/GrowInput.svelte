@@ -15,7 +15,7 @@
 		onkeydown = () => {},
 		onchange = () => {}
 	} = $props<{
-		value: string|undefined;
+		value: string | undefined;
 		placeholder?: string;
 		class?: string;
 		disabled?: boolean;
@@ -36,7 +36,7 @@
 	}
 </script>
 
-<div class="relative w-full">
+<div class="relative h-full w-full">
 	{#if disabled}
 		<div
 			class={cn(
@@ -59,7 +59,7 @@
 			{oninput}
 			{onkeydown}
 			{onchange}
-			class={cn('textarea min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
+			class={cn('textarea min-h-10  h-full overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
 		</div>
 		{#if value === '' && !focused}
 			<div class={cn('pointer-events-none absolute inset-0 p-2 opacity-50', className)}>

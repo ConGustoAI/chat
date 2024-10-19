@@ -31,7 +31,7 @@
 	</div>
 
 	{#if assistant.aboutUserFromUser}
-		<GrowInput class="textarea-bordered w-full" value={A.dbUser?.aboutUser ?? ''} onchange={oninput} disabled={true} />
+		<GrowInput class="textarea-bordered w-full" value={A.dbUser?.aboutUser ?? ''} disabled={true} />
 	{:else}
 		<GrowInput class="textarea-bordered" bind:value={assistant.aboutUser} {oninput} />
 	{/if}
@@ -62,7 +62,6 @@
 		<GrowInput
 			class="textarea-bordered w-full"
 			value={A.dbUser?.assistantInstructions ?? ''}
-			{oninput}
 			disabled={true} />
 	{:else}
 		<GrowInput

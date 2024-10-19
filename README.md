@@ -8,7 +8,7 @@ Features:
 - [x] Any model from any API provider
 - [ ] Multi-modal
   - [x] Text
-  - [ ] Images
+  - [x] Images
   - [ ] Audio
   - [ ] Video
 - [ ] Artifacts
@@ -16,7 +16,7 @@ Features:
   - [ ] One-off calculation
   - [ ] Jupyter notebook session
 - [ ] Esay deployment
-  - [x] Postgres + Vercel (or any other host with node support)
+  - [x] Postgres + Vercel/Railway (or any other host with node support)
   - [ ] Local deployment with SQLite an no auth.
 - [x] MIT license allows for commercial use and modification.
 
@@ -139,7 +139,7 @@ Coming soon.
 
 If you update the default providers/models/assistants, don't forget to reflect this in `src/scripts/seed.ts`
 
-## Deployment on Railway.app (Recommended)
+## Deployment on Railway.app
 
 - Fork the repository on Github.
 - Create a new project, "Deploy from GitHub" and point it to our repository.
@@ -148,14 +148,9 @@ If you update the default providers/models/assistants, don't forget to reflect t
 
 > @xl0 You can also deploy Postgres on Railway, but the management UI is minimal. I prefer Supabase or Neon if I have to touch the database.
 
-## Deploy to Vercel (Not recommended)
+## Deploy to Vercel
 
-> The issue with Vercel is, instead of the normal long-lived node runtime, they wrap your code into "server functions" that are short-lived, and then charge per millisecond of their runtime. On the hobby plan, the default runtime cap is 10 seconds that can be extended to 60.
-> When we execute a chat request, the backend function runs for the time the message is being streamed from the LLM provider. This typically takes a few seconds, and can easily be minutes for long message from a slow provider. This will result in a timeous and/or an expensive deployment.
-
-Still, if you choose to deploy to Vercel, you can:
-
-- In `svelte.config.js`, set the `adapter` to `vercel` (uncomment vercel, comment out node).
+- In `svelte.config.js`, set the `adapter` to `auto` (uncomment auto, comment out node).
 - In settings, use the following commands:
   - Build command: `npm run deploy` - this will build the app and run migrations/seed if needed.
   - Install command: `npm i`

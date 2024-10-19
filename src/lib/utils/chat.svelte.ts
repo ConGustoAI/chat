@@ -70,7 +70,6 @@ export async function _submitConversationClientSide() {
 		UM.mediaIDs = mediaIDs;
 	}
 
-
 	debug('onSubmit after uploading media: ', $state.snapshot(A.conversation));
 
 	abortController = new AbortController();
@@ -142,62 +141,79 @@ export async function _submitConversationClientSide() {
 
 				assert(media.id);
 				assert(media.conversationID === A.conversation?.id);
-				assert(media.type === 'image' || media.type === 'audio' || media.type === 'video');
+				assert(media.type === 'image' || media.type === 'audio' || media.type === 'video' || media.type === 'text');
 
-				// XXX for now
-				assert(media.type === 'image');
+				if (media.type === 'image') {
+					assert(media.original);
+					assert(media.originalWidth);
+					assert(media.originalHeight);
 
-				assert(media.original);
-				assert(media.originalWidth);
-				assert(media.originalHeight);
+					//Either both are set or both are not set
+					assert((media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth));
 
-				//Either both are set or both are not set
-				assert((media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth));
+					let file: FileInterface;
+					let width: number;
+					let height: number;
 
-				let file: FileInterface;
-				let width: number;
-				let height: number;
+					if (
+						media.resizedWidth &&
+						media.resizedWidth !== media.originalWidth &&
+						media.resizedHeight &&
+						media.resizedHeight !== media.originalHeight
+					) {
+						assert(media.resized);
+						assert(media.resized.file);
+						file = media.resized;
+						assert(file.file);
+						width = media.resizedWidth;
+						height = media.resizedHeight;
+					} else {
+						file = media.original;
+						assert(file.file);
+						width = media.originalWidth;
+						height = media.originalHeight;
+					}
 
-				if (
-					media.resizedWidth &&
-					media.resizedWidth !== media.originalWidth &&
-					media.resizedHeight &&
-					media.resizedHeight !== media.originalHeight
-				) {
-					assert(media.resized);
-					assert(media.resized.file);
-					file = media.resized;
-					assert(file.file);
-					width = media.resizedWidth;
-					height = media.resizedHeight;
-				} else {
-					file = media.original;
-					assert(file.file);
-					width = media.originalWidth;
-					height = media.originalHeight;
-				}
+					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
-				const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
+					if (shouldAddMedia) {
+						addedMedia.push(media.id);
+						contentChunks.push({
+							type: 'text',
+							text:
+								`<Image ` +
+								`title="${media.title}" ` +
+								`filename="${media.filename}" ` +
+								`mimetype="${file.mimeType ?? 'image/png'}" ` +
+								`resolution="${width}x${height}" ` +
+								`>`
+						});
 
-				if (shouldAddMedia) {
-					addedMedia.push(media.id);
-					contentChunks.push({
-						type: 'text',
-						text:
-							`<Image ` +
-							`title="${media.title}" ` +
-							`filename="${media.filename}" ` +
-							`mimetype="${file.mimeType ?? 'image/png'}" ` +
-							`resolution="${width}x${height}" ` +
-							`>`
-					});
+						contentChunks.push({
+							type: 'image',
+							image: await file.file.arrayBuffer()
+						});
 
-					contentChunks.push({
-						type: 'image',
-						image: await file.file.arrayBuffer()
-					});
+						contentChunks.push({ type: 'text', text: '</Image>' });
+					}
+				} else if (media.type === 'text') {
+					assert(media.original);
+					assert(media.original.file);
+					assert(media.original);
 
-					contentChunks.push({ type: 'text', text: '</Image>' });
+					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
+
+					if (shouldAddMedia) {
+						addedMedia.push(media.id);
+						contentChunks.push({
+							type: 'text',
+							text: `<Text title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'text/plain'}">`
+						});
+
+						contentChunks.push({ type: 'text', text: await media.original.file.text() });
+
+						contentChunks.push({ type: 'text', text: '</Text>' });
+					}
 				}
 			}
 

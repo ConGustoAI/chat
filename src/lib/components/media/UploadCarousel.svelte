@@ -3,22 +3,16 @@
 	import { PlusCircle, Upload } from 'lucide-svelte';
 	import { ConversationMediaPreview, MediaEditor } from '.';
 
-	import { syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { mediaCreateThumbnail, syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { goto } from '$app/navigation';
 
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	import { assert } from '$lib/utils/utils';
+	import { typeFromFile } from '$lib/utils/filetype';
 	const debug = dbg('app:ui:components:MediaCarousel');
 
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
-
-	function typeFromMimeType(mimeType: string): 'image' | 'video' | 'audio' {
-		if (mimeType.startsWith('image/')) return 'image';
-		if (mimeType.startsWith('video/')) return 'video';
-		if (mimeType.startsWith('audio/')) return 'audio';
-		throw new Error('Unknown media type');
-	}
 
 	async function fileToMedia(file: File): Promise<MediaInterface> {
 		if (!A.dbUser) throw new Error('User not logged in');
@@ -29,7 +23,7 @@
 			userID: A.dbUser.id,
 			title: file.name,
 			filename: file.name,
-			type: typeFromMimeType(file.type),
+			type: await typeFromFile(file), // Now awaiting the result
 			original: {
 				mimeType: file.type,
 				size: file.size,
@@ -38,7 +32,7 @@
 			}
 		};
 
-		await syncMedia(m);
+		await mediaCreateThumbnail(m);
 		return m;
 	}
 
@@ -52,15 +46,18 @@
 		if (input.files) {
 			if (!A.conversation.media) A.conversation.media = [];
 
-			const newFiles = Array.from(input.files).filter((file) => {
-				// Check if the file has already been uploaded by comparing size and last modified date
-				return !A.conversation?.media?.some(
-					(m) => m.original?.size === file.size && m.original?.file?.lastModified === file.lastModified
-				);
-			});
+			const newFiles = Array.from(input.files).filter(
+				(file) =>
+					// Check if the file has already been uploaded by comparing size, last modified date, and name
+					!A.conversation?.media?.some(
+						(m) =>
+							m.original?.size === file.size &&
+							m.original?.file?.lastModified === file.lastModified &&
+							m.filename === file.name
+					)
+			);
 
 			const newMedia = await Promise.all(newFiles.map(fileToMedia));
-			// await Promise.all(newMedia.map(mediaCreateThumbnail));
 
 			A.conversation.media.push(...newMedia);
 			debug('Files added: ', $state.snapshot(A.conversation));
@@ -104,9 +101,11 @@
 	});
 </script>
 
-<div class={'flex shrink-0 flex-col overflow-hidden' + (A.mediaEditing ? ' h-[66dvh]' : '')}>
+<div
+	class={'flex shrink-0 flex-col overflow-hidden' +
+		(A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}>
 	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
-	{#if A.mediaEditing && !message}
+	{#if A.mediaEditing && !message && A.conversation?.media?.includes(A.mediaEditing)}
 		<MediaEditor bind:media={A.mediaEditing} />
 		<div class="divider w-full"></div>
 	{/if}

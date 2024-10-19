@@ -2,8 +2,9 @@
 	import { Check } from 'lucide-svelte';
 
 	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { mediaResizeFromPreset, resizePresets } from '$lib/utils/media_utils.svelte';
+	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
 	import dbg from 'debug';
+	import GrowInput from '../GrowInput.svelte';
 
 	const debug = dbg('app:ui:components:MediaEditor');
 
@@ -55,83 +56,119 @@
 	});
 
 	let titleUpdating: boolean = $state(false);
+
+	let textNeedsSave = $state(false);
 </script>
 
 <div class="flex h-full w-full grow items-stretch justify-start overflow-hidden p-1">
-	<div class="flex-grow-1 mx-auto flex-shrink-0">
-		<img
-			src={displayedImageURL}
-			alt={media.title}
-			class="pixilated bg-checkered mx-auto h-full max-h-full max-w-full object-contain" />
-	</div>
+	{#if media.type === 'image'}
+		<div class="flex-grow-1 mx-auto flex-shrink-0">
+			<img
+				src={displayedImageURL}
+				alt={media.title}
+				class="pixilated bg-checkered mx-auto h-full max-h-full max-w-full object-contain" />
+		</div>
 
-	<!-- <div class="backgroud-blue-300 ml-auto w-full grow bg-blue-300"></div> -->
+		<!-- <div class="backgroud-blue-300 ml-auto w-full grow bg-blue-300"></div> -->
 
-	<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
-		<div class="flex items-baseline justify-start gap-2">
-			<p class="label mr-auto">Title</p>
-			{#if titleUpdating}
-				<span class="loading loading-sm"></span>
+		<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
+			<div class="flex items-baseline justify-start gap-2">
+				<p class="label mr-auto">Title</p>
+				{#if titleUpdating}
+					<span class="loading loading-sm"></span>
+				{/if}
+
+				<input
+					type="text"
+					class="input input-sm input-bordered w-48 justify-self-end"
+					bind:value={media.title}
+					onchange={async (e) => {
+						titleUpdating = true;
+						await updateMediaMetadata();
+						titleUpdating = false;
+					}} />
+			</div>
+
+			<div class="flex items-baseline justify-between gap-2">
+				<p class="label">Size</p>
+				<select
+					class="select select-bordered select-sm w-48"
+					bind:value={selectedResizePreset}
+					onchange={async () => {
+						debug('resizePreset', selectedResizePreset);
+						await mediaResizeFromPreset(media, selectedResizePreset);
+						media = media;
+					}}>
+					{#each Object.keys(resizePresets) as preset}
+						<option value={preset}>{resizePresets[preset].label}</option>
+					{/each}
+				</select>
+			</div>
+			{#if selectedResizePreset === 'custom'}
+				<div class="flex items-center justify-between gap-2">
+					<p class="label">Resolution</p>
+					<div class="flex w-48 items-baseline justify-between gap-2">
+						<input
+							type="number"
+							class="input input-sm input-bordered w-full shrink"
+							placeholder="W"
+							bind:value={resizeWidth} />
+						x
+						<input
+							type="number"
+							class="input input-sm input-bordered w-full"
+							placeholder="H"
+							bind:value={resizeHeight} />
+					</div>
+				</div>
+				<button
+					class="align-self-end btn btn-outline btn-sm w-fit"
+					onclick={async () => {
+						await mediaResizeFromPreset(media, selectedResizePreset, resizeHeight, resizeHeight);
+					}}><Check /></button>
 			{/if}
 
-			<input
-				type="text"
-				class="input input-sm input-bordered w-48 justify-self-end"
-				bind:value={media.title}
-				onchange={async (e) => {
-					titleUpdating = true;
-					await updateMediaMetadata();
-					titleUpdating = false;
-				}} />
-		</div>
-
-		<div class="flex items-baseline justify-between gap-2">
-			<p class="label">Size</p>
-			<select
-				class="select select-bordered select-sm w-48"
-				bind:value={selectedResizePreset}
-				onchange={async () => {
-					debug('resizePreset', selectedResizePreset);
-					await mediaResizeFromPreset(media, selectedResizePreset);
-					media = media;
-				}}>
-				{#each Object.keys(resizePresets) as preset}
-					<option value={preset}>{resizePresets[preset].label}</option>
-				{/each}
-			</select>
-		</div>
-		{#if selectedResizePreset === 'custom'}
-			<div class="flex items-center justify-between gap-2">
-				<p class="label">Resolution</p>
-				<div class="flex w-48 items-baseline justify-between gap-2">
-					<input
-						type="number"
-						class="input input-sm input-bordered w-full shrink"
-						placeholder="W"
-						bind:value={resizeWidth} />
-					x
-					<input type="number" class="input input-sm input-bordered w-full" placeholder="H" bind:value={resizeHeight} />
+			<div class="mt-auto flex flex-col items-end justify-self-end">
+				<div class="flex max-h-32 w-32 items-center bg-black">
+					<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
 				</div>
+				<p class="">{media.filename}</p>
+				<p>Media original size: {media.originalWidth}x{media.originalHeight}</p>
+				<p>Media resized size: {media.resizedWidth}x{media.resizedHeight}</p>
+				{#if (media.resizedWidth ?? 0) > (media.originalWidth ?? 0) || (media.resizedHeight ?? 0) > (media.originalHeight ?? 0)}
+					<p class="text-warning">Image upscaled</p>
+				{/if}
+			</div>
+		</div>
+	{:else if media.type === 'text'}
+		<div class="flex h-full max-h-full grow flex-col p-2">
+			<GrowInput bind:value={media.original!.text} oninput={() => (textNeedsSave = true)} />
+		</div>
+		<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
+			<div class="flex items-baseline justify-start gap-2">
+				<p class="label mr-auto">Title</p>
+				{#if titleUpdating}
+					<span class="loading loading-sm"></span>
+				{/if}
+
+				<input
+					type="text"
+					class="input input-sm input-bordered w-48 justify-self-end"
+					bind:value={media.title}
+					onchange={async (e) => {
+						titleUpdating = true;
+						await updateMediaMetadata();
+						titleUpdating = false;
+					}} />
 			</div>
 			<button
-				class="align-self-end btn btn-outline btn-sm w-fit"
+				class="btn btn-outline btn-sm"
+				disabled={!textNeedsSave}
 				onclick={async () => {
-					await mediaResizeFromPreset(media, selectedResizePreset, resizeHeight, resizeHeight);
-				}}><Check /></button>
-		{/if}
-
-		<div class="mt-auto flex flex-col items-end justify-self-end">
-			<div class="flex max-h-32 w-32 items-center bg-black">
-				<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
-			</div>
-			<p class="">{media.filename}</p>
-			<p>Media original size: {media.originalWidth}x{media.originalHeight}</p>
-			<p>Media resized size: {media.resizedWidth}x{media.resizedHeight}</p>
-			{#if (media.resizedWidth ?? 0) > (media.originalWidth ?? 0) || (media.resizedHeight ?? 0) > (media.originalHeight ?? 0)}
-				<p class="text-warning">Image upscaled</p>
-			{/if}
+					await mediaUpdateText(media);
+				}}>Save changes</button>
 		</div>
-	</div>
+	{/if}
 
 	<!-- <div class="flex gap-2">
         <h2 class="text-lg font-bold">{media.title}</h2>
