@@ -3,7 +3,7 @@
 	import { PlusCircle, Upload } from 'lucide-svelte';
 	import { ConversationMediaPreview, MediaEditor } from '.';
 
-	import { mediaCreateThumbnail, syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { fileToMedia, mediaCreateThumbnail, syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { goto } from '$app/navigation';
 
 	import dbg from 'debug';
@@ -14,27 +14,6 @@
 
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
 
-	async function fileToMedia(file: File): Promise<MediaInterface> {
-		if (!A.dbUser) throw new Error('User not logged in');
-
-		const m: MediaInterface = {
-			active: true,
-			repeat: true,
-			userID: A.dbUser.id,
-			title: file.name,
-			filename: file.name,
-			type: await typeFromFile(file), // Now awaiting the result
-			original: {
-				mimeType: file.type,
-				size: file.size,
-				userID: A.dbUser.id,
-				file: file
-			}
-		};
-
-		await mediaCreateThumbnail(m);
-		return m;
-	}
 
 	// Handle file input change
 	async function handleFileChange(event: Event) {

@@ -3,6 +3,7 @@ import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
 import { assert } from './utils';
+import { typeFromFile } from './filetype';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -163,7 +164,7 @@ export async function mediaProcessResize(media: MediaInterface) {
 	assert(media.original);
 	assert(media.original.file);
 	await syncMedia(media);
-	if (!media.resized) {
+	if (!media.resized && media.type === 'image') {
 		assert(media.originalWidth);
 		assert(media.originalHeight);
 
@@ -368,3 +369,27 @@ export async function uploadConversationMedia() {
 	A.mediaUploading = false;
 	return createdNewConversation;
 }
+
+
+export async function fileToMedia(file: File): Promise<MediaInterface> {
+	if (!A.dbUser) throw new Error('User not logged in');
+
+	const m: MediaInterface = {
+		active: true,
+		repeat: true,
+		userID: A.dbUser.id,
+		title: file.name,
+		filename: file.name,
+		type: await typeFromFile(file),
+		original: {
+			mimeType: file.type,
+			size: file.size,
+			userID: A.dbUser.id,
+			file: file
+		}
+	};
+
+	await mediaCreateThumbnail(m);
+	return m;
+}
+

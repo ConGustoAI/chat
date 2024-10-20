@@ -3,7 +3,8 @@
 	import { env } from '$env/dynamic/public';
 	import { A } from '$lib/appstate.svelte';
 	import { CostEstimate, GrowInput, MediaCarousel, Notification } from '$lib/components';
-	import { trimLineLength } from '$lib/utils/utils';
+	import { fileToMedia } from '$lib/utils/media_utils.svelte';
+	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
@@ -112,8 +113,33 @@
 		}
 	});
 
-
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
+
+	async function handlePaste(event: ClipboardEvent, textBox: HTMLDivElement | null) {
+		debug('handlePaste', event.clipboardData?.getData('text/plain'));
+		event.preventDefault();
+		const text = event.clipboardData?.getData('text/plain');
+		if (!text) return;
+		// document.execCommand('insertText', false, text);
+
+		const numLines = text.split('\n').length;
+		debug('numLines', numLines);
+
+		if (numLines > 20 || text.length > 1000) {
+			const textFile = new File([text], 'pasted.txt', { type: 'text/plain' });
+			const textMedia = await fileToMedia(textFile);
+
+			assert(A.conversation);
+
+			if (!A.conversation.media) A.conversation.media = [];
+			A.conversation.media.push(textMedia);
+
+			A.conversationUploadOpen = true;
+		} else {
+			assert(textBox);
+			document.execCommand('insertText', false, text);
+		}
+	}
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
@@ -158,6 +184,7 @@
 				bind:focused={inputFocus}
 				bind:value={input}
 				onkeydown={inputKeyboardHandler}
+				{handlePaste}
 				disabled={A.chatStreaming}
 				placeholder="User message"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />

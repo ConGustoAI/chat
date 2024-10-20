@@ -13,7 +13,8 @@
 		focused = $bindable(),
 		oninput = () => {},
 		onkeydown = () => {},
-		onchange = () => {}
+		onchange = () => {},
+		handlePaste = _handlePaste
 	} = $props<{
 		value: string | undefined;
 		placeholder?: string;
@@ -24,16 +25,18 @@
 		oninput?: (event: Event) => void;
 		onkeydown?: (event: KeyboardEvent) => void;
 		onchange?: (event: Event) => void;
+		handlePaste?: (event: ClipboardEvent, textBox: HTMLDivElement | null) => void;
 	}>();
 
 	let textBox: HTMLDivElement | null = $state(null);
 
-	function handlePaste(event: ClipboardEvent) {
+	function _handlePaste(event: ClipboardEvent, textBox: HTMLDivElement | null) {
 		event.preventDefault();
 		const text = event.clipboardData?.getData('text/plain');
 		if (!textBox || !text) return;
 		document.execCommand('insertText', false, text);
 	}
+
 </script>
 
 <div class="relative h-full w-full">
@@ -55,11 +58,11 @@
 			bind:innerText={value}
 			onfocus={() => (focused = true)}
 			onblur={() => (focused = false)}
-			onpaste={handlePaste}
+			onpaste={() => handlePaste(event, textBox)}
 			{oninput}
 			{onkeydown}
 			{onchange}
-			class={cn('textarea min-h-10  h-full overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
+			class={cn('textarea h-full  min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
 		</div>
 		{#if value === '' && !focused}
 			<div class={cn('pointer-events-none absolute inset-0 p-2 opacity-50', className)}>

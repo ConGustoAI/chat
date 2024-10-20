@@ -3,9 +3,7 @@
 	import { APIdeleteMessages, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
 	import {
-		Cost,
 		CostEstimate,
-		DeleteButton,
 		GrowInput,
 		MarkdownMessage,
 		MediaCarousel,
@@ -14,12 +12,12 @@
 	} from '$lib/components';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
-	import { Computer, Copy, Edit, Repeat, Smile, PlusCircle } from 'lucide-svelte';
+	import { Computer, PlusCircle, Smile } from 'lucide-svelte';
 
+	import { ChatMessageControls, Notification } from '$lib/components';
+	import { fileToMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { ConversationMediaPreview, Notification, ChatMessageControls } from '$lib/components';
-	import { uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -36,8 +34,6 @@
 
 	let chatError: string | undefined = $state();
 	let markdown = $state(message.role === 'assistant');
-
-	let originalMessage = $state('');
 
 	let savingMessage = $state(false);
 
@@ -130,6 +126,35 @@
 		}
 	}
 
+	async function handlePaste(event: ClipboardEvent, textBox: HTMLDivElement | null) {
+		debug('handlePaste', event.clipboardData?.getData('text/plain'));
+		event.preventDefault();
+		const text = event.clipboardData?.getData('text/plain');
+		if (!text) return;
+		// document.execCommand('insertText', false, text);
+
+		const numLines = text.split('\n').length;
+		debug('numLines', numLines);
+
+		if (numLines > 20 || text.length > 1000) {
+			const textFile = new File([text], 'pasted.txt', { type: 'text/plain' });
+			const textMedia = await fileToMedia(textFile);
+
+			assert(A.conversation);
+
+			if (!A.conversation.media) A.conversation.media = [];
+			A.conversation.media.push(textMedia);
+
+			if (!message.media) message.media = [];
+			message.media.push(textMedia);
+
+			A.conversationUploadOpen = true;
+		} else {
+			assert(textBox);
+			document.execCommand('insertText', false, text);
+		}
+	}
+
 	function shouldShowDivider() {
 		let idx = A.conversation?.messages?.findIndex((m) => m === message);
 		if (!idx) return false;
@@ -147,7 +172,7 @@
 {#if message.media?.length || (message.editing && message.role === 'user')}
 	<div class="flex flex-col bg-base-usermessage">
 		<div
-			class="carousel carousel-center h-fit w-full shrink-0 items-end space-x-4 bg-base-usermessage p-2 ml-10"
+			class="carousel carousel-center ml-10 max-w-full shrink-0 items-end bg-base-usermessage p-2 gap-2"
 			role="region"
 			aria-label="Image upload area">
 			{#if message.editing && message.role === 'user'}
@@ -227,7 +252,8 @@
 					placeholder={message.role === 'user' ? 'User message' : 'Start Assistant message'}
 					bind:focused={inputFocus}
 					bind:value={message.text}
-					onkeydown={inputKeyboardHandler} />
+					onkeydown={inputKeyboardHandler}
+					{handlePaste} />
 				<div class="mt-2 flex w-full items-start justify-start gap-2">
 					<button
 						class="btn btn-outline btn-sm"
