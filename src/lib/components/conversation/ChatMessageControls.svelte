@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { APIdeleteMessages, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { addMessage, assert, updateMessage } from '$lib/utils/utils';
+	import { addMessage, assert, isPublicPage, updateMessage } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Copy, Edit, Menu, Repeat } from 'lucide-svelte';
 	import { DeleteButton, Cost } from '$lib/components';
@@ -12,14 +12,12 @@
 		message = $bindable(),
 		savingMessage = $bindable(),
 		markdown = $bindable(),
-		isPublic = false,
 		submitConversation,
 		chatError = $bindable()
 	}: {
 		message: MessageInterface;
 		savingMessage: boolean;
 		markdown: boolean;
-		isPublic: boolean;
 		submitConversation: () => Promise<void>;
 		chatError: string | undefined;
 	} = $props();
@@ -122,11 +120,11 @@
 			</div>
 		{/if}
 		<!-- {message.order} -->
-		{#if message.role == 'assistant' && !isPublic}
+		{#if message.role == 'assistant' && !isPublicPage()}
 			<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" title="Generate a new response" onclick={reGenerate}
 				><Repeat size={15} /></button>
 		{/if}
-		{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublic}
+		{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublicPage()}
 			<button
 				title="Edit message"
 				class="btn btn-ghost btn-xs rounded-md p-0 px-1"
@@ -143,14 +141,14 @@
 			onclick={() => {
 				navigator.clipboard.writeText(message.text);
 			}}><Copy size={15} /></button>
-		{#if !isPublic}
+		{#if !isPublicPage()}
 			<DeleteButton
 				title="Delete message"
 				class="dropdown-end"
 				btnClass="btn-xs btn-ghost rounded-md p-1"
 				deleteAction={deleteMessage} />
 		{/if}
-		{#if !A.dbUser || A.dbUser.hacker || isPublic}
+		{#if !A.dbUser || A.dbUser.hacker || isPublicPage()}
 			<button
 				title="Toggle markdown"
 				class="btn btn-ghost btn-outline btn-xs h-5 min-h-4 rounded-md p-0 px-1"
@@ -159,7 +157,7 @@
 					markdown = !markdown;
 				}}>{markdown ? 'md' : 'raw'}</button>
 		{/if}
-		{#if !A.dbUser || A.dbUser.hacker}
+		{#if !A.dbUser || A.dbUser.hacker && !isPublicPage()}
 			<div class="dropdown dropdown-end">
 				<button class="btn btn-ghost btn-xs rounded-md p-1" title="More options">
 					<Menu size="fit-h" />

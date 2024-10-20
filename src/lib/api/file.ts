@@ -52,3 +52,16 @@ export function FileInterfaceFilter(file: FileInterface) {
 
 	return filteredFile as FileInterface;
 }
+
+export async function fetchFileByID(id: string, name: string = 'filename') {
+	const url = `/api/bucket/${id}`;
+	debug('Fetching file from %o', url);
+	const response = await fetch(url);
+
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+
+	const blob = await response.blob();
+	return new File([blob], name);
+}

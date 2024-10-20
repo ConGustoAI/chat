@@ -1,4 +1,4 @@
-import { APIupsertConversation, APIupsertFile, APIupsertMedia } from '$lib/api';
+import { APIupsertConversation, APIupsertFile, APIupsertMedia, fetchFileByID } from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
@@ -80,21 +80,15 @@ export async function resizeImage(
 }
 
 export async function syncFileURL(file: FileInterface, filename: string = 'file') {
+	debug('syncFileURL', $state.snapshot(file));
+
 	if (!file.file && !file.url) {
 		if (!file.id) throw new Error('FileInterface must have either file or url or id');
-		file.url = `/api/bucket/${file.id}`;
 	}
 
-	if (!file.file && file.url) {
-		debug('Fetching file from %o', file.url);
-		const response = await fetch(file.url);
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		const blob = await response.blob();
-		file.file = new File([blob], filename, { type: file.mimeType });
-		debug('Fetched file %o', file.file);
+	if (!file.file) {
+		assert(file.id, 'File ID not found');
+		file.file = await fetchFileByID(file.id, filename);
 	}
 
 	if (!file.url && file.file) {
@@ -163,7 +157,7 @@ export const resizePresets: { [key: string]: ResizePreset } = {
 export async function mediaProcessResize(media: MediaInterface) {
 	assert(media.original);
 	assert(media.original.file);
-	await syncMedia(media);
+	// await syncMedia(media);
 	if (!media.resized && media.type === 'image') {
 		assert(media.originalWidth);
 		assert(media.originalHeight);
@@ -183,7 +177,7 @@ export async function mediaProcessResize(media: MediaInterface) {
 export async function mediaCreateThumbnail(media: MediaInterface) {
 	assert(media.original);
 	assert(media.original.file);
-	await syncMedia(media);
+	// await syncMedia(media);
 	if (!media.thumbnail) {
 		if (media.type === 'image') {
 			assert(media.originalWidth);
@@ -370,7 +364,6 @@ export async function uploadConversationMedia() {
 	return createdNewConversation;
 }
 
-
 export async function fileToMedia(file: File): Promise<MediaInterface> {
 	if (!A.dbUser) throw new Error('User not logged in');
 
@@ -392,4 +385,3 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 	await mediaCreateThumbnail(m);
 	return m;
 }
-

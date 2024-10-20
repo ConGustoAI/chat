@@ -27,8 +27,7 @@
 				if (!A.conversation.media) A.conversation.media = [];
 
 				for (const m of A.conversation.media) {
-					await syncMedia(m);
-					await Promise.all([mediaCreateThumbnail(m), mediaProcessResize(m)]);
+					syncMedia(m).then(async () => Promise.all([mediaProcessResize(m), mediaCreateThumbnail(m)]));
 				}
 
 				A.conversation.messages?.map((m) => {

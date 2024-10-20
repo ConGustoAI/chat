@@ -1,76 +1,96 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import { APIfetchPublicConversation } from '$lib/api';
+	import { APIfetchConversation, APIfetchPublicConversation } from '$lib/api';
 	import { ChatMessage, ChatTitle, MetaTag } from '$lib/components';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	import dbg from 'debug';
 	import { A } from '$lib/appstate.svelte';
 	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
+	import { assert } from '$lib/utils/utils';
+	import { mediaCreateThumbnail, mediaProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
 	const debug = dbg('app:ui:public');
 
-	// $effect.pre(() => {
-	// 	A.conversation = data.conversation;
-	// });
+	async function fetchConversation(convID: string): Promise<void> {
+		assert(convID);
 
-	// onMount(async () => {
-	// 	debug('onMount');
-	// 	$chatDataLoading = true;
-	// 	conversation = await APIfetchPublicConversation($page.params.chat).catch((e) => {
-	// 		debug('Failed to fetch conversation:', e);
-	// 		$chatDataLoading = false;
-	// 		return undefined;
-	// 	});
+		A.chatDataLoading = true;
 
-	// 	$chatDataLoading = false;
-	// 	debug('onMount', { conversation });
-	// });
+		try {
+			A.conversation = await APIfetchConversation(convID);
 
-	// let title = A.conversation ? A.conversation.summary || 'New Chat' : 'Not found';
+			if (!A.conversation.media) A.conversation.media = [];
 
+			for (const m of A.conversation.media) {
+				// Don't await.
+				syncMedia(m).then(async () => Promise.all([mediaProcessResize(m), mediaCreateThumbnail(m)]));
+			}
 
+			A.conversation.messages?.map((m) => {
+				m.markdownCache = undefined;
+				if (m.mediaIDs?.length) {
+					m.media = [];
+					for (const mediaID of m.mediaIDs) {
+						const media = A.conversation?.media?.find((m) => m.id === mediaID);
+						if (media) {
+							m.media.push(media);
+						}
+					}
+				}
+			});
+		} catch (e) {
+			debug('error fetching conversation', e);
+		} finally {
+			A.chatDataLoading = false;
+			debug('done fetching conversation', $state.snapshot(A.conversation));
+		}
+	}
 
-	// let description = $derived(makeDescription(A.conversation));
+	$effect(() => {
+		// This gets called once on mount, so we add the check to avid a double fetch.
+		if ($page.params.chat && untrack(() => A.conversation?.id !== $page.params.chat)) {
+			fetchConversation($page.params.chat).then();
+		}
+	});
 
-	debug('page', $page);
+	// debug('page', $page);
 </script>
-
-<!-- <MetaTag {title} url={$page.url.href} {description} /> -->
 
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle isPublic={true} />
-
-		<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
-			{#if A.conversation?.messages}
-				{#each A.conversation.messages as m, i}
-					<ChatMessage message={A.conversation.messages[i]} isPublic={true} submitConversation={async () => {}} />
-				{/each}
-				<div class=" mb-20 w-full"></div>
-			{:else}
-				<div class="flex h-full flex-col items-center">
-					{#if !A.conversation}
-						<p class="w-fit text-nowrap text-[2vw]">Conversation does not exist or is not public</p>
-						<a
-							href="/chat"
-							class="m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold"
-							style="opacity:0.1">
-							<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
-							<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
-						</a>
-					{:else}
-						<div
-							class="pointer-events-none m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale"
-							style="opacity:0.05">
-							<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
-							<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
-						</div>
-					{/if}
-				</div>
-			{/if}
-		</div>
-		<div class="divider w-full"></div>
+		{#if !A.chatDataLoading}
+			<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
+				{#if A.conversation?.messages}
+					{#each A.conversation.messages as m, i}
+						<ChatMessage message={A.conversation.messages[i]} isPublic={true} submitConversation={async () => {}} />
+					{/each}
+					<div class=" mb-20 w-full"></div>
+				{:else}
+					<div class="flex h-full flex-col items-center">
+						{#if !A.conversation}
+							<p class="w-fit text-nowrap text-[2vw]">Conversation does not exist or is not public</p>
+							<a
+								href="/chat"
+								class="m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold"
+								style="opacity:0.1">
+								<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
+								<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
+							</a>
+						{:else}
+							<div
+								class="pointer-events-none m-auto flex h-full w-1/3 select-none flex-col items-center justify-center gap-6 justify-self-center font-bold grayscale"
+								style="opacity:0.05">
+								<img class="w-[50%]" src="/favicon.png" alt="Congusto" />
+								<p class="w-fit text-nowrap text-[3vw]">Congusto Chat</p>
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+			<div class="divider w-full"></div>
+		{/if}
 	</div>
 	<MediaEditor />
 </main>
