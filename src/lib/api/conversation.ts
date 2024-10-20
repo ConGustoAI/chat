@@ -5,7 +5,7 @@ import dbg from 'debug';
 const debug = dbg('app:lib:api:conversation');
 
 // This can run on the backend or the frontend, so we pass fetch as an argument.
-export async function APIfetchPublicConversation(id: string, fetch: typeof window.fetch = window.fetch) {
+export async function APIfetchPublicConversation(id: string) {
 	debug('fetchPublicConversation %o', { id });
 
 	const res = await fetch(`/api/public/${id}`);

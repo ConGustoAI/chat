@@ -6,10 +6,9 @@
 	import { onMount } from 'svelte';
 
 	import dbg from 'debug';
+	import { A } from '$lib/appstate.svelte';
+	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
 	const debug = dbg('app:ui:public');
-
-	let { data } = $props();
-	let A = { conversation: data.conversation };
 
 	// $effect.pre(() => {
 	// 	A.conversation = data.conversation;
@@ -28,27 +27,22 @@
 	// 	debug('onMount', { conversation });
 	// });
 
-	let title = A.conversation ? A.conversation.summary || 'New Chat' : 'Not found';
+	// let title = A.conversation ? A.conversation.summary || 'New Chat' : 'Not found';
 
-	function makeDescription(conversation: ConversationInterface | undefined) {
-		if (!conversation?.messages?.length) return '';
 
-		const text = conversation?.messages?.length === 1 ? conversation.messages[0].text : conversation.messages[1].text;
-		return (text.length > 80 ? text.slice(0, 77) + '...' : text).split('\n')[0];
-	}
 
-	let description = $derived(makeDescription(A.conversation));
+	// let description = $derived(makeDescription(A.conversation));
 
 	debug('page', $page);
 </script>
 
-<MetaTag {title} url={$page.url.href} {description} />
+<!-- <MetaTag {title} url={$page.url.href} {description} /> -->
 
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
 		<ChatTitle isPublic={true} />
 
-		<div class="mb-auto w-full grow overflow-auto bg-transparent bg-opacity-10">
+		<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
 			{#if A.conversation?.messages}
 				{#each A.conversation.messages as m, i}
 					<ChatMessage message={A.conversation.messages[i]} isPublic={true} submitConversation={async () => {}} />
@@ -56,7 +50,7 @@
 				<div class=" mb-20 w-full"></div>
 			{:else}
 				<div class="flex h-full flex-col items-center">
-					{#if !data.conversation}
+					{#if !A.conversation}
 						<p class="w-fit text-nowrap text-[2vw]">Conversation does not exist or is not public</p>
 						<a
 							href="/chat"
@@ -78,6 +72,7 @@
 		</div>
 		<div class="divider w-full"></div>
 	</div>
+	<MediaEditor />
 </main>
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->

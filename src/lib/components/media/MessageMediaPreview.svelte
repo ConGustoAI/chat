@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { assert } from '$lib/utils/utils';
+	import { assert, isPublicPage } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { RefreshCcwIcon, RefreshCwOff, X, Edit } from 'lucide-svelte';
+	import { RefreshCcwIcon, RefreshCwOff, X, Edit, Eye } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	const debug = dbg('app:ui:components:MessageMediaPreview');
 
@@ -141,25 +141,42 @@
 	<!-- {/if} -->
 
 	{#if isHovered}
-		<div
-			class="absolute right-0 top-0 flex items-start gap-1 rounded-md bg-primary bg-opacity-30 p-1"
-			transition:fade={{ duration: 100 }}>
-			{#if !A.dbUser || A.dbUser.hacker}
-				<label
-					class="swap swap-rotate btn-xs z-40 p-0.5"
-					title={media.repeat ? 'Send the image for every chat turn' : 'Send the image once'}>
-					<input type="checkbox" class="" bind:checked={media.repeat} />
-					<RefreshCcwIcon class="swap-on" size="fit-h" />
-					<RefreshCwOff class="swap-off " size="fit-h" />
-				</label>
-			{/if}
-		</div>
-		{#if message.editing}
-			<div class="absolute left-0 top-0 size-full p-6">
-				<button class="rounded-md bg-black bg-opacity-50 text-error" onclick={unlinkMedia}>
-					<X size="fit-h" />
-				</button>
+		{#if !isPublicPage()}
+			<div
+				class="absolute right-0 top-0 flex items-start gap-1 rounded-md bg-primary bg-opacity-30 p-1"
+				transition:fade={{ duration: 100 }}>
+				{#if !A.dbUser || A.dbUser.hacker}
+					<label
+						class="swap swap-rotate btn-xs z-40 p-0.5"
+						title={media.repeat ? 'Send the image for every chat turn' : 'Send the image once'}>
+						<input type="checkbox" class="" bind:checked={media.repeat} />
+						<RefreshCcwIcon class="swap-on" size="fit-h" />
+						<RefreshCwOff class="swap-off " size="fit-h" />
+					</label>
+				{/if}
 			</div>
+
+			{#if message.editing}
+				<div class="absolute left-0 top-0 size-full p-6">
+					<button class="rounded-md bg-black bg-opacity-50 text-error" onclick={unlinkMedia}>
+						<X size="fit-h" />
+					</button>
+				</div>
+			{:else}
+				<div class="absolute left-0 top-0 size-full p-8">
+					<button
+						class="rounded-md bg-black bg-opacity-50"
+						onclick={() => {
+							if (A.mediaEditing) {
+								A.mediaEditing = undefined;
+							} else {
+								A.mediaEditing = media;
+							}
+						}}>
+						<Edit size="fit-h" />
+					</button>
+				</div>
+			{/if}
 		{:else}
 			<div class="absolute left-0 top-0 size-full p-8">
 				<button
@@ -171,7 +188,7 @@
 							A.mediaEditing = media;
 						}
 					}}>
-					<Edit size="fit-h" />
+					<Eye size="fit-h" />
 				</button>
 			</div>
 		{/if}

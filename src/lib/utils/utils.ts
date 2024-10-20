@@ -199,3 +199,8 @@ export async function addMessage({
 		await Promise.all(promises);
 	}
 }
+
+export function isPublicPage() {
+	return location.pathname.startsWith('/public/');
+}
+

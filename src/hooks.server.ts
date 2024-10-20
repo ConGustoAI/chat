@@ -8,8 +8,15 @@ export const sse = false;
 
 import { userInterfaceFilter } from '$lib/api';
 import { lucia } from '$lib/db/auth';
-import { DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
+import { DBGetPublicConversation, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
 import { filterNull } from '$lib/utils/utils';
+
+function makeDescription(conversation: ConversationInterface | undefined) {
+	if (!conversation?.messages?.length) return '';
+
+	const text = conversation?.messages?.length === 1 ? conversation.messages[0].text : conversation.messages[1].text;
+	return (text.length > 80 ? text.slice(0, 77) + '...' : text).split('\n')[0];
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
@@ -69,9 +76,43 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.dbUser = undefined;
 	}
 
+	let meta_tags = '';
+	if (event.url.pathname.match(/^\/public\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+		const id = event.url.pathname.split('/')[2];
+
+		const conversation = filterNull(await DBGetPublicConversation({ id })) as ConversationInterface | undefined;
+		const description = makeDescription(conversation);
+		const summary = conversation?.summary || 'New Chat';
+		debug('public conversation %o', conversation);
+
+		meta_tags = `
+			<meta name="description" content="${summary}">
+			<meta name="twitter:title" content="${summary}">
+			<meta name="twitter:description" content="${description}">
+			<meta property="og:title" content="${summary}">
+			<meta property="og:description" content="${description}">
+			<meta property="og:url" content="${event.request.url}">
+			<meta property="og:type" content="website">
+			<meta property="og:site_name" content="👍 Congusto Chat">
+		`;
+	} else {
+		meta_tags = `
+			<meta name="description" content="👍 Congusto Chat">
+			<meta name="twitter:title" content="👍 Congusto Chat">
+			<meta property="og:title" content="👍 Congusto Chat">
+			<meta property="og:type" content="website">
+			<meta property="og:url" content="${event.request.url}">
+		`;
+	}
+	return resolve(event, {
+		transformPageChunk: ({ html }) => {
+			return html.replace('%social_meta_tags%', meta_tags);
+		}
+	});
+
 	// debug("dbUser", event.locals.dbUser)
 
 	// debug("hook %o", {session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser, assistants: event.locals.assistants, hiddenItems: event.locals.hiddenItems});
 
-	return resolve(event);
+	// return resolve(event);
 };

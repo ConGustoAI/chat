@@ -6,7 +6,7 @@
 	import dbg from 'debug';
 	import GrowInput from '../GrowInput.svelte';
 	import { A } from '$lib/appstate.svelte';
-	import { assert } from '$lib/utils/utils';
+	import { assert, isPublicPage } from '$lib/utils/utils';
 
 	const debug = dbg('app:ui:components:MediaEditor');
 
@@ -61,26 +61,35 @@
 	let textNeedsSave = $state(false);
 </script>
 
-<dialog class="modal" open={!!A.mediaEditing}>
-	<div class="modal-box max-w-none flex w-[66%] h-[66%] rounded-sm grow items-stretch justify-start overflow-hidden border p-1">
+<dialog class="modal inset-3 h-auto w-auto p-4" open={!!A.mediaEditing}>
+	<div
+		class="modal-box flex h-[80%] w-[99%] max-w-max flex-col rounded-sm border p-1 md:flex-row md:overflow-hidden lg:w-[80%]">
 		{#if A.mediaEditing}
 			{#if A.mediaEditing?.type === 'image'}
-				<div class="flex-grow-1 mx-auto flex-shrink-0">
-					<img
-						src={displayedImageURL}
-						alt={A.mediaEditing.title}
-						class="pixilated bg-checkered mx-auto h-full max-h-full max-w-full object-contain" />
+				<!-- <div class="grow-1 mx-auto my-auto flex max-h-full shrink justify-start overflow-hidden p-1"> -->
+				<img
+					src={displayedImageURL}
+					alt={A.mediaEditing.title}
+					class="pixilated bg-checkered m-auto shrink overflow-hidden object-contain max-h-full" />
+				<!-- </div> -->
+			{:else if A.mediaEditing?.type === 'text'}
+				<div class="flex h-full max-h-full grow flex-col p-2">
+					<GrowInput
+						bind:value={A.mediaEditing.original!.text}
+						oninput={() => (textNeedsSave = true)}
+						disabled={isPublicPage()} />
 				</div>
+			{/if}
 
-				<!-- <div class="backgroud-blue-300 ml-auto w-full grow bg-blue-300"></div> -->
+			<div
+				class="flex min-w-fit shrink-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0">
+				<div class="flex items-baseline justify-start gap-2">
+					<p class="label mr-auto">Title:</p>
+					{#if titleUpdating}
+						<span class="loading loading-sm"></span>
+					{/if}
 
-				<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
-					<div class="flex items-baseline justify-start gap-2">
-						<p class="label mr-auto">Title</p>
-						{#if titleUpdating}
-							<span class="loading loading-sm"></span>
-						{/if}
-
+					{#if !isPublicPage()}
 						<input
 							type="text"
 							class="input input-sm input-bordered w-48 justify-self-end"
@@ -90,46 +99,52 @@
 								await updateMediaMetadata();
 								titleUpdating = false;
 							}} />
-					</div>
+					{:else}
+						<p>{A.mediaEditing.title}</p>
+					{/if}
+				</div>
 
-					<div class="flex items-baseline justify-between gap-2">
-						<p class="label">Size</p>
-						<select
-							class="select select-bordered select-sm w-48"
-							bind:value={selectedResizePreset}
-							onchange={async () => {
-								debug('resizePreset', selectedResizePreset);
-								assert(A.mediaEditing);
-								await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset);
-							}}>
-							{#each Object.keys(resizePresets) as preset}
-								<option value={preset}>{resizePresets[preset].label}</option>
-							{/each}
-						</select>
-					</div>
-					{#if selectedResizePreset === 'custom'}
-						<div class="flex items-center justify-between gap-2">
-							<p class="label">Resolution</p>
-							<div class="flex w-48 items-baseline justify-between gap-2">
-								<input
-									type="number"
-									class="input input-sm input-bordered w-full shrink"
-									placeholder="W"
-									bind:value={resizeWidth} />
-								x
-								<input
-									type="number"
-									class="input input-sm input-bordered w-full"
-									placeholder="H"
-									bind:value={resizeHeight} />
-							</div>
+				{#if A.mediaEditing.type === 'image'}
+					{#if !isPublicPage()}
+						<div class="flex items-baseline justify-between gap-2">
+							<p class="label">Size</p>
+							<select
+								class="select select-bordered select-sm w-48"
+								bind:value={selectedResizePreset}
+								onchange={async () => {
+									debug('resizePreset', selectedResizePreset);
+									assert(A.mediaEditing);
+									await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset);
+								}}>
+								{#each Object.keys(resizePresets) as preset}
+									<option value={preset}>{resizePresets[preset].label}</option>
+								{/each}
+							</select>
 						</div>
-						<button
-							class="align-self-end btn btn-outline btn-sm w-fit"
-							onclick={async () => {
-								assert(A.mediaEditing);
-								await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset, resizeHeight, resizeHeight);
-							}}><Check /></button>
+						{#if selectedResizePreset === 'custom'}
+							<div class="flex items-center justify-between gap-2">
+								<p class="label">Resolution</p>
+								<div class="flex w-48 items-baseline justify-between gap-2">
+									<input
+										type="number"
+										class="input input-sm input-bordered w-full shrink"
+										placeholder="W"
+										bind:value={resizeWidth} />
+									x
+									<input
+										type="number"
+										class="input input-sm input-bordered w-full"
+										placeholder="H"
+										bind:value={resizeHeight} />
+								</div>
+							</div>
+							<button
+								class="align-self-end btn btn-outline btn-sm w-fit"
+								onclick={async () => {
+									assert(A.mediaEditing);
+									await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset, resizeHeight, resizeHeight);
+								}}><Check /></button>
+						{/if}
 					{/if}
 
 					<div class="mt-auto flex flex-col items-end justify-self-end">
@@ -137,51 +152,29 @@
 							<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
 						</div>
 						<p class="">{A.mediaEditing.filename}</p>
-						<p>Media original size: {A.mediaEditing.originalWidth}x{A.mediaEditing.originalHeight}</p>
-						<p>Media resized size: {A.mediaEditing.resizedWidth}x{A.mediaEditing.resizedHeight}</p>
+						<p>Original: {A.mediaEditing.originalWidth}x{A.mediaEditing.originalHeight}</p>
+						{#if A.mediaEditing.resizedWidth && A.mediaEditing.resizedHeight}
+							<p>Resized: {A.mediaEditing.resizedWidth}x{A.mediaEditing.resizedHeight}</p>
+						{/if}
 						{#if (A.mediaEditing.resizedWidth ?? 0) > (A.mediaEditing.originalWidth ?? 0) || (A.mediaEditing.resizedHeight ?? 0) > (A.mediaEditing.originalHeight ?? 0)}
 							<p class="text-warning">Image upscaled</p>
 						{/if}
 					</div>
-				</div>
-			{:else if A.mediaEditing?.type === 'text'}
-				<div class="flex h-full max-h-full grow flex-col p-2">
-					<GrowInput bind:value={A.mediaEditing.original!.text} oninput={() => (textNeedsSave = true)} />
-				</div>
-				<div class="flex grow-0 flex-col items-end gap-1 border-l p-1">
-					<div class="flex items-baseline justify-start gap-2">
-						<p class="label mr-auto">Title</p>
-						{#if titleUpdating}
-							<span class="loading loading-sm"></span>
-						{/if}
-
-						<input
-							type="text"
-							class="input input-sm input-bordered w-48 justify-self-end"
-							bind:value={A.mediaEditing.title}
-							onchange={async (e) => {
-								titleUpdating = true;
-								await updateMediaMetadata();
-								titleUpdating = false;
-							}} />
-					</div>
-					<button
-						class="btn btn-outline btn-sm"
-						disabled={!textNeedsSave}
-						onclick={async () => {
-							assert(A.mediaEditing);
-							await mediaUpdateText(A.mediaEditing);
-						}}>Save changes</button>
-				</div>
-			{/if}
+				{:else if A.mediaEditing.type === 'text'}
+					{#if !isPublicPage()}
+						<button
+							class="btn btn-outline btn-sm"
+							disabled={!textNeedsSave}
+							onclick={async () => {
+								assert(A.mediaEditing);
+								await mediaUpdateText(A.mediaEditing);
+							}}>Save changes</button>
+					{/if}
+				{/if}
+			</div>
 		{/if}
-		<!-- <form method="dialog" class="modal-backdrop"> -->
-		<!-- </form> -->
-		<!-- <div class="flex gap-2">
-			<h2 class="text-lg font-bold">{media.title}</h2>
-			<button class="btn btn-sm btn-outline" on:click={() => (titleEdit = !titleEdit)}>Edit</button>
-		</div> -->
 	</div>
+
 	<button
 		class="modal-backdrop"
 		onclick={() => {
