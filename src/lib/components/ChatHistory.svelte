@@ -260,18 +260,16 @@
 			placeholder="Assistant/Provider/Model"
 			onfocus={() => (searchAMPFocused = true)}
 			onblur={() => {
-				setTimeout(() => {
-					searchAMPFocused = false;
-				}, 1000);
+				searchAMPFocused = false;
 			}}
 			bind:value={searchAMP} />
 
-		{#if searchAMPFocused || searchAMP?.length}
+		{#if searchAMPFocused}
 			<div
 				class="absolute left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
 				{#each historyAMPOptions as option}
 					<button
-						class="btn btn-ghost cursor-pointer text-nowrap px-4 py-2 text-start"
+						class="btn btn-ghost btn-xs cursor-pointer text-nowrap px-4 py-0 justify-start text-sm"
 						onclick={() => (searchAMP = option)}>
 						{option}
 					</button>
