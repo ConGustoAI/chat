@@ -167,6 +167,8 @@
 								assert(A.mediaEditing);
 								await mediaUpdateText(A.mediaEditing);
 							}}>Save changes</button>
+					{:else}
+							<div class="grow m-auto"></div>
 					{/if}
 				{/if}
 				<button
