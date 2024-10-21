@@ -148,7 +148,7 @@
 				{#if !A.dbUser || A.dbUser.hacker}
 					<label
 						class="swap swap-rotate btn-xs z-40 p-0.5"
-						title={media.repeat ? 'Send the image for every chat turn' : 'Send the image once'}>
+						title={media.repeat ? 'Send the file for every chat turn' : 'Send the file once'}>
 						<input type="checkbox" class="" bind:checked={media.repeat} />
 						<RefreshCcwIcon class="swap-on" size="fit-h" />
 						<RefreshCwOff class="swap-off " size="fit-h" />
