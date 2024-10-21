@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check } from 'lucide-svelte';
+	import { Check, X } from 'lucide-svelte';
 
 	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
 	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
@@ -61,17 +61,15 @@
 	let textNeedsSave = $state(false);
 </script>
 
-<dialog class="modal inset-3 h-auto w-auto p-4" open={!!A.mediaEditing}>
+<dialog class="modal inset-0" open={!!A.mediaEditing}>
 	<div
-		class="modal-box flex h-[80%] w-[99%] max-w-max flex-col rounded-sm border p-1 md:flex-row md:overflow-hidden lg:w-[80%]">
+		class="modal-box relative flex h-[80vh] w-[95vw] min-w-[95vw] flex-col rounded-sm border p-1 md:flex-row md:overflow-hidden lg:w-[80vw] lg:min-w-[80vw]">
 		{#if A.mediaEditing}
 			{#if A.mediaEditing?.type === 'image'}
-				<!-- <div class="grow-1 mx-auto my-auto flex max-h-full shrink justify-start overflow-hidden p-1"> -->
 				<img
 					src={displayedImageURL}
 					alt={A.mediaEditing.title}
-					class="pixilated bg-checkered m-auto shrink overflow-hidden object-contain max-h-full" />
-				<!-- </div> -->
+					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
 			{:else if A.mediaEditing?.type === 'text'}
 				<div class="flex h-full max-h-full grow flex-col p-2">
 					<GrowInput
@@ -82,7 +80,7 @@
 			{/if}
 
 			<div
-				class="flex min-w-fit shrink-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0">
+				class="flex min-w-fit shrink-0 grow-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0">
 				<div class="flex items-baseline justify-start gap-2">
 					<p class="label mr-auto">Title:</p>
 					{#if titleUpdating}
@@ -171,12 +169,16 @@
 							}}>Save changes</button>
 					{/if}
 				{/if}
+				<button
+					class="btn btn-outline btn-sm justify-self-end bg-base-200 p-1 mt-auto"
+					onclick={() => (A.mediaEditing = undefined)}>Close</button>
 			</div>
 		{/if}
 	</div>
 
 	<button
 		class="modal-backdrop"
+		tabindex="-1"
 		onclick={() => {
 			debug('asd');
 			A.mediaEditing = undefined;
