@@ -71,6 +71,11 @@
 		if (A.isMobile) A.sidebarOpen = false;
 		// debug('NewChat', { assistantId, assistants: A.assistants });
 
+		if (!assistantId && A.conversation?.id) {
+			debug('No assistant ID provided, using default');
+			assistantId = A.conversation?.assistant
+		}
+
 		A.conversation = newConversation(A.dbUser, assistantId, A.assistants);
 		await goto('/chat');
 	}
@@ -96,7 +101,7 @@
 			<div class="join flex w-full">
 				<button
 					class="btn btn-outline join-item btn-sm h-full grow"
-					onclick={async () => await NewChat(A.dbUser?.assistant)}>New chat</button>
+					onclick={async () => await NewChat()}>New chat</button>
 				<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={assistantSelectDropdown}>
 					<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
 					<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">

@@ -4,23 +4,23 @@
 	import { A } from '$lib/appstate.svelte';
 	import { newConversation } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	const debug = dbg('app:ui:routes:chat:new');
 
 	let { data } = $props();
 
-	function fetchConversation(convId: string) {
-		if (convId) {
-			debug('Expected a new conversation, but got an existing one:', convId);
-			return;
-		}
+	function fetchConversation() {
 		// If the previous conversation was a new conversation, keep the assistant ID.
-		const oldAssistantId = A.conversation?.id ? undefined : A.conversation?.assistant;
+		// const oldAssistantId = A.conversation?.id ? A.conversation?.assistant : undefined;
+		const oldAssistantId = A.conversation?.assistant;
 		A.conversation = newConversation(data.dbUser, oldAssistantId, A.assistants);
+		debug('New conversation:', oldAssistantId, $state.snapshot(A.conversation));
 	}
 
 	onMount(() => {
-		fetchConversation($page.params.chat);
+		if (!$page.params.chat) {
+			untrack(() => fetchConversation());
+		}
 	});
 </script>
 
