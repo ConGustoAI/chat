@@ -157,7 +157,7 @@
 					markdown = !markdown;
 				}}>{markdown ? 'md' : 'raw'}</button>
 		{/if}
-		{#if !A.dbUser || A.dbUser.hacker && !isPublicPage()}
+		{#if A.dbUser?.hacker && !isPublicPage()}
 			<div class="dropdown dropdown-end">
 				<button class="btn btn-ghost btn-xs rounded-md p-1" title="More options">
 					<Menu size="fit-h" />
