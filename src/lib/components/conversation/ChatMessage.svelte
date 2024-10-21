@@ -16,19 +16,17 @@
 
 	import { ChatMessageControls, Notification } from '$lib/components';
 	import { fileToMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
-	import { assert, trimLineLength } from '$lib/utils/utils';
+	import { assert, isPublicPage, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
 		submitConversation,
 		message = $bindable(),
-		isPublic = false,
 		loading = false
 	}: {
 		submitConversation: () => Promise<void>;
 		message: MessageInterface;
-		isPublic?: boolean;
 		loading?: boolean;
 	} = $props();
 
@@ -172,7 +170,7 @@
 {#if message.media?.length || (message.editing && message.role === 'user')}
 	<div class="flex flex-col bg-base-usermessage">
 		<div
-			class="carousel carousel-center ml-10 max-w-full shrink-0 items-end bg-base-usermessage p-2 gap-2"
+			class="carousel carousel-center ml-10 max-w-full shrink-0 items-end gap-2 bg-base-usermessage p-2"
 			role="region"
 			aria-label="Image upload area">
 			{#if message.editing && message.role === 'user'}
@@ -227,7 +225,7 @@
 	</div>
 
 	<div class="mr-4 flex grow flex-col md:mr-16">
-		{#if message.editing && !isPublic}
+		{#if message.editing && !isPublicPage()}
 			<div class="relative my-4 flex w-full flex-col items-start">
 				{#if inputFocus && message.role === 'user'}
 					{@const currentIndex = A.conversation?.messages?.findIndex((m) => m === message) ?? -1}
@@ -306,13 +304,7 @@
 		<Notification messageType="error" bind:message={chatError} />
 
 		{#if !message.editing}
-			<ChatMessageControls
-				bind:message
-				bind:savingMessage
-				bind:markdown
-				bind:chatError
-				{submitConversation}
-				{isPublic} />
+			<ChatMessageControls bind:message bind:savingMessage bind:markdown bind:chatError {submitConversation} />
 		{/if}
 
 		<!-- <pre>{JSON.stringify(message, null, 2)}</pre> -->

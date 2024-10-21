@@ -59,12 +59,12 @@
 
 <main class="relative m-0 flex h-full max-h-full w-full">
 	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
-		<ChatTitle isPublic={true} />
+		<ChatTitle />
 		{#if !A.chatDataLoading}
 			<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
 				{#if A.conversation?.messages}
 					{#each A.conversation.messages as m, i}
-						<ChatMessage message={A.conversation.messages[i]} isPublic={true} submitConversation={async () => {}} />
+						<ChatMessage message={A.conversation.messages[i]}  submitConversation={async () => {}} />
 					{/each}
 					<div class=" mb-20 w-full"></div>
 				{:else}
@@ -97,3 +97,4 @@
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
 <!-- <pre>{JSON.stringify({ conversations, data }, null, 2)}</pre> -->
+

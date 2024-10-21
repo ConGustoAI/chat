@@ -2,9 +2,8 @@
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	import { TokenStats } from '$lib/components';
+	import { isPublicPage } from '$lib/utils/utils';
 	const debug = dbg('app:ui:components:ConversationInfo');
-
-	let { isPublic }: { isPublic?: boolean } = $props();
 
 	function collectInfo(): Array<any> {
 		if (!A.conversation || !A.conversation.messages) return [];
@@ -131,7 +130,7 @@
 
 		<div class="card-body w-full p-0">
 			{#if info.length}
-				{#if !compareStats(statsFromMessages, statsFromConversation) && (statsFromConversation.tokensIn || statsFromConversation.tokensOut) && !isPublic}
+				{#if !compareStats(statsFromMessages, statsFromConversation) && (statsFromConversation.tokensIn || statsFromConversation.tokensOut) && !isPublicPage()}
 					<div class="grid w-fit grid-cols-[1fr,1fr]">
 						<div class="font-bold">Conversatoin tokens</div>
 						<div class="font-bold">With deleted messages</div>

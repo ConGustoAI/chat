@@ -5,11 +5,10 @@
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { trimLineLength, assert } from '$lib/utils/utils';
+	import { trimLineLength, assert, isPublicPage } from '$lib/utils/utils';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
-	let { isPublic = false } = $props();
 	let editingSummary = $state(false);
 	let updatingLike = $state(false);
 	let cloningConversation = $state(false);
@@ -95,7 +94,7 @@
 <div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-200 border-b border-base-content">
 	<!-- navbar-start -->
 	<div class="flex min-w-0 shrink-0 gap-2">
-		{#if isPublic}
+		{#if isPublicPage()}
 			<a class="link flex gap-2 text-ellipsis text-nowrap" href="/chat">
 				<ArrowLeftCircle />Congusto Chat
 			</a>
@@ -105,7 +104,7 @@
 			<a href={'/chat/'} class="link"><Edit /></a>
 		{/if}
 
-		{#if A.conversation?.id && !isPublic && !A.isMobile}
+		{#if A.conversation?.id && !isPublicPage() && !A.isMobile}
 			{#if updatingLike}
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
@@ -129,7 +128,7 @@
 			</button>
 		{/if}
 
-		{#if !isPublic}
+		{#if !isPublicPage()}
 			<ConversationAssistant />
 		{/if}
 	</div>
@@ -167,7 +166,7 @@
 							<p class="shrink truncate">
 								{A.conversation.summary ?? 'New chat'}
 							</p>
-							{#if summaryHovered && !isPublic}
+							{#if summaryHovered && !isPublicPage()}
 								<button
 									class="btn btn-ghost btn-xs shrink-0 rounded-md p-0"
 									onclick={() => {
@@ -186,7 +185,7 @@
 
 	<!-- navbar-end -->
 	<div class="mx-2 ml-auto grow-0 gap-2 justify-self-end">
-		{#if A.conversation?.id && !isPublic}
+		{#if A.conversation?.id && !isPublicPage()}
 			<ShareConversation />
 		{/if}
 
@@ -199,14 +198,14 @@
 				class="dropdown-content z-30 flex max-h-dvh w-max max-w-screen-md whitespace-pre-line p-2 pb-20"
 				onkeydown={handleKeydown}
 				tabindex="-1">
-				<ConversationInfo {isPublic} />
+				<ConversationInfo />
 			</div>
 		</details>
 		{#if detailsOpen}
 			<button class="fixed inset-0 z-20" onclick={closeDetails} aria-label="Close modal"></button>
 		{/if}
 
-		{#if !isPublic}
+		{#if !isPublicPage()}
 			<ProfileCircle />
 		{/if}
 	</div>
