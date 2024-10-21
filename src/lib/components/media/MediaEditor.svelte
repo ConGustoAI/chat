@@ -71,7 +71,7 @@
 					alt={A.mediaEditing.title}
 					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
 			{:else if A.mediaEditing?.type === 'text'}
-				<div class="flex h-full max-h-full grow flex-col p-2 overflow-scroll">
+				<div class="flex h-full max-h-full grow flex-col p-2 overflow-auto">
 					<GrowInput
 						bind:value={A.mediaEditing.original!.text}
 						oninput={() => (textNeedsSave = true)}
