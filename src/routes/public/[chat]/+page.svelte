@@ -18,7 +18,7 @@
 		A.chatDataLoading = true;
 
 		try {
-			A.conversation = await APIfetchConversation(convID);
+			A.conversation = await APIfetchPublicConversation(convID);
 
 			if (!A.conversation.media) A.conversation.media = [];
 
@@ -50,7 +50,7 @@
 	$effect(() => {
 		// This gets called once on mount, so we add the check to avid a double fetch.
 		if ($page.params.chat && untrack(() => A.conversation?.id !== $page.params.chat)) {
-			fetchConversation($page.params.chat).then();
+			untrack(() => (fetchConversation($page.params.chat)));
 		}
 	});
 

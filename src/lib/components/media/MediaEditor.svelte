@@ -80,8 +80,8 @@
 			{/if}
 
 			<div
-				class="flex min-w-fit shrink-0 grow-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0">
-				<div class="flex items-baseline justify-start gap-2">
+				class="flex min-w-fit shrink-0 grow-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0 justify-start">
+				<div class="flex items-baseline gap-2">
 					<p class="label mr-auto">Title:</p>
 					{#if titleUpdating}
 						<span class="loading loading-sm"></span>
@@ -104,7 +104,7 @@
 
 				{#if A.mediaEditing.type === 'image'}
 					{#if !isPublicPage()}
-						<div class="flex items-baseline justify-between gap-2">
+						<div class="flex items-baseline gap-2">
 							<p class="label">Size</p>
 							<select
 								class="select select-bordered select-sm w-48"
@@ -145,7 +145,7 @@
 						{/if}
 					{/if}
 
-					<div class="mt-auto flex flex-col items-end justify-self-end">
+					<div class="mt-auto flex flex-col items-end">
 						<div class="flex max-h-32 w-32 items-center bg-black">
 							<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
 						</div>
@@ -161,7 +161,7 @@
 				{:else if A.mediaEditing.type === 'text'}
 					{#if !isPublicPage()}
 						<button
-							class="btn btn-outline btn-sm"
+							class="btn btn-outline btn-sm mb-auto"
 							disabled={!textNeedsSave}
 							onclick={async () => {
 								assert(A.mediaEditing);
@@ -170,7 +170,7 @@
 					{/if}
 				{/if}
 				<button
-					class="btn btn-outline btn-sm justify-self-end bg-base-200 p-1 mt-auto"
+					class="btn btn-outline btn-sm justify-self-end bg-base-200 p-1"
 					onclick={() => (A.mediaEditing = undefined)}>Close</button>
 			</div>
 		{/if}

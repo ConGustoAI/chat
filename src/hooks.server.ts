@@ -77,33 +77,33 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	let meta_tags = '';
-	// if (event.url.pathname.match(/^\/public\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
-	// 	const id = event.url.pathname.split('/')[2];
+	if (event.url.pathname.match(/^\/public\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+		const id = event.url.pathname.split('/')[2];
 
-	// 	const conversation = filterNull(await DBGetPublicConversation({ id })) as ConversationInterface | undefined;
-	// 	const description = makeDescription(conversation);
-	// 	const summary = conversation?.summary || 'New Chat';
-	// 	debug('public conversation %o', conversation);
+		const conversation = filterNull(await DBGetPublicConversation({ id })) as ConversationInterface | undefined;
+		const description = makeDescription(conversation);
+		const summary = conversation?.summary || 'New Chat';
+		debug('public conversation %o', conversation);
 
-	// 	meta_tags = `
-	// 		<meta name="description" content="${summary}">
-	// 		<meta name="twitter:title" content="${summary}">
-	// 		<meta name="twitter:description" content="${description}">
-	// 		<meta property="og:title" content="${summary}">
-	// 		<meta property="og:description" content="${description}">
-	// 		<meta property="og:url" content="${event.request.url}">
-	// 		<meta property="og:type" content="website">
-	// 		<meta property="og:site_name" content="👍 Congusto Chat">
-	// 	`;
-	// } else {
-	// 	meta_tags = `
-	// 		<meta name="description" content="👍 Congusto Chat">
-	// 		<meta name="twitter:title" content="👍 Congusto Chat">
-	// 		<meta property="og:title" content="👍 Congusto Chat">
-	// 		<meta property="og:type" content="website">
-	// 		<meta property="og:url" content="${event.request.url}">
-	// 	`;
-	// }
+		meta_tags = `
+			<meta name="description" content="${summary}">
+			<meta name="twitter:title" content="${summary}">
+			<meta name="twitter:description" content="${description}">
+			<meta property="og:title" content="${summary}">
+			<meta property="og:description" content="${description}">
+			<meta property="og:url" content="${event.request.url}">
+			<meta property="og:type" content="website">
+			<meta property="og:site_name" content="👍 Congusto Chat">
+		`;
+	} else {
+		meta_tags = `
+			<meta name="description" content="👍 Congusto Chat">
+			<meta name="twitter:title" content="👍 Congusto Chat">
+			<meta property="og:title" content="👍 Congusto Chat">
+			<meta property="og:type" content="website">
+			<meta property="og:url" content="${event.request.url}">
+		`;
+	}
 	return resolve(event, {
 		transformPageChunk: ({ html }) => {
 			return html.replace('%social_meta_tags%', meta_tags);

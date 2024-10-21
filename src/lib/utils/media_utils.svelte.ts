@@ -1,9 +1,9 @@
-import { APIupsertConversation, APIupsertFile, APIupsertMedia, fetchFileByID } from '$lib/api';
+import { APIupsertConversation, APIupsertFile, APIupsertMedia, fetchFileByURL } from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
-import { assert } from './utils';
 import { typeFromFile } from './filetype';
+import { assert } from './utils';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -82,14 +82,16 @@ export async function resizeImage(
 export async function syncFileURL(file: FileInterface, filename: string = 'file') {
 	debug('syncFileURL', $state.snapshot(file));
 
-	if (!file.file && !file.url) {
-		if (!file.id) throw new Error('FileInterface must have either file or url or id');
+	assert(file.file || file.url, 'FileInterface must have a file or URL');
+
+
+	if (file.url && !file.file) {
+		// We replace the original URL with a blob URL to avoid re-fetching the file.
+		file.file = await fetchFileByURL(file.url, filename);
+		URL.revokeObjectURL(file.url);
+		file.url = URL.createObjectURL(file.file);
 	}
 
-	if (!file.file) {
-		assert(file.id, 'File ID not found');
-		file.file = await fetchFileByID(file.id, filename);
-	}
 
 	if (!file.url && file.file) {
 		file.url = URL.createObjectURL(file.file);
@@ -381,7 +383,7 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 			file: file
 		}
 	};
-
+	await syncMedia(m);
 	await mediaCreateThumbnail(m);
 	return m;
 }

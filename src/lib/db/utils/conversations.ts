@@ -5,6 +5,7 @@ import dbg from 'debug';
 import { and, eq, inArray, not } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
+import { getDownloadURL } from '$lib/utils/files_server';
 
 const debug = dbg('app:db:utils:conversations');
 
@@ -65,12 +66,17 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
 	}
 
-	for (const m of conversation.media) {
+	for (const m of conversation.media as MediaInterface[]) {
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
 		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
 			throw new Error("Media file 'thumbnail' user ID mismatch");
+
+		if (m.original) m.original.url = await getDownloadURL(m.original);
+		if (m.thumbnail) m.thumbnail.url = await getDownloadURL(m.thumbnail);
+
+
 	}
 
 	return conversation;
@@ -114,13 +120,21 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
 	}
 
-	for (const m of conversation.media) {
+	for (const m of conversation.media as MediaInterface[]) {
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
 		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
 			throw new Error("Media file 'thumbnail' user ID mismatch");
+
+		if (m.original) m.original.url = await getDownloadURL(m.original);
+		if (m.thumbnail) m.thumbnail.url = await getDownloadURL(m.thumbnail);
+
+		debug('media: %o', m);
+
+
 	}
+
 
 	return conversation;
 }

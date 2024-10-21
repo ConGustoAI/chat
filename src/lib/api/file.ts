@@ -53,8 +53,7 @@ export function FileInterfaceFilter(file: FileInterface) {
 	return filteredFile as FileInterface;
 }
 
-export async function fetchFileByID(id: string, name: string = 'filename') {
-	const url = `/api/bucket/${id}`;
+export async function fetchFileByURL(url: string, name: string = 'filename') {
 	debug('Fetching file from %o', url);
 	const response = await fetch(url);
 
