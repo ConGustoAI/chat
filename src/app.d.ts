@@ -204,7 +204,7 @@ declare global {
 
 		title: string;
 		filename: string;
-		type: 'image' | 'audio' | 'video' | 'text';
+		type: 'image' | 'audio' | 'video' | 'text' | 'pdf';
 
 		originalWidth?: number;
 		originalHeight?: number;

@@ -4,7 +4,7 @@ import { conversationsTable } from './conversations';
 import { fileTable } from './file';
 import { usersTable } from './users';
 
-export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video', 'text']);
+export const mediaTypes = pgEnum('media_types', ['image', 'audio', 'video', 'text', 'pdf']);
 
 export const mediaTable = pgTable('media', {
 	id: uuid('id').defaultRandom().primaryKey(),

@@ -4,6 +4,7 @@ import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
 import { typeFromFile } from './filetype';
 import { assert } from './utils';
+import { pdfThumbnail } from './pdf';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -84,14 +85,12 @@ export async function syncFileURL(file: FileInterface, filename: string = 'file'
 
 	assert(file.file || file.url, 'FileInterface must have a file or URL');
 
-
 	if (file.url && !file.file) {
 		// We replace the original URL with a blob URL to avoid re-fetching the file.
 		file.file = await fetchFileByURL(file.url, filename);
 		URL.revokeObjectURL(file.url);
 		file.url = URL.createObjectURL(file.file);
 	}
-
 
 	if (!file.url && file.file) {
 		file.url = URL.createObjectURL(file.file);
@@ -209,6 +208,8 @@ export async function mediaCreateThumbnail(media: MediaInterface) {
 				file: new File([text], 'thumbnail.txt', { type: 'text/plain' })
 				// url: URL.createObjectURL(new Blob([text.slice(0, maxChars)], { type: 'text/plain' }))
 			};
+		} else if (media.type === 'pdf') {
+			media.thumbnail = await pdfThumbnail(media.original)
 		}
 	}
 }
@@ -369,13 +370,16 @@ export async function uploadConversationMedia() {
 export async function fileToMedia(file: File): Promise<MediaInterface> {
 	if (!A.dbUser) throw new Error('User not logged in');
 
+	const type = await typeFromFile(file);
+	debug('fileToMedia', type);
+
 	const m: MediaInterface = {
 		active: true,
 		repeat: true,
 		userID: A.dbUser.id,
 		title: file.name,
 		filename: file.name,
-		type: await typeFromFile(file),
+		type,
 		original: {
 			mimeType: file.type,
 			size: file.size,
@@ -383,6 +387,7 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 			file: file
 		}
 	};
+
 	await syncMedia(m);
 	await mediaCreateThumbnail(m);
 	return m;

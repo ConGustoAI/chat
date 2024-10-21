@@ -146,7 +146,7 @@
 		TODO: Audio
 	{:else} -->
 	<div class="relative flex h-full w-full flex-col overflow-hidden bg-base-100">
-		{#if media.type === 'image'}
+		{#if media.type === 'image' || media.type === 'pdf'}
 			<img
 				src={thumbnailURL}
 				alt={media.filename}

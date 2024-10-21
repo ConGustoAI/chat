@@ -10,6 +10,9 @@ import { userInterfaceFilter } from '$lib/api';
 import { lucia } from '$lib/db/auth';
 import { DBGetPublicConversation, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
 import { filterNull } from '$lib/utils/utils';
+import path from 'path';
+import { copyFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 function makeDescription(conversation: ConversationInterface | undefined) {
 	if (!conversation?.messages?.length) return '';
@@ -18,7 +21,17 @@ function makeDescription(conversation: ConversationInterface | undefined) {
 	return (text.length > 80 ? text.slice(0, 77) + '...' : text).split('\n')[0];
 }
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const handle: Handle = async ({ event, resolve }) => {
+
+	if (process.env.NODE_ENV === 'development') {
+		const workerPath = path.resolve(__dirname, '../node_modules/pdfjs-dist/build/pdf.worker.mjs');
+		const destPath = path.resolve(__dirname, '../static/pdf.worker.mjs');
+		copyFileSync(workerPath, destPath);
+	  }
+
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
 	// if (!sessionId) {
 	// 	event.locals.user = null;

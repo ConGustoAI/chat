@@ -1,10 +1,14 @@
-export async function typeFromFile(file: File): Promise<'image' | 'video' | 'audio' | 'text'> {
+export async function typeFromFile(file: File): Promise<'image' | 'video' | 'audio' | 'text' | 'pdf'> {
 	const mimeType = file.type;
 	const filename = file.name;
 
 	if (mimeType.startsWith('image/')) return 'image';
 	if (mimeType.startsWith('video/')) return 'video';
 	if (mimeType.startsWith('audio/')) return 'audio';
+
+	if (mimeType === 'application/pdf' || filename.toLowerCase().endsWith('.pdf')) {
+		return 'pdf';
+	}
 
 	// Check for common text MIME types
 	if (

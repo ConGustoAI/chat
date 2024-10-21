@@ -3,6 +3,8 @@ import adapter from '@sveltejs/adapter-node';
 // import adapter from "svelte-adapter-bun";
 // import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { copyFileSync } from 'fs';
+import path from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -25,7 +27,26 @@ const config = {
 	},
 	compilerOptions: {
 		runes: true
-	}
+	},
+	hooks: {
+		async buildStart() {
+		  const workerSrc = path.resolve('node_modules', 'pdfjs-dist', 'build', 'pdf.worker.mjs');
+		  const workerDest = path.resolve('static', 'pdf.worker.mjs');
+		  copyFileSync(workerSrc, workerDest);
+		  console.log('PDF.js worker copied to static directory');
+		}
+	  }
+	// vite: {
+	// 	build: {
+	// 		rollupOptions: {
+	// 			output: {
+	// 				manualChunks: {
+	// 					'pdf.worker': ['pdfjs-dist/build/pdf.worker.mjs']
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 };
 
 export default config;

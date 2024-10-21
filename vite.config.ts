@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import type { Plugin, ViteDevServer } from 'vite';
-
 
 // Delay restart on server-side files.
 // function debounceRestart(): Plugin {
@@ -33,5 +30,8 @@ import type { Plugin, ViteDevServer } from 'vite';
 // }
 
 export default defineConfig({
-	plugins: [sveltekit()]
+	plugins: [sveltekit()],
+	// optimizeDeps: {
+	// 	exclude: ['pdfjs-dist']
+	//   }
 });
