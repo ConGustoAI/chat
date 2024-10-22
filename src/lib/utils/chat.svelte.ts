@@ -10,6 +10,7 @@ import { streamText, type CoreAssistantMessage, type CoreUserMessage, type UserC
 import dbg from 'debug';
 import { assert, promptHash } from './utils';
 import { uploadConversationMedia } from './media_utils.svelte';
+import { PDFToImages } from './pdf';
 const debug = dbg('app:lib:utils:chat');
 
 export let abortController: AbortController | undefined = undefined;
@@ -141,7 +142,13 @@ export async function _submitConversationClientSide() {
 
 				assert(media.id);
 				assert(media.conversationID === A.conversation?.id);
-				assert(media.type === 'image' || media.type === 'audio' || media.type === 'video' || media.type === 'text');
+				assert(
+					media.type === 'image' ||
+						media.type === 'audio' ||
+						media.type === 'video' ||
+						media.type === 'text' ||
+						media.type === 'pdf'
+				);
 
 				if (media.type === 'image') {
 					assert(media.original);
@@ -213,6 +220,42 @@ export async function _submitConversationClientSide() {
 						contentChunks.push({ type: 'text', text: await media.original.file.text() });
 
 						contentChunks.push({ type: 'text', text: '</Text>' });
+					}
+				} else if (media.type === 'pdf') {
+					assert(media.original);
+					assert(media.original.file);
+					assert(media.original);
+
+					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
+
+					if (shouldAddMedia) {
+						addedMedia.push(media.id);
+						contentChunks.push({
+							type: 'text',
+							text: `<PDF title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
+						});
+
+						if (media.PDFAsImages) {
+							const dpi = media.PDFAsImagesDPI ?? 150;
+							if (!media.pdfImages) await PDFToImages(media, dpi);
+							assert(media.pdfImages);
+							for (let i = 0; i < media.pdfImages.length; i++) {
+								const image = media.pdfImages[i];
+								contentChunks.push({
+									type: 'text',
+									text: `<Paage page="${i}" resolution="${image.width}x${image.height}" dpi=${dpi}>`
+								});
+
+								contentChunks.push({
+									type: 'image',
+									image: await image.blob.arrayBuffer()
+								});
+
+								contentChunks.push({ type: 'text', text: '</Page>' });
+							}
+						}
+
+						contentChunks.push({ type: 'text', text: '</PDF>' });
 					}
 				}
 			}

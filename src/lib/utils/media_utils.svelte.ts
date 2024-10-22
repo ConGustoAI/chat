@@ -3,8 +3,8 @@ import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
 import { typeFromFile } from './filetype';
+import { PDFThumbnail } from './pdf';
 import { assert } from './utils';
-import { pdfThumbnail } from './pdf';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -209,7 +209,7 @@ export async function mediaCreateThumbnail(media: MediaInterface) {
 				// url: URL.createObjectURL(new Blob([text.slice(0, maxChars)], { type: 'text/plain' }))
 			};
 		} else if (media.type === 'pdf') {
-			media.thumbnail = await pdfThumbnail(media.original)
+			media.thumbnail = await PDFThumbnail(media.original);
 		}
 	}
 }

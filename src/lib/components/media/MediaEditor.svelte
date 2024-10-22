@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Check, X } from 'lucide-svelte';
+	import { Check } from 'lucide-svelte';
 
-	import { APIupsertMedia, mediaInterfaceFilter } from '$lib/api';
-	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
-	import dbg from 'debug';
-	import GrowInput from '../GrowInput.svelte';
+	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
+	import { GrowInput, MediaImageControls, MediaPDFControls, PDFDocumentViewer, PDFImageViewer, PDFViewer } from '$lib/components';
+	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
 	import { assert, isPublicPage } from '$lib/utils/utils';
 
+	import dbg from 'debug';
 	const debug = dbg('app:ui:components:MediaEditor');
 
 	let progressBar: HTMLProgressElement;
@@ -22,11 +22,6 @@
 			await APIupsertMedia(A.mediaEditing);
 		}
 	}
-
-	// Bound to the rezie control elements.
-	let selectedResizePreset = $state('original');
-	let resizeWidth: number | undefined = $state();
-	let resizeHeight: number | undefined = $state();
 
 	// let displayedImageURL: string | undefined = $state();
 
@@ -43,27 +38,21 @@
 		}
 	});
 
-	let thumbnailURL = $derived.by(() => {
-		if (A.mediaEditing?.thumbnail?.url) {
-			debug('thumbnailURL: Picking thumbnail');
-			return A.mediaEditing.thumbnail.url;
-		} else if (A.mediaEditing?.original?.url) {
-			debug('thumbnailURL: Picking original');
-			return A.mediaEditing.original.url;
-		} else {
-			debug('thumbnailURL: No preview URL available');
-			return undefined;
+	let titleUpdating: boolean = $state(false);
+	let textNeedsSave = $state(false);
+
+	$effect(() => {
+		if (A.mediaEditing) {
+			if (!A.mediaEditing.PDFAsImages && !A.mediaEditing.PDFAsDocument && !A.mediaEditing.PDFAsFile) {
+				A.mediaEditing.PDFAsImages = true;
+			}
 		}
 	});
-
-	let titleUpdating: boolean = $state(false);
-
-	let textNeedsSave = $state(false);
 </script>
 
 <dialog class="modal inset-0" open={!!A.mediaEditing}>
 	<div
-		class="modal-box relative flex h-[80vh] w-[95vw] min-w-[95vw] flex-col rounded-sm border p-1 md:flex-row md:overflow-hidden lg:w-[80vw] lg:min-w-[80vw]">
+		class="modal-box relative flex h-[80vh] w-[95vw] min-w-[95vw] flex-col rounded-sm border p-1 md:flex-row lg:w-[80vw] lg:min-w-[80vw] overflow-visible">
 		{#if A.mediaEditing}
 			{#if A.mediaEditing?.type === 'image'}
 				<img
@@ -71,16 +60,32 @@
 					alt={A.mediaEditing.title}
 					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
 			{:else if A.mediaEditing?.type === 'text'}
-				<div class="flex h-full max-h-full grow flex-col p-2 overflow-auto">
+				<div class="flex h-full max-h-full grow flex-col overflow-auto p-2">
 					<GrowInput
 						bind:value={A.mediaEditing.original!.text}
 						oninput={() => (textNeedsSave = true)}
 						disabled={isPublicPage()} />
 				</div>
+			{:else if A.mediaEditing?.type === 'pdf'}
+				<div role="tablist" class="tabs tabs-lifted h-full w-full ">
+					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap [--tab-border-color:--tw-content]" aria-label="Original" checked />
+					<div class="tab-content h-full overflow-auto ">
+						<!-- <PDFViewer media={A.mediaEditing} /> -->
+						<PDFViewer media={A.mediaEditing} />
+					</div>
+					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap" aria-label="As images" disabled={!A.mediaEditing.PDFAsImages}/>
+					<div class="tab-content h-full overflow-auto">
+						<PDFImageViewer media={A.mediaEditing} />
+					</div>
+					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap" aria-label="As document" disabled={!A.mediaEditing.PDFAsDocument}/>
+					<div class="tab-content h-full overflow-auto">
+						<PDFDocumentViewer media={A.mediaEditing} />
+					</div>
+				</div>
 			{/if}
 
 			<div
-				class="flex min-w-fit shrink-0 grow-0 flex-col items-end gap-1 overflow-hidden border-t p-1 md:border-l md:border-t-0 justify-start">
+				class="flex min-w-fit shrink-0 grow-0 flex-col items-end justify-start gap-1 overflow-visible border-t p-1 md:border-l md:border-t-0">
 				<div class="flex items-baseline gap-2">
 					<p class="label mr-auto">Title:</p>
 					{#if titleUpdating}
@@ -103,61 +108,9 @@
 				</div>
 
 				{#if A.mediaEditing.type === 'image'}
-					{#if !isPublicPage()}
-						<div class="flex items-baseline gap-2">
-							<p class="label">Size</p>
-							<select
-								class="select select-bordered select-sm w-48"
-								bind:value={selectedResizePreset}
-								onchange={async () => {
-									debug('resizePreset', selectedResizePreset);
-									assert(A.mediaEditing);
-									await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset);
-								}}>
-								{#each Object.keys(resizePresets) as preset}
-									<option value={preset}>{resizePresets[preset].label}</option>
-								{/each}
-							</select>
-						</div>
-						{#if selectedResizePreset === 'custom'}
-							<div class="flex items-center justify-between gap-2">
-								<p class="label">Resolution</p>
-								<div class="flex w-48 items-baseline justify-between gap-2">
-									<input
-										type="number"
-										class="input input-sm input-bordered w-full shrink"
-										placeholder="W"
-										bind:value={resizeWidth} />
-									x
-									<input
-										type="number"
-										class="input input-sm input-bordered w-full"
-										placeholder="H"
-										bind:value={resizeHeight} />
-								</div>
-							</div>
-							<button
-								class="align-self-end btn btn-outline btn-sm w-fit"
-								onclick={async () => {
-									assert(A.mediaEditing);
-									await mediaResizeFromPreset(A.mediaEditing, selectedResizePreset, resizeHeight, resizeHeight);
-								}}><Check /></button>
-						{/if}
-					{/if}
-
-					<div class="mt-auto flex flex-col items-end">
-						<div class="flex max-h-32 w-32 items-center bg-black">
-							<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
-						</div>
-						<p class="">{A.mediaEditing.filename}</p>
-						<p>Original: {A.mediaEditing.originalWidth}x{A.mediaEditing.originalHeight}</p>
-						{#if A.mediaEditing.resizedWidth && A.mediaEditing.resizedHeight}
-							<p>Resized: {A.mediaEditing.resizedWidth}x{A.mediaEditing.resizedHeight}</p>
-						{/if}
-						{#if (A.mediaEditing.resizedWidth ?? 0) > (A.mediaEditing.originalWidth ?? 0) || (A.mediaEditing.resizedHeight ?? 0) > (A.mediaEditing.originalHeight ?? 0)}
-							<p class="text-warning">Image upscaled</p>
-						{/if}
-					</div>
+					<MediaImageControls />
+				{:else if A.mediaEditing.type === 'pdf'}
+					<MediaPDFControls />
 				{:else if A.mediaEditing.type === 'text'}
 					{#if !isPublicPage()}
 						<button
@@ -168,7 +121,7 @@
 								await mediaUpdateText(A.mediaEditing);
 							}}>Save changes</button>
 					{:else}
-							<div class="grow m-auto"></div>
+						<div class="m-auto grow"></div>
 					{/if}
 				{/if}
 				<button
@@ -224,11 +177,3 @@
 			{/if} -->
 	</div>
 {/if}
-
-<style>
-	.pixilated {
-		image-rendering: pixelated;
-		image-rendering: crisp-edges;
-		-ms-interpolation-mode: nearest-neighbor;
-	}
-</style>

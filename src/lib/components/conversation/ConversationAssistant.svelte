@@ -5,7 +5,7 @@
 
 {#if A.conversation}
 	{#if !A.conversation.id || A.dbUser?.hacker}
-		<select class="select select-bordered select-sm" bind:value={A.conversation.assistant}>
+		<select class="select select-bordered select-sm" bind:value={A.conversation.assistant} name="select-assistant">
 			<option disabled>Your assistants</option>
 			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}

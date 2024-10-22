@@ -148,6 +148,20 @@
       "when": 1729368917213,
       "tag": "0020_gigantic_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1729562828626,
+      "tag": "0021_broad_banshee",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1729569294639,
+      "tag": "0022_violet_micromax",
+      "breakpoints": true
     }
   ]
 }

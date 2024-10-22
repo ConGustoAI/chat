@@ -196,6 +196,13 @@ declare global {
 		media?: MediaInterface[];
 	}
 
+	interface PDFImageInterface {
+		url: string;
+		blob: Blob;
+		width: number;
+		height: number;
+	}
+
 	interface MediaInterface {
 		id?: string;
 		userID: string;
@@ -205,6 +212,13 @@ declare global {
 		title: string;
 		filename: string;
 		type: 'image' | 'audio' | 'video' | 'text' | 'pdf';
+
+		// Only valid for pdf files.
+		PDFAsImages?: boolean;
+		PDFAsImagesDPI?: number;
+		PDFAsDocument?: boolean;
+		PDFAsFile?: boolean;
+		PDFPages?: number;
 
 		originalWidth?: number;
 		originalHeight?: number;
@@ -236,8 +250,10 @@ declare global {
 		// Used by the frontend
 		resized?: FileInterface;
 		cropped?: FileInterface;
+		pdfImages?: PDFImageInterface[]; // Object URLs.
 
 		active?: boolean;
+		processing?: number;
 	}
 
 	interface FileInterface {

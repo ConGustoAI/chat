@@ -197,6 +197,7 @@
 		<input
 			type="checkbox"
 			class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
+			name="selectAll"
 			onchange={(e) => selectAll(e)}
 			checked={!!selectedConversations.length &&
 				selectedConversations.length === datedConversation.allFiltered.length} />
@@ -215,6 +216,7 @@
 			type="text"
 			placeholder="Search chats..."
 			class="input input-bordered min-h-12 w-full pl-12"
+			name="search-chats"
 			bind:value={search}
 			onfocus={() => {
 				searchFocused = true;

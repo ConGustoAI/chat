@@ -19,6 +19,15 @@ export const mediaTable = pgTable('media', {
 	type: mediaTypes('type').notNull(),
 	repeat: boolean('repeat').default(true),
 
+
+	PDFAsImages: boolean('pdf_as_images'),
+	PDFAsImagesDPI: integer('pdf_as_images_dpi'),
+	PDFAsDocument: boolean('pdf_as_document'),
+	PDFAsFile: boolean('pdf_as_file'),
+	PDFPages: integer('pdf_pages'),
+
+
+
 	originalWidth: integer('width'),
 	originalHeight: integer('height'),
 	originalDuration: real('duration'),

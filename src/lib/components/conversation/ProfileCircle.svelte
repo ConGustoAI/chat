@@ -40,7 +40,7 @@
 		{#if A.dbUser}
 			<div class="btn btn-primary btn-sm flex flex-nowrap items-center gap-2">
 				Hacker
-				<input type="checkbox" class="toggle" bind:checked={A.dbUser.hacker} onchange={setHacker} />
+				<input type="checkbox" class="toggle" bind:checked={A.dbUser.hacker} onchange={setHacker} name="hacker" />
 			</div>
 		{/if}
 

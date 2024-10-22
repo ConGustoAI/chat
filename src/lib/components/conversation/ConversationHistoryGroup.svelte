@@ -32,6 +32,7 @@
 		<input
 			type="checkbox"
 			class="checkbox absolute left-1 top-1/2 z-10 m-0 -translate-y-1/2 transform p-0"
+			name="selectedConversations"
 			checked={selectedConversations.includes(c)}
 			onchange={(e) => handleCheckboxChange(e, c)} />
 

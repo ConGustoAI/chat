@@ -36,17 +36,6 @@ const config = {
 		  console.log('PDF.js worker copied to static directory');
 		}
 	  }
-	// vite: {
-	// 	build: {
-	// 		rollupOptions: {
-	// 			output: {
-	// 				manualChunks: {
-	// 					'pdf.worker': ['pdfjs-dist/build/pdf.worker.mjs']
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 };
 
 export default config;

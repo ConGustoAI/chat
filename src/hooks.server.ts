@@ -30,6 +30,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const workerPath = path.resolve(__dirname, '../node_modules/pdfjs-dist/build/pdf.worker.mjs');
 		const destPath = path.resolve(__dirname, '../static/pdf.worker.mjs');
 		copyFileSync(workerPath, destPath);
+		copyFileSync(workerPath+'.map', destPath+'.map');
 	  }
 
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
