@@ -52,6 +52,7 @@
 
 <!-- <div class="flex h-full w-full shrink grow-0 flex-col gap-2 overflow-auto"> -->
 	{#each canvases as __, i}
+        <p class="px-2">Page {i+1}</p>
 		<canvas bind:this={canvases[i]} width={canvasWidth} class="w-full border-gray-300 object-contain p-2"> </canvas>
 	{/each}
 <!-- </div> -->

@@ -14,7 +14,8 @@ const config = {
 			colors: {
 				'base-usermessage': 'var(--base-usermessage)',
 				message: 'var(--message)',
-				star: 'var(--star)'
+				star: 'var(--star)',
+				debug: 'var(--debug)'
 			}
 		}
 	},
@@ -31,9 +32,11 @@ const config = {
 					'base-300': '#0d0d0d', // Default slightly darker background color
 
 					info: '#8be9fd',
-				success: '#50fa7b',
+					success: '#50fa7b',
 					warning: '#f1fa8c',
 					error: '#ff5555',
+					'--debug': '#00d9ff',
+
 
 					'--star': '#ffff00',
 					'--base-usermessage': '#171717',
@@ -54,6 +57,7 @@ const config = {
 					success: '#50fa7b',
 					warning: '#f1fa8c',
 					error: '#ff5555',
+					'--debug': '#00d9ff',
 
 					'--star': '#444444',
 					'--base-usermessage': '#f4f4f4',

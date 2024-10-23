@@ -1,7 +1,28 @@
 import type { ProviderType } from '@prisma/client';
 import { User, Session } from 'lucia';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 declare global {
+	namespace $state {
+		type MyPrimitive = string | number | boolean | null | undefined | Promise;
+
+		type MySnapshot<T> = T extends MyPrimitive
+			? T
+			: T extends Cloneable
+				? NonReactive<T>
+				: T extends { toJSON(): infer R }
+					? R
+					: T extends Array<infer U>
+						? Array<Snapshot<U>>
+						: T extends object
+							? T extends { [key: string]: unknown }
+								? { [K in keyof T]: Snapshot<T[K]> }
+								: never
+							: never;
+
+		export function snapshot<T>(state: T): MySnapshot<T>;
+	}
+
 	namespace App {
 		// interface Error {}
 		interface Locals {
@@ -203,6 +224,13 @@ declare global {
 		height: number;
 	}
 
+	interface PDFMeta {
+		numPages: number;
+		author?: string;
+		subject?: string;
+		title?: string;
+	}
+
 	interface MediaInterface {
 		id?: string;
 		userID: string;
@@ -216,10 +244,14 @@ declare global {
 		// Only valid for pdf files.
 		PDFAsImages?: boolean;
 		PDFAsImagesDPI?: number;
+		PDFImagesSelected?: number[];
 		PDFAsDocument?: boolean;
 		PDFAsFile?: boolean;
-		PDFPages?: number;
 
+		// Only valid for text
+		text?: string;
+
+		// For images and video
 		originalWidth?: number;
 		originalHeight?: number;
 		originalDuration?: number;
@@ -232,11 +264,12 @@ declare global {
 		cropEndX?: number;
 		cropEndY?: number;
 
+		// For video and audio
 		trimStart?: number;
 		trimEnd?: number;
 
 		originalID?: string | null;
-		thumbnailID?: string | null;
+		// thumbnailID?: string | null;
 
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -244,13 +277,18 @@ declare global {
 		// Don't send to the backend.
 
 		// From relations, not in database.
-		original?: FileInterface;
-		thumbnail?: FileInterface;
+		original: FileInterface;
 
-		// Used by the frontend
-		resized?: FileInterface;
-		cropped?: FileInterface;
-		pdfImages?: PDFImageInterface[]; // Object URLs.
+		// Used by the frontend.
+		thumbnail?: Promise<FileInterface>;
+
+		transformed?: Promise<FileInterface>;
+		// cropped?: FileInterface;
+
+		PDFDocument?: Promise<PDFDocumentProxy>;
+		// Promises that resolve to the iobject URLs.
+		PDFImages?: Promise<PDFImageInterface>[];
+		PDFMeta?: Promise<PDFMeta>;
 
 		active?: boolean;
 		processing?: number;

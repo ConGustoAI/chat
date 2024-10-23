@@ -39,28 +39,37 @@
 		}
 	}
 
+	// svelte-ignore state_snapshot_uncloneable
 	$effect(() => debug('media: ', $state.snapshot(media)));
 
 	let isHovered = $state(false);
 
-	let thumbnailURL = $derived.by(() => {
-		if (media?.thumbnail?.url) {
-			debug('thumbnailURL: Picking thumbnail');
-			return media.thumbnail.url;
-		} else if (media?.original?.file) {
-			debug('thumbnailURL: Picking original');
-			return media.original.url;
-		} else {
-			debug('thumbnailURL: No preview URL available');
-			return undefined;
+	let thumbnailURL: string | undefined = $state(undefined);
+
+	$effect(() => {
+		if (['image', 'pdf'].includes(media.type)) {
+			if (media.thumbnail) {
+				debug('thumbnailURL: Picking thumbnail');
+				media.thumbnail.then((t) => (thumbnailURL = t.url));
+			} else if (media.transformed) {
+				debug('thumbnailURL: Picking transformed');
+				media.transformed.then((r) => (thumbnailURL = r.url));
+			} else if (media.original && media.type === 'image') {
+				debug('thumbnailURL: Picking original');
+				thumbnailURL = media.original.url;
+			} else {
+				debug('thumbnailURL: No preview URL available');
+				thumbnailURL = undefined;
+			}
 		}
 	});
 
-	let thumbnailText = $derived.by(() => {
-		if (media?.thumbnail?.text) {
+	let thumbnailText = $derived.by(async () => {
+		const thumbmailText = media.thumbnail ? (await media.thumbnail).text : undefined;
+		if (thumbmailText) {
 			debug('thumbnailText: Picking thumbnail');
-			return media.thumbnail.text;
-		} else if (media?.original?.text) {
+			return thumbmailText;
+		} else if (media.original.text) {
 			debug('thumbnailText: Picking original');
 			return media.original.text;
 		} else {
@@ -69,9 +78,12 @@
 		}
 	});
 
-	let fullyUploaded = $derived.by(() => {
-		return (!media.original || media.original.status === 'ok') && (!media.thumbnail || media.thumbnail.status === 'ok');
-	});
+	// let fullyUploaded = $derived.by(async () => {
+	// 	return (
+	// 		(!media.original || media.original.status === 'ok') &&
+	// 		(!media.thumbnail || (await media.thumbnail).status === 'ok')
+	// 	);
+	// });
 
 	async function deleteMedia() {
 		assert(A.conversation);
@@ -97,8 +109,8 @@
 		}
 
 		await Promise.all(promises);
-		if (media.original?.url) URL.revokeObjectURL(media.original.url);
-		if (media.thumbnail?.url) URL.revokeObjectURL(media.thumbnail.url);
+		URL.revokeObjectURL(media.original?.url ?? '');
+		URL.revokeObjectURL((await media.thumbnail)?.url ?? '');
 
 		A.conversation.media.splice(A.conversation.media.indexOf(media), 1);
 	}
@@ -147,10 +159,13 @@
 	{:else} -->
 	<div class="relative flex h-full w-full flex-col overflow-hidden bg-base-100">
 		{#if media.type === 'image' || media.type === 'pdf'}
-			<img
-				src={thumbnailURL}
-				alt={media.filename}
-				class="pixilated bg-checkered mx-auto overflow-hidden object-contain" />
+			<!-- {thumbnailURL} -->
+			{#if thumbnailURL}
+				<img
+					src={thumbnailURL}
+					alt={media.filename}
+					class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
+			{/if}
 
 			<div class="absolute bottom-1 mr-2 flex h-fit w-full flex-col gap-0.5">
 				{#if media.original?.status === 'progress'}
@@ -160,22 +175,19 @@
 				{:else if media.original?.status === 'failed'}
 					<p class=" text-xs text-error">Upload error: {media.original.uploadError}</p>
 				{/if}
-				{#if media.resized?.status === 'progress'}
-					<progress class="progress progress-success h-1 rounded-none" value={media.resized?.uploadProgress} max={100}>
-						{media.resized?.uploadProgress}%
-					</progress>
-				{:else if media.resized?.status === 'failed'}
-					<p class=" text-xs text-error">Upload error: {media.resized?.uploadError}</p>
-				{/if}
-				{#if media.thumbnail?.status === 'progress'}
-					<progress
-						class="progress progress-success h-1 rounded-none"
-						value={media.thumbnail?.uploadProgress}
-						max={100}>
-						{media.thumbnail?.uploadProgress}%
-					</progress>
-				{:else if media.thumbnail?.status === 'failed'}
-					<p class=" text-xs text-error">Upload error: {media.thumbnail?.uploadError}</p>
+
+				{#if media.thumbnail}
+					{#await media.thumbnail}
+						<div class="loading m-auto"></div>
+					{:then thumbnail}
+						{#if thumbnail.status === 'progress'}
+							<progress class="progress progress-success h-1 rounded-none" value={thumbnail.uploadProgress} max={100}>
+								{thumbnail.uploadProgress}%
+							</progress>
+						{:else if thumbnail.status === 'failed'}
+							<p class=" text-xs text-error">Upload error: {thumbnail?.uploadError}</p>
+						{/if}
+					{/await}
 				{/if}
 			</div>
 
@@ -183,7 +195,7 @@
 				<div
 					class="absolute bottom-0 right-0 rounded-none bg-black bg-opacity-50 px-1 text-center text-sm text-primary-content">
 					{media.originalWidth}x{media.originalHeight}
-					{#if media.resizedWidth != undefined}
+					{#if media.transformed}
 						<span>↓</span>
 						{media.resizedWidth}x{media.resizedHeight}
 					{/if}
@@ -199,11 +211,13 @@
 			</div>
 		{/if}
 
-		{#if fullyUploaded}
-			<div class="absolute bottom-0.5 left-0 z-30 text-success">
-				<Upload size={14} strokeWidth={3} />
-			</div>
-		{/if}
+		{#await media.thumbnail then thumbnail}
+			{#if (!media.original || media.original.status === 'ok') && (!thumbnail || thumbnail.status === 'ok')}
+				<div class="absolute bottom-0.5 left-0 z-30 text-success">
+					<Upload size={14} strokeWidth={3} />
+				</div>
+			{/if}
+		{/await}
 	</div>
 
 	<div class="mx-1 flex w-full shrink-0 flex-col items-center text-nowrap text-center text-sm" title={media.title}>
@@ -215,6 +229,7 @@
 			<p class="mx-1 w-full shrink-0 truncate">{media.title}</p>
 		{/if}
 	</div>
+
 	<!-- {/if} -->
 
 	{#if isHovered}

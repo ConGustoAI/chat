@@ -3,7 +3,14 @@
 
 	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { GrowInput, MediaImageControls, MediaPDFControls, PDFDocumentViewer, PDFImageViewer, PDFViewer } from '$lib/components';
+	import {
+		GrowInput,
+		MediaImageControls,
+		MediaPDFControls,
+		PDFDocumentViewer,
+		PDFImageViewer,
+		PDFViewer
+	} from '$lib/components';
 	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
 	import { assert, isPublicPage } from '$lib/utils/utils';
 
@@ -25,16 +32,21 @@
 
 	// let displayedImageURL: string | undefined = $state();
 
-	let displayedImageURL = $derived.by(() => {
-		if (A.mediaEditing?.resized?.url) {
-			debug('displayedImageURL: Picking rezied');
-			return A.mediaEditing.resized.url;
-		} else if (A.mediaEditing?.original?.url) {
-			debug('displayedImageURL: Picking original');
-			return A.mediaEditing.original.url;
-		} else {
-			debug('thumbnailURL: No preview URL available');
-			return undefined;
+	let displayedImageURL: string | undefined = $state(undefined);
+
+	$effect(() => {
+		if (A.mediaEditing?.type === 'image') {
+			if (A.mediaEditing?.transformed) {
+				debug('displayedImageURL: Picking resized');
+				A.mediaEditing.transformed.then((r) => (displayedImageURL = r.url));
+				// displayedImageURL =
+			} else if (A.mediaEditing?.original?.url) {
+				debug('displayedImageURL: Picking original');
+				displayedImageURL = A.mediaEditing.original.url;
+			} else {
+				debug('thumbnailURL: No preview URL available');
+				displayedImageURL = undefined;
+			}
 		}
 	});
 
@@ -52,7 +64,8 @@
 
 <dialog class="modal inset-0" open={!!A.mediaEditing}>
 	<div
-		class="modal-box relative flex h-[80vh] w-[95vw] min-w-[95vw] flex-col rounded-sm border p-1 md:flex-row lg:w-[80vw] lg:min-w-[80vw] overflow-visible">
+		class="modal-box relative flex h-[80vh] w-[95vw] min-w-[95vw] flex-col overflow-visible rounded-sm border p-1 md:flex-row lg:w-[80vw] lg:min-w-[80vw]"
+		class:mb-60={A.debug}>
 		{#if A.mediaEditing}
 			{#if A.mediaEditing?.type === 'image'}
 				<img
@@ -67,19 +80,37 @@
 						disabled={isPublicPage()} />
 				</div>
 			{:else if A.mediaEditing?.type === 'pdf'}
-				<div role="tablist" class="tabs tabs-lifted h-full w-full ">
-					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap [--tab-border-color:--tw-content]" aria-label="Original" checked />
-					<div class="tab-content h-full overflow-auto ">
+				<div role="tablist" class="tabs tabs-lifted h-full w-full">
+					<input
+						type="radio"
+						name="pdf-tabs"
+						role="tab"
+						class="tab text-nowrap [--tab-border-color:--tw-content]"
+						aria-label="Original"
+						checked />
+					<div class="tab-content h-full overflow-auto">
 						<!-- <PDFViewer media={A.mediaEditing} /> -->
 						<PDFViewer media={A.mediaEditing} />
 					</div>
-					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap" aria-label="As images" disabled={!A.mediaEditing.PDFAsImages}/>
+					<input
+						type="radio"
+						name="pdf-tabs"
+						role="tab"
+						class="tab text-nowrap"
+						aria-label="As images"
+						disabled={!A.mediaEditing.PDFAsImages} />
 					<div class="tab-content h-full overflow-auto">
 						<PDFImageViewer media={A.mediaEditing} />
 					</div>
-					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap" aria-label="As document" disabled={!A.mediaEditing.PDFAsDocument}/>
+					<input
+						type="radio"
+						name="pdf-tabs"
+						role="tab"
+						class="tab text-nowrap"
+						aria-label="As document"
+						disabled/>
 					<div class="tab-content h-full overflow-auto">
-						<PDFDocumentViewer media={A.mediaEditing} />
+						<!-- <PDFDocumentViewer media={A.mediaEditing} /> -->
 					</div>
 				</div>
 			{/if}
@@ -135,7 +166,6 @@
 		class="modal-backdrop"
 		tabindex="-1"
 		onclick={() => {
-			debug('asd');
 			A.mediaEditing = undefined;
 		}}>close</button>
 </dialog>

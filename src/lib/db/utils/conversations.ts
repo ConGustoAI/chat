@@ -53,7 +53,6 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
 					original: true,
-					thumbnail: true
 				}
 			}
 		}
@@ -70,13 +69,8 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
-		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
-			throw new Error("Media file 'thumbnail' user ID mismatch");
 
 		if (m.original) m.original.url = await getDownloadURL(m.original);
-		if (m.thumbnail) m.thumbnail.url = await getDownloadURL(m.thumbnail);
-
-
 	}
 
 	return conversation;
@@ -107,7 +101,6 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
 					original: true,
-					thumbnail: true
 				}
 			}
 		}
@@ -124,11 +117,8 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
-		if (m.thumbnail && m.thumbnail?.userID !== conversation.userID)
-			throw new Error("Media file 'thumbnail' user ID mismatch");
 
 		if (m.original) m.original.url = await getDownloadURL(m.original);
-		if (m.thumbnail) m.thumbnail.url = await getDownloadURL(m.thumbnail);
 
 		debug('media: %o', m);
 

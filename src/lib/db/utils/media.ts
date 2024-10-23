@@ -9,9 +9,6 @@ export async function DBgetMedia({ dbUser, id }: { dbUser?: UserInterface; id: s
 		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, dbUser.id)),
 		with: {
 			original: true,
-			resized: true,
-			cropped: true,
-			thumbnail: true
 		}
 	});
 
@@ -24,9 +21,9 @@ export async function DBgetAllMedia({ dbUser }: { dbUser?: UserInterface }) {
 	if (!dbUser) error(401, 'Unauthorized');
 	const medias = await db.query.mediaTable.findMany({
 		where: (table, { eq }) => eq(table.userID, dbUser.id),
-        with: {
-            thumbnail: true
-        }
+		with: {
+			original: true,
+		}
 	});
 
 	if (!medias) error(500, 'Failed to fetch media');

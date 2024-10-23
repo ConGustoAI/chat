@@ -1,4 +1,4 @@
-export async function typeFromFile(file: File): Promise<'image' | 'video' | 'audio' | 'text' | 'pdf'> {
+export function typeFromFile(file: File): 'image' | 'video' | 'audio' | 'text' | 'pdf' {
 	const mimeType = file.type;
 	const filename = file.name;
 
@@ -108,10 +108,10 @@ export async function typeFromFile(file: File): Promise<'image' | 'video' | 'aud
 	}
 
 	// Content-based check
-	const isText = await isTextFile(file);
-	if (isText) {
-		return 'text';
-	}
+	// const isText = await isTextFile(file);
+	// if (isText) {
+	// 	return 'text';
+	// }
 
 	throw new Error('Unknown media type: ' + mimeType);
 }

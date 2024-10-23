@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { PDFToImages } from '$lib/utils/pdf';
+	import { PDFToImages } from '$lib/utils/pdf.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
@@ -19,8 +19,14 @@
 		processingImages = true;
 
 		try {
-			const DPI = parseInt(DPISelector.value);
-			await PDFToImages(A.mediaEditing, DPI);
+			A.mediaEditing.PDFAsImagesDPI = parseInt(DPISelector.value);
+			const newImages = await PDFToImages(A.mediaEditing);
+
+			// Here we await the promises, so they are fully resolved when the page is rendered.
+			// This avoids flicker, as otherwise there would be a short period of no images displayed
+			/// while the promises resolve.
+			await Promise.all(newImages);
+			A.mediaEditing.PDFImages = newImages;
 			Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 		} finally {
 			processingImages = false;
@@ -70,6 +76,7 @@
 		</div>
 		<div class="col-start-2 mt-2 flex items-center gap-2">
 			<input
+				disabled
 				type="checkbox"
 				id="extract-text-images"
 				bind:checked={A.mediaEditing.PDFAsDocument}
@@ -94,10 +101,55 @@
 			</InfoPopup>
 		</div>
 	</div>
-	{#if A.mediaEditing.PDFAsImages && A.mediaEditing.pdfImages}
-		<div class="flex flex-col items-end overflow-auto">
-			{#each A.mediaEditing.pdfImages as pdfImage, i}
-				<p class="text-sm">Page {i}: {pdfImage.width}x{pdfImage.height}</p>
+	{#if A.mediaEditing.PDFMeta}
+		<div class="flex w-full flex-col items-start gap-1 px-4">
+			<div class="divider my-0 w-full">Metadata</div>
+			{#await A.mediaEditing.PDFMeta}
+				<div class="loading loading-sm"></div>
+			{:then meta}
+				<p class="text-sm">Pages: {meta.numPages}</p>
+				<p class="text-sm">Title: {meta.title}</p>
+				<p class="text-sm">Author: {meta.author}</p>
+				<p class="text-sm">Subject: {meta.subject}</p>
+			{/await}
+		</div>
+	{/if}
+
+	{#if A.mediaEditing.PDFAsImages && A.mediaEditing.PDFImages}
+		<div class="flex w-full flex-col items-start overflow-auto px-4">
+			<div class="divider my-0 w-full">Pages</div>
+			{#each A.mediaEditing.PDFImages as pdfImage, i}
+				<div class="flex gap-2">
+					<input
+						type="checkbox"
+						id={`page-${i}`}
+						checked={A.mediaEditing.PDFImagesSelected?.includes(i)}
+						onchange={async (e: Event) => {
+							assert(A.mediaEditing);
+							const selected = (e.target as HTMLInputElement).checked;
+							if (!A.mediaEditing.PDFImagesSelected) {
+								A.mediaEditing.PDFImagesSelected = [];
+							}
+							if (selected) {
+								if (!A.mediaEditing.PDFImagesSelected.includes(i)) {
+									A.mediaEditing.PDFImagesSelected.push(i);
+								}
+							} else {
+								const index = A.mediaEditing.PDFImagesSelected?.indexOf(i);
+								if (index > -1) {
+									A.mediaEditing.PDFImagesSelected?.splice(index, 1);
+								}
+							}
+
+							Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
+						}} />
+
+					{#await pdfImage}
+						<div class="loading loading-sm"></div>
+					{:then p}
+						<p class="text-sm">Page {i}: {p.width}x{p.height}</p>
+					{/await}
+				</div>
 			{/each}
 		</div>
 	{/if}

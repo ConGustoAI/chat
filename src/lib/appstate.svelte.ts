@@ -12,12 +12,16 @@ interface AppState {
 	conversation: ConversationInterface | undefined;
 	chatDataLoading: boolean;
 	chatStreaming: boolean;
-	mediaUploading: boolean;
-	mediaProcessing: boolean;
 	sidebarOpen: boolean;
 	isMobile: boolean;
 	conversationUploadOpen: boolean;
 	mediaEditing?: MediaInterface;
+
+	mediaUploading: number;
+	mediaProcessing: number;
+
+	// Show extra info in the UI.
+	debug?: boolean;
 }
 
 export const A: AppState = $state({
@@ -32,9 +36,11 @@ export const A: AppState = $state({
 	conversation: undefined,
 	chatDataLoading: false,
 	chatStreaming: false,
-	mediaUploading: false,
-	mediaProcessing: false,
 	sidebarOpen: true,
 	isMobile: false,
-	conversationUploadOpen: false
+	conversationUploadOpen: false,
+
+	mediaUploading: 0,
+	mediaProcessing: 0,
+	debug: true
 });

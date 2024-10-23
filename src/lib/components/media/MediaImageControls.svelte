@@ -12,16 +12,20 @@
 	let resizeWidth: number | undefined = $state();
 	let resizeHeight: number | undefined = $state();
 
-	let thumbnailURL = $derived.by(() => {
-		if (A.mediaEditing?.thumbnail?.url) {
-			debug('thumbnailURL: Picking thumbnail');
-			return A.mediaEditing.thumbnail.url;
-		} else if (A.mediaEditing?.original?.url) {
-			debug('thumbnailURL: Picking original');
-			return A.mediaEditing.original.url;
-		} else {
-			debug('thumbnailURL: No preview URL available');
-			return undefined;
+	let thumbnailURL: string | undefined = $state(undefined);
+
+	$effect(() => {
+		if (A.mediaEditing) {
+			if (A.mediaEditing.thumbnail) {
+				debug('thumbnailURL: Picking thumbnail');
+				A.mediaEditing.thumbnail.then((t) => (thumbnailURL = t.url));
+			} else if (A.mediaEditing.original && A.mediaEditing.type === 'image') {
+				debug('thumbnailURL: Picking original');
+				thumbnailURL = A.mediaEditing.original.url;
+			} else {
+				debug('thumbnailURL: No preview URL available');
+				thumbnailURL = undefined;
+			}
 		}
 	});
 </script>

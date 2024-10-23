@@ -3,7 +3,7 @@ import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
 import { typeFromFile } from './filetype';
-import { PDFThumbnail } from './pdf';
+import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
 
 const debug = dbg('app:lib:media_utils');
@@ -20,7 +20,7 @@ export async function resizeImage(
 	if (!context) throw new Error('Canvas context not found');
 	if (!file.file) throw new Error('File file not found');
 
-	A.mediaProcessing = true;
+	A.mediaProcessing = (A.mediaProcessing ?? 0) + 1;
 	debug('resizeImage', $state.snapshot(file), width, height);
 	try {
 		const image = new Image();
@@ -76,90 +76,15 @@ export async function resizeImage(
 			file: resizedFile
 		};
 	} finally {
-		A.mediaProcessing = false;
+		A.mediaProcessing--;
 	}
 }
 
-export async function syncFileURL(file: FileInterface, filename: string = 'file') {
-	debug('syncFileURL', $state.snapshot(file));
-
-	assert(file.file || file.url, 'FileInterface must have a file or URL');
-
-	if (file.url && !file.file) {
-		// We replace the original URL with a blob URL to avoid re-fetching the file.
-		file.file = await fetchFileByURL(file.url, filename);
-		URL.revokeObjectURL(file.url);
-		file.url = URL.createObjectURL(file.file);
-	}
-
-	if (!file.url && file.file) {
-		file.url = URL.createObjectURL(file.file);
-	}
-}
-
-export async function syncMedia(media: MediaInterface) {
-	if (!media.original) throw new Error('MediaInterface must have an original file');
-
-	A.mediaProcessing = true;
-	try {
-		if (media.original) await syncFileURL(media.original, media.filename);
-		if (media.thumbnail) await syncFileURL(media.thumbnail, media.filename);
-
-		// This will only run once, when the new media is processed for the first time.
-		if (media.type === 'image' && (!media.originalWidth || !media.originalHeight) && media.original?.file) {
-			const img = new Image();
-			await new Promise<void>((resolve, reject) => {
-				img.onload = () => {
-					media.originalWidth = img.naturalWidth;
-					media.originalHeight = img.naturalHeight;
-					// URL.revokeObjectURL(img.src);
-					resolve();
-				};
-				img.onerror = (error) => {
-					// URL.revokeObjectURL(img.src);
-					reject(new Error('Failed to load image: ' + error));
-				};
-				if (media.original?.file) {
-					img.src = URL.createObjectURL(media.original.file);
-				} else {
-					reject(new Error('No original file available'));
-				}
-			});
-		} else if (media.type === 'text' && media.original?.file) {
-			const text = await media.original.file.text();
-			media.original.text = text;
-		}
-	} finally {
-		A.mediaProcessing = false;
-	}
-}
-
-interface ResizePreset {
-	label: string;
-	pixels?: number;
-	long?: number;
-}
-
-export const resizePresets: { [key: string]: ResizePreset } = {
-	original: { label: 'Original' },
-	xs: { pixels: 128 * 128, label: '0.016 MP (~ 128x128)' },
-	sm: { pixels: 256 * 256, label: '0.065 MP (~ 256x256)' },
-	md: { pixels: 512 * 512, label: '0.25 MP (~ 512x512)' },
-	lg: { pixels: 1024 * 1024, label: '1 MP (~ 1024x1024)' },
-	xl: { pixels: 2048 * 2048, label: '4 MP (~ 2048x2048)' },
-	// 'long-xs': { long: 256, label: 'Long side to 128px' },
-	// 'long-sm': { long: 512, label: 'Long side to 256px' },
-	// 'long-md': { long: 1024, label: 'Long side to 512px' },
-	// 'long-lg': { long: 2048, label: 'Long side to 1024px' },
-	// 'long-xl': { long: 4096, label: 'Long side to 2048px' },
-	custom: { label: 'Custom' }
-};
-
-export async function mediaProcessResize(media: MediaInterface) {
+export async function imageProcessResize(media: MediaInterface) {
 	assert(media.original);
 	assert(media.original.file);
-	// await syncMedia(media);
-	if (!media.resized && media.type === 'image') {
+	assert(media.type === 'image');
+	if (!media.transformed) {
 		assert(media.originalWidth);
 		assert(media.originalHeight);
 
@@ -169,47 +94,8 @@ export async function mediaProcessResize(media: MediaInterface) {
 			media.resizedHeight &&
 			media.resizedHeight !== media.originalHeight
 		) {
-			media.resized = await resizeImage(media.original, media.resizedWidth, media.resizedHeight);
+			media.transformed = resizeImage(media.original, media.resizedWidth, media.resizedHeight);
 			debug('Resized media for %o', media);
-		}
-	}
-}
-
-export async function mediaCreateThumbnail(media: MediaInterface) {
-	assert(media.original);
-	assert(media.original.file);
-	// await syncMedia(media);
-	if (!media.thumbnail) {
-		if (media.type === 'image') {
-			assert(media.originalWidth);
-			assert(media.originalHeight);
-			debug('Creating image thumbnail from original %o', $state.snapshot(media));
-			const targetPixels = 128 * 128;
-			const aspectRatio = media.originalWidth / media.originalHeight;
-			let newWidth, newHeight;
-
-			if (aspectRatio > 1) {
-				newWidth = Math.sqrt(targetPixels * aspectRatio);
-				newHeight = newWidth / aspectRatio;
-			} else {
-				newHeight = Math.sqrt(targetPixels / aspectRatio);
-				newWidth = newHeight * aspectRatio;
-			}
-
-			media.thumbnail = await resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
-		} else if (media.type === 'text' && media.original?.text) {
-			debug('Creating text thumbnail from original %o ', $state.snapshot(media));
-			const text = media.original.text.slice(0, 200);
-			media.thumbnail = {
-				userID: media.userID,
-				mimeType: 'text/plain',
-				size: text.length,
-				text: text,
-				file: new File([text], 'thumbnail.txt', { type: 'text/plain' })
-				// url: URL.createObjectURL(new Blob([text.slice(0, maxChars)], { type: 'text/plain' }))
-			};
-		} else if (media.type === 'pdf') {
-			media.thumbnail = await PDFThumbnail(media.original);
 		}
 	}
 }
@@ -265,6 +151,27 @@ export async function mediaUpdateText(media: MediaInterface) {
 	await mediaCreateThumbnail(media);
 }
 
+interface ResizePreset {
+	label: string;
+	pixels?: number;
+	long?: number;
+}
+
+export const resizePresets: { [key: string]: ResizePreset } = {
+	original: { label: 'Original' },
+	xs: { pixels: 128 * 128, label: '0.016 MP (~ 128x128)' },
+	sm: { pixels: 256 * 256, label: '0.065 MP (~ 256x256)' },
+	md: { pixels: 512 * 512, label: '0.25 MP (~ 512x512)' },
+	lg: { pixels: 1024 * 1024, label: '1 MP (~ 1024x1024)' },
+	xl: { pixels: 2048 * 2048, label: '4 MP (~ 2048x2048)' },
+	// 'long-xs': { long: 256, label: 'Long side to 128px' },
+	// 'long-sm': { long: 512, label: 'Long side to 256px' },
+	// 'long-md': { long: 1024, label: 'Long side to 512px' },
+	// 'long-lg': { long: 2048, label: 'Long side to 1024px' },
+	// 'long-xl': { long: 4096, label: 'Long side to 2048px' },
+	custom: { label: 'Custom' }
+};
+
 export async function mediaResizeFromPreset(
 	media: MediaInterface,
 	preset: string,
@@ -300,10 +207,16 @@ export async function mediaResizeFromPreset(
 	// if (width !== media.originalWidth || height !== media.originalHeight) {
 	// 	media.resized = await resizeImage(media.original, width, height);
 	// }
-	if (width !== media.resizedWidth || height !== media.resizedHeight) {
+	if (width === media.originalWidth && height === media.originalHeight) {
+		media.resizedWidth = undefined;
+		media.resizedHeight = undefined;
+		media.transformed = undefined;
+		mediaCreateThumbnail(media);
+		Object.assign(media, await APIupsertMedia(media));
+	} else if (width !== media.resizedWidth || height !== media.resizedHeight) {
 		media.resizedWidth = width;
 		media.resizedHeight = height;
-		media.resized = await resizeImage(media.original, width, height);
+		media.transformed = resizeImage(media.original, width, height);
 		mediaCreateThumbnail(media);
 		Object.assign(media, await APIupsertMedia(media));
 	}
@@ -324,20 +237,20 @@ export async function uploadChangedMedia(media: MediaInterface) {
 		});
 	}
 
-	if (!media.thumbnail && media.thumbnailID) mediaNeedsUpdate = true;
-	if (media.thumbnail && !media.thumbnail.id) {
-		mediaNeedsUpdate = true;
-		uploadPromises.push(async () => {
-			assert(media.thumbnail);
-			Object.assign(media.thumbnail, { ...(await uploadFile(media.thumbnail)), isThumbnail: true });
-		});
-	}
+	// if (!media.thumbnail && media.thumbnailID) mediaNeedsUpdate = true;
+	// if (media.thumbnail && !(await media.thumbnail).id) {
+	// 	mediaNeedsUpdate = true;
+	// 	uploadPromises.push(async () => {
+	// 		assert(media.thumbnail);
+	// 		Object.assign(media.thumbnail, { ...(await uploadFile(await media.thumbnail)), isThumbnail: true });
+	// 	});
+	// }
 
 	if (mediaNeedsUpdate) {
 		await Promise.all(uploadPromises.map((p) => p()));
 
 		media.originalID = media.original?.id ?? null;
-		media.thumbnailID = media.thumbnail?.id ?? null;
+		// media.thumbnailID = (await media.thumbnail)?.id ?? null;
 		media.conversationID = A.conversation.id ?? null;
 
 		const updatedMedia = await APIupsertMedia(media);
@@ -351,7 +264,7 @@ export async function uploadConversationMedia() {
 
 	debug('uploadMedia', $state.snapshot(A.conversation));
 
-	A.mediaUploading = true;
+	A.mediaUploading = (A.mediaUploading ?? 0) + 1;
 
 	// Can't upload media for a non-existing conversation.
 	let createdNewConversation = false;
@@ -363,14 +276,148 @@ export async function uploadConversationMedia() {
 
 	await Promise.all(A.conversation.media.map(uploadChangedMedia));
 	debug('All media uploaded!', $state.snapshot(A.conversation));
-	A.mediaUploading = false;
+	A.mediaUploading--;
 	return createdNewConversation;
 }
 
-export async function fileToMedia(file: File): Promise<MediaInterface> {
+export function mediaCreateThumbnail(media: MediaInterface): Promise<FileInterface> | undefined {
+	assert(media.original);
+	assert(media.original.file);
+
+	assert(media.type === 'image' || media.type === 'text' || media.type === 'pdf');
+
+	if (media.type === 'image') {
+		if (media.transformed) {
+			debug('Creating image thumbnail from resized %o', $state.snapshot(media));
+			assert(media.resizedWidth);
+			assert(media.resizedHeight);
+
+			const targetPixels = 128 * 128;
+			if (media.resizedWidth * media.resizedHeight <= targetPixels) {
+				return undefined;
+			}
+
+			const aspectRatio = media.resizedWidth / media.resizedHeight;
+			let newWidth, newHeight;
+
+			if (aspectRatio > 1) {
+				newWidth = Math.sqrt(targetPixels * aspectRatio);
+				newHeight = newWidth / aspectRatio;
+			} else {
+				newHeight = Math.sqrt(targetPixels / aspectRatio);
+				newWidth = newHeight * aspectRatio;
+			}
+
+			return media.transformed.then((resized) => resizeImage(resized, Math.round(newWidth), Math.round(newHeight)));
+		} else {
+			assert(media.originalWidth);
+			assert(media.originalHeight);
+			debug('Creating image thumbnail from original %o', $state.snapshot(media));
+			const targetPixels = 128 * 128;
+			const aspectRatio = media.originalWidth / media.originalHeight;
+			let newWidth, newHeight;
+
+			if (aspectRatio > 1) {
+				newWidth = Math.sqrt(targetPixels * aspectRatio);
+				newHeight = newWidth / aspectRatio;
+			} else {
+				newHeight = Math.sqrt(targetPixels / aspectRatio);
+				newWidth = newHeight * aspectRatio;
+			}
+
+			return resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
+		}
+	} else if (media.type === 'text' && media.original?.text && media.original?.text.length > 1000) {
+		debug('Creating text thumbnail from original %o ', $state.snapshot(media));
+		const text = media.original.text.slice(0, 200);
+		const file = new File([text], 'thumbnail.txt', { type: 'text/plain' });
+		return new Promise((resolve) =>
+			resolve({
+				userID: media.userID,
+				mimeType: 'text/plain',
+				size: text.length,
+				text: text,
+				file,
+				url: URL.createObjectURL(file)
+			})
+		);
+	} /*if (media.type === 'pdf')*/ else {
+		return PDFThumbnail(media);
+	}
+}
+
+export async function syncFileURL(file: FileInterface, filename: string = 'file') {
+	debug('syncFileURL', $state.snapshot(file));
+
+	assert(file.file || file.url, 'FileInterface must have a file or URL');
+
+	if (file.url && !file.file) {
+		// We replace the original URL with a blob URL to avoid re-fetching the file.
+		file.file = await fetchFileByURL(file.url, filename);
+		URL.revokeObjectURL(file.url);
+		file.url = URL.createObjectURL(file.file);
+	}
+
+	if (file.file && !file.url) {
+		file.url = URL.createObjectURL(file.file);
+	}
+}
+
+export async function syncMedia(media: MediaInterface) {
+	if (!media.original) throw new Error('MediaInterface must have an original file');
+
+	A.mediaProcessing = (A.mediaProcessing ?? 0) + 1;
+	media.processing = (media.processing ?? 0) + 1;
+	try {
+		assert(media.original);
+		await syncFileURL(media.original, media.filename);
+		// if (media.thumbnail) await syncFileURL(media.thumbnail, media.filename);
+
+		// This will only run once, when the new media is processed for the first time.
+		if (media.type === 'image') {
+			if (!media.originalWidth || !media.originalHeight) {
+				assert(media.original?.file);
+				const img = new Image();
+				await new Promise<void>((resolve, reject) => {
+					img.onload = () => {
+						media.originalWidth = img.naturalWidth;
+						media.originalHeight = img.naturalHeight;
+						resolve();
+					};
+					img.onerror = (error) => {
+						reject(new Error('Failed to load image: ' + error));
+					};
+
+					assert(media.original?.url);
+					img.src = media.original.url;
+				});
+			}
+			await imageProcessResize(media);
+		} else if (media.type === 'text') {
+			assert(media.original.file);
+			media.text = await media.original.file.text();
+		} else if (media.type === 'pdf') {
+			if (!media.PDFDocument) media.PDFDocument = PDFGetDocument(media);
+			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);
+
+			// Note: This async function returns an array of promises when resolved.
+			if (media.PDFAsImages) media.PDFImages = await PDFToImages(media);
+		}
+
+		// if (!media.thumbnail) {
+		media.thumbnail = mediaCreateThumbnail(media);
+		debug('added thumbnail', media.thumbnail);
+		// }
+	} finally {
+		media.processing--;
+		A.mediaProcessing--;
+	}
+}
+
+export function fileToMedia(file: File): MediaInterface {
 	if (!A.dbUser) throw new Error('User not logged in');
 
-	const type = await typeFromFile(file);
+	const type = typeFromFile(file);
 	debug('fileToMedia', type);
 
 	const m: MediaInterface = {
@@ -388,7 +435,10 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 		}
 	};
 
-	await syncMedia(m);
-	await mediaCreateThumbnail(m);
+	if (m.type === 'pdf') {
+		m.PDFAsImages = true;
+		m.PDFAsImagesDPI = 300;
+	}
+
 	return m;
 }

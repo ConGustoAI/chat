@@ -201,7 +201,7 @@
 							});
 						}
 					}}
-					disabled={!uploadEnabled || A.mediaUploading}>
+					disabled={!uploadEnabled || !!A.mediaUploading}>
 					<Upload size={20} />
 					{#if A.mediaProcessing}
 						<span class="loading loading-spinner absolute h-full w-full"></span>
@@ -227,7 +227,7 @@
 					<button
 						class="btn btn-sm rounded-md"
 						onclick={onSubmit}
-						disabled={A.chatStreaming || A.mediaProcessing || A.mediaUploading || !input.trim()}
+						disabled={A.chatStreaming || !!A.mediaProcessing || !!A.mediaUploading || !input.trim()}
 						class:btn-disabled={A.chatStreaming || A.mediaProcessing || A.mediaUploading || !input.trim()}>
 						<Send size={20} />
 					</button>

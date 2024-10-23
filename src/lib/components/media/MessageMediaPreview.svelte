@@ -10,21 +10,8 @@
 	let { media = $bindable(), message = $bindable() }: { media: MediaInterface; message: MessageInterface } = $props();
 
 	let isHovered = $state(false);
-
-	// let thumbnailURL: string | undefined = $state();
 	let mediaWidth: number | undefined = $state();
 	let mediaHeight: number | undefined = $state();
-
-	// 	if (media.thumbnail?.url) {
-	// 		thumbnailURL = media.thumbnail.url;
-	// 		debug('thumbnailURL: Picking thumbnail:', $state.snapshot(thumbnailURL));
-	// 	} else if (media.original?.file) {
-	// 		thumbnailURL = media.original.url;
-	// 		debug('thumbnailURL: Picking original:', $state.snapshot(thumbnailURL));
-	// 	} else {
-	// 		debug('thumbnailURL: No preview URL available');
-	// 		thumbnailURL = undefined;
-	// 	}
 
 	$effect(() => {
 		if (media.resizedWidth != undefined) {
@@ -41,51 +28,93 @@
 		}
 	});
 
-	let thumbnailURL = $derived.by(() => {
-		if (media?.thumbnail?.url) {
-			debug('thumbnailURL: Picking thumbnail');
-			return media.thumbnail.url;
-		} else if (media?.original?.file) {
-			debug('thumbnailURL: Picking original');
-			return media.original.url;
-		} else {
-			debug('thumbnailURL: No preview URL available');
-			return undefined;
+	let thumbnailURL: string | undefined = $state(undefined);
+	$effect(() => {
+		if (['image', 'pdf'].includes(media.type)) {
+			if (media.thumbnail) {
+				debug('thumbnailURL: Picking thumbnail');
+				media.thumbnail.then((t) => (thumbnailURL = t.url));
+			} else if (media.transformed) {
+				debug('thumbnailURL: Picking resized');
+				media.transformed.then((r) => (thumbnailURL = r.url));
+			} else if (media.original && media.type === 'image') {
+				debug('thumbnailURL: Picking original');
+				thumbnailURL = media.original.url;
+			} else {
+				debug('thumbnailURL: No preview URL available');
+				thumbnailURL = undefined;
+			}
 		}
 	});
 
-	let thumbnailText = $derived.by(() => {
-		if (media?.thumbnail?.text) {
-			debug('thumbnailText: Picking thumbnail');
-			return media.thumbnail.text;
+	let thumbnailText: string | undefined = $state(undefined);
+	$effect(() => {
+		if (media?.thumbnail instanceof Promise) {
+			media.thumbnail.then((thumbnail) => {
+				if (thumbnail.text) {
+					debug('thumbnailText: Picking thumbnail');
+					thumbnailText = thumbnail.text;
+				}
+			});
 		} else if (media?.original?.text) {
 			debug('thumbnailText: Picking original');
-			return media.original.text;
+			thumbnailText = media.original.text;
 		} else {
 			debug('thumbnailText: No preview text available');
-			return undefined;
+			thumbnailText = undefined;
 		}
 	});
 
-	let uploadProgress = $derived.by(() => {
+	let uploadProgress: number | undefined = $state(undefined);
+
+	$effect(() => {
+		if (!media) {
+			uploadProgress = undefined;
+			return;
+		}
+
 		let totalSize = 0;
 		let totalProgress = 0;
 
-		if (media.original?.status === 'progress') {
+		if (media.original && media.original.status === 'progress') {
 			totalSize += media.original.size ?? 0;
 			totalProgress += ((media.original.uploadProgress ?? 0) * (media.original.size ?? 0)) / 100;
 		}
 
-		if (media.thumbnail?.status === 'progress') {
-			totalSize += media.thumbnail.size ?? 0;
-			totalProgress += ((media.thumbnail.uploadProgress ?? 0) * (media.thumbnail.size ?? 0)) / 100;
+		if (media.thumbnail) {
+			media.thumbnail.then((t) => {
+				if (t && t.status === 'progress') {
+					totalSize += t.size ?? 0;
+					totalProgress += ((t.uploadProgress ?? 0) * (t.size ?? 0)) / 100;
+				}
+
+				if (totalSize) {
+					uploadProgress = (totalProgress / totalSize) * 100;
+				} else {
+					uploadProgress = undefined;
+				}
+				debug('media uploadProgress', uploadProgress);
+			});
+		} else {
+			if (totalSize) {
+				uploadProgress = (totalProgress / totalSize) * 100;
+			} else {
+				uploadProgress = undefined;
+			}
+			debug('media uploadProgress', uploadProgress);
 		}
 
-		if (totalSize) {
-			return (totalProgress / totalSize) * 100;
-		} else {
-			return undefined;
-		}
+		// if (thumbnail && thumbnail.status === 'progress') {
+		// 	totalSize += thumbnail.size ?? 0;
+		// 	totalProgress += ((thumbnail.uploadProgress ?? 0) * (thumbnail.size ?? 0)) / 100;
+		// }
+
+		// if (totalSize) {
+		// 	uploadProgress = (totalProgress / totalSize) * 100;
+		// } else {
+		// 	uploadProgress = undefined;
+		// }
+		// debug('message uploadProgress', uploadProgress);
 	});
 
 	async function unlinkMedia() {
@@ -114,7 +143,10 @@
 	onmouseleave={() => (isHovered = false)}>
 	<div class="flex h-full w-full flex-col overflow-hidden bg-base-100">
 		{#if media.type === 'image'}
-			<img src={thumbnailURL} alt={media.filename} class="bg-checkered mx-auto overflow-hidden object-contain" />
+			<img
+				src={thumbnailURL}
+				alt={media.filename}
+				class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}
 			<p class="m-0 line-clamp-3 overflow-hidden break-words text-sm">
 				{thumbnailText ?? ''}

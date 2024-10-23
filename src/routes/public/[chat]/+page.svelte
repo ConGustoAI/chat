@@ -9,7 +9,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
 	import { assert } from '$lib/utils/utils';
-	import { mediaCreateThumbnail, mediaProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
+	import { mediaCreateThumbnail, imageProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
 	const debug = dbg('app:ui:public');
 
 	async function fetchConversation(convID: string): Promise<void> {
@@ -24,7 +24,7 @@
 
 			for (const m of A.conversation.media) {
 				// Don't await.
-				syncMedia(m).then(async () => Promise.all([mediaProcessResize(m), mediaCreateThumbnail(m)]));
+				syncMedia(m).then(async () => Promise.all([imageProcessResize(m), mediaCreateThumbnail(m)]));
 			}
 
 			A.conversation.messages?.map((m) => {
@@ -50,7 +50,7 @@
 	$effect(() => {
 		// This gets called once on mount, so we add the check to avid a double fetch.
 		if ($page.params.chat && untrack(() => A.conversation?.id !== $page.params.chat)) {
-			untrack(() => (fetchConversation($page.params.chat)));
+			untrack(() => fetchConversation($page.params.chat));
 		}
 	});
 
@@ -64,7 +64,7 @@
 			<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
 				{#if A.conversation?.messages}
 					{#each A.conversation.messages as m, i}
-						<ChatMessage message={A.conversation.messages[i]}  submitConversation={async () => {}} />
+						<ChatMessage message={A.conversation.messages[i]} submitConversation={async () => {}} />
 					{/each}
 					<div class=" mb-20 w-full"></div>
 				{:else}
@@ -97,4 +97,3 @@
 
 <!-- <pre>{JSON.stringify({ chat: $page.params.chat, conversation, conversations, assistants }, null, 2)}</pre> -->
 <!-- <pre>{JSON.stringify({ conversations, data }, null, 2)}</pre> -->
-

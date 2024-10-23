@@ -8,9 +8,8 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, type CoreAssistantMessage, type CoreUserMessage, type UserContent } from 'ai';
 import dbg from 'debug';
-import { assert, promptHash } from './utils';
 import { uploadConversationMedia } from './media_utils.svelte';
-import { PDFToImages } from './pdf';
+import { assert, promptHash } from './utils';
 const debug = dbg('app:lib:utils:chat');
 
 export let abortController: AbortController | undefined = undefined;
@@ -168,9 +167,8 @@ export async function _submitConversationClientSide() {
 						media.resizedHeight &&
 						media.resizedHeight !== media.originalHeight
 					) {
-						assert(media.resized);
-						assert(media.resized.file);
-						file = media.resized;
+						assert(media.transformed);
+						file = await media.transformed;
 						assert(file.file);
 						width = media.resizedWidth;
 						height = media.resizedHeight;
@@ -236,14 +234,13 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (media.PDFAsImages) {
-							const dpi = media.PDFAsImagesDPI ?? 150;
-							if (!media.pdfImages) await PDFToImages(media, dpi);
-							assert(media.pdfImages);
-							for (let i = 0; i < media.pdfImages.length; i++) {
-								const image = media.pdfImages[i];
+							assert(media.PDFImages);
+							assert(media.PDFImages);
+							for (let i = 0; i < media.PDFImages.length; i++) {
+								const image = await media.PDFImages[i];
 								contentChunks.push({
 									type: 'text',
-									text: `<Paage page="${i}" resolution="${image.width}x${image.height}" dpi=${dpi}>`
+									text: `<Paage page="${i}" resolution="${image.width}x${image.height}" dpi=${media.PDFAsImagesDPI}>`
 								});
 
 								contentChunks.push({

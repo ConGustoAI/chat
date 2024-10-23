@@ -14,9 +14,8 @@
 
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
 
-
 	// Handle file input change
-	async function handleFileChange(event: Event) {
+	function handleFileChange(event: Event) {
 		if (!A.conversation) throw new Error('Conversation missing');
 
 		const input = event.target as HTMLInputElement;
@@ -36,53 +35,64 @@
 					)
 			);
 
-			const newMedia = await Promise.all(newFiles.map(fileToMedia));
+			const newMedia = newFiles.map(fileToMedia);
 
 			A.conversation.media.push(...newMedia);
-			debug('Files added: ', $state.snapshot(A.conversation));
+
+			A.conversation.media.map(syncMedia);
+
+			// svelte-ignore state_snapshot_uncloneable
+			debug('Files added: ', A.conversation);
 			input.value = '';
 		}
 	}
 
-	let meidaNeedsUpload = $derived.by(() => {
-		untrack(() => debug('meidaNeedsUpload', $state.snapshot(A.conversation)));
-		return !!A.conversation?.media?.find(
-			(m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && m.thumbnail.status !== 'ok')
+	let meidaNeedsUpload = $state(false);
+
+	$effect(() => {
+		meidaNeedsUpload = !!A.conversation?.media?.find(
+			async (m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && (await m.thumbnail).status !== 'ok')
 		);
 	});
 
-	let totalUploadProgress = $derived.by(() => {
-		let progress = A.conversation?.media
-			?.map((m) => {
+	let totalUploadProgress: number | undefined = $state(undefined);
+
+	$effect(() => {
+		if (!A.conversation?.media) {
+			totalUploadProgress = undefined;
+			return;
+		}
+
+		Promise.all(
+			A.conversation.media.map(async (m) => {
 				let p = 0;
 				let count = 0;
 				if (m.original && m.original.status === 'progress') {
 					p += m.original.uploadProgress ?? 0;
 					count++;
 				}
-				if (m.thumbnail && m.thumbnail.status === 'progress') {
-					p += m.thumbnail.uploadProgress ?? 0;
+				const thumbnail = await m.thumbnail;
+				if (thumbnail && thumbnail.status === 'progress') {
+					p += thumbnail.uploadProgress ?? 0;
 					count++;
 				}
-				return count ? p / count : 0;
+				return count ? p / count : undefined;
 			})
-			.filter((p) => p > 0);
-
-		if (progress?.length) {
-			const totalProgress = progress.reduce((a, b) => a + b, 0) / progress.length;
-
-			debug('totalUploadProgress', totalProgress);
-
-			return progress.reduce((a, b) => a + b, 0) / progress.length;
-		} else {
-			return undefined;
-		}
+		).then((progress) => {
+			const p = progress.filter((p) => p !== undefined) as number[];
+			if (p.length) {
+				const calculatedProgress = p.reduce((a, b) => a + b, 0) / p.length;
+				totalUploadProgress = calculatedProgress;
+				debug('totalUploadProgress', calculatedProgress);
+			} else {
+				totalUploadProgress = undefined;
+			}
+		});
 	});
 </script>
 
-<div
-	class={'flex shrink-0 flex-col overflow-hidden'} >
-	  <!-- + (A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}> -->
+<div class={'flex shrink-0 flex-col overflow-hidden'}>
+	<!-- + (A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}> -->
 	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
 	<!-- {#if A.mediaEditing && !message && A.conversation?.media?.includes(A.mediaEditing)}
 		<MediaEditor bind:media={A.mediaEditing} />
@@ -97,9 +107,12 @@
 
 		<div class="flex flex-col gap-3">
 			<button
-				class="btn carousel-item btn-outline h-14 w-14 items-center justify-center rounded-sm p-0"
+				class="btn carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
 				onclick={() => document.getElementById('fileInput')?.click()}>
 				<PlusCircle size={32} />
+				{#if A.debug}
+					<p class="text-debug absolute bottom-1 right-1">{A.mediaProcessing ?? 0}</p>
+				{/if}
 			</button>
 
 			<button
@@ -120,6 +133,9 @@
 						max={100}></progress>
 				{/if}
 				<Upload size={32} />
+				{#if A.debug}
+					<p class="text-debug absolute bottom-1 right-1">{A.mediaUploading ?? 0}</p>
+				{/if}
 			</button>
 		</div>
 		<!-- Hidden file input -->

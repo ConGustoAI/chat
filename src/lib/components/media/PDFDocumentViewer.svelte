@@ -1,13 +1,10 @@
-<script lang="ts">
-	import { assert } from '$lib/utils/utils';
-	import * as pdfjs from 'pdfjs-dist';
-	import { onMount, untrack } from 'svelte';
+<!-- <script lang="ts">
+	import { untrack } from 'svelte';
 
+	import { pdfjs } from '$lib/utils/pdf.svelte';
 	import dbg from 'debug';
-	import type { TextContent, TextItem } from 'pdfjs-dist/types/src/display/api';
+	import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 	const debug = dbg('app:ui:components:PDFDocumentViewer');
-
-	pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 	let { media }: { media: MediaInterface } = $props();
 
@@ -25,22 +22,14 @@
 	async function renderPage(pageNumber: number) {
 		if (document) {
 			const page = await document.getPage(pageNumber);
-			const content = await page.getTextContent({ disableNormalization: false });
-			// (await page.getTextContent({ disableNormalization: false }))
-			// .items.map((item: TextItem) => item.str ?? '')
-			// .join(' ');
+			const content = await page.getTextContent({});
 			debug('content:', pageNumber, content);
 
-            const text = content.items.map((item: TextItem) => item.str ?? '').join('');
-            debug('text:', pageNumber, text);
-			// const context = canvas.getContext('2d');
-			// assert(context);
-			// const viewport = page.getViewport({ scale: 4.17 }); // 300 DPI
-			// canvas.height = viewport.height;
-			// canvas.width = viewport.width;
-
-			// debug('renderPage:', { pageNumber, viewport, canvas });
-			// page.render({ canvasContext: context, viewport, intent: 'any' });
+			const text = content.items
+				.filter((item): item is TextItem => 'str' in item)
+				.map((item) => item.str ?? '')
+				.join('');
+			debug('text:', pageNumber, text);
 		}
 	}
 
@@ -51,10 +40,4 @@
 			}
 		}
 	});
-</script>
-
-<!-- <div class="flex h-full w-full shrink grow-0 flex-col gap-2 overflow-auto"> -->
-<!-- {#each canvases as __, i}
-		<canvas bind:this={canvases[i]} width={canvasWidth} class="w-full border-gray-300 object-contain p-2"> </canvas>
-	{/each} -->
-<!-- </div> -->
+</script> -->

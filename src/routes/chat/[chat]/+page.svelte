@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { mediaCreateThumbnail, mediaProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
+	import { mediaCreateThumbnail, imageProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
@@ -26,8 +26,9 @@
 				A.conversation = A.conversations[fc.id!];
 				if (!A.conversation.media) A.conversation.media = [];
 
+				// Note: We don't await the promises here, but instread we await the values as we need them in the ui.
 				for (const m of A.conversation.media) {
-					syncMedia(m).then(async () => Promise.all([mediaProcessResize(m), mediaCreateThumbnail(m)]));
+					syncMedia(m);
 				}
 
 				A.conversation.messages?.map((m) => {
@@ -57,5 +58,4 @@
 			untrack(() => fetchConversation($page.params.chat));
 		}
 	});
-
 </script>
