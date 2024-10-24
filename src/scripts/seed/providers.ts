@@ -32,6 +32,7 @@ export const gemini15ProID = '34145f59-e1f3-4ad1-b3bb-02b8ab9f1882';
 export const gemini15ProExp0801ID = '75ee6f78-37ba-42d9-a865-147424a5fc5f';
 export const gemini15ProExp0827ID = '6556bcaf-2a73-43dd-b114-a1ef5fdac4c5';
 export const gemini15FlashID = '98ede844-8124-40c9-aad5-65e1f3098452';
+export const gemini15Flash8BID = 'e71e67da-9234-11ef-b7fd-6f3990198700';
 
 export const seedProviders = async (tx: typeof db) => {
 	await tx
@@ -292,8 +293,8 @@ export const seedModels = async (tx: typeof db) => {
 			{
 				id: gemini15ProID,
 				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Pro',
-				name: 'gemini-1.5-pro',
+				displayName: 'Gemini 1.5 Pro 002',
+				name: 'gemini-1.5-pro-002',
 				images: true,
 				maxImages: 3600,
 				audio: true,
@@ -304,23 +305,8 @@ export const seedModels = async (tx: typeof db) => {
 				outputContext: 8192,
 				maxTemp: 2,
 				providerID: GoogleProviderID,
-				inputCost: 3.5,
-				outputCost: 10.5
-			},
-			{
-				id: gemini15ProExp0801ID,
-				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Pro Exp 0801',
-				name: 'gemini-1.5-pro-exp-0801',
-				images: true,
-				audio: true,
-				video: true,
-				inputContext: 2097152,
-				outputContext: 8192,
-				maxTemp: 2,
-				providerID: GoogleProviderID,
-				inputCost: 3.5,
-				outputCost: 10.5
+				inputCost: 1.5,
+				outputCost: 5
 			},
 			{
 				id: gemini15ProExp0827ID,
@@ -340,8 +326,8 @@ export const seedModels = async (tx: typeof db) => {
 			{
 				id: gemini15FlashID,
 				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Pro Flash',
-				name: 'gemini-1.5-flash',
+				displayName: 'Gemini 1.5 Flash 002',
+				name: 'gemini-1.5-flash-002',
 				images: true,
 				maxImages: 7200,
 				audio: true,
@@ -354,7 +340,23 @@ export const seedModels = async (tx: typeof db) => {
 				providerID: GoogleProviderID,
 				inputCost: 0.75,
 				outputCost: 0.3
+			},
+			{
+				id: gemini15Flash8BID,
+				userID: defaultsUUID,
+				displayName: 'Gemini 1.5 Flash 8B Exp 0924',
+				name: 'gemini-1.5-flash-8b-exp-0924',
+				images: true,
+				audio: true,
+				video: true,
+				inputContext: 1048576,
+				outputContext: 8192,
+				maxTemp: 2,
+				providerID: GoogleProviderID,
+				inputCost: 0.75,
+				outputCost: 0.3
 			}
+
 		])
 		.onConflictDoNothing();
 };
