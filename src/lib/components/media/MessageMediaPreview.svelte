@@ -104,13 +104,14 @@
 			}
 		}
 	}
+
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class="relative flex h-full w-full flex-col justify-between gap-0.5 rounded-md bg-base-300 p-1"
-	class:opacity-50={!media.active}
+	class:opacity-50={!media.active && !isPublicPage() }
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
 	<div class="flex h-full w-full flex-col overflow-hidden bg-base-100">
@@ -141,6 +142,10 @@
 	{#if uploadProgress !== undefined}
 		<progress class="progress-success absolute h-full w-full -rotate-90 opacity-50" value={uploadProgress} max={100}
 		></progress>
+	{/if}
+
+	{#if media.processing}
+		<div class="loading absolute left-1 top-1 m-auto"></div>
 	{/if}
 	<!-- {/if} -->
 

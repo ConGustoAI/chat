@@ -42,5 +42,5 @@ export const A: AppState = $state({
 
 	mediaUploading: 0,
 	mediaProcessing: 0,
-	debug: true
+	debug: false
 });

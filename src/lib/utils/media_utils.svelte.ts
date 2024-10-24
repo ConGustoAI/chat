@@ -424,7 +424,7 @@ export function fileToMedia(file: File): MediaInterface {
 
 	if (m.type === 'pdf') {
 		m.PDFAsImages = true;
-		m.PDFAsImagesDPI = 300;
+		m.PDFAsImagesDPI = 150;
 	}
 
 	return m;

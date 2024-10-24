@@ -79,7 +79,7 @@
 			<div class="relative font-bold">
 				Input
 				<div class="absolute -top-5">
-					<InfoPopup title="Input context length">Maximum number of input tokens the model can process</InfoPopup>
+					<InfoPopup class="text-sm" title="Input context length">Maximum number of input tokens the model can process</InfoPopup>
 				</div>
 			</div>
 			<div class="relative font-bold" title="Input cost $ for 1M tokens">

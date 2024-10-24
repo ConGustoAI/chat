@@ -2,7 +2,7 @@
 	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
 	import { PDFToImages } from '$lib/utils/pdf.svelte';
-	import { assert } from '$lib/utils/utils';
+	import { assert, isPublicPage } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	import InfoPopup from '../InfoPopup.svelte';
@@ -61,7 +61,7 @@
 			<input
 				type="checkbox"
 				id="as-images"
-				disabled={processingImages}
+				disabled={processingImages || isPublicPage()}
 				bind:checked={A.mediaEditing.PDFAsImages}
 				onchange={async () => {
 					assert(A.mediaEditing);
@@ -72,7 +72,7 @@
 				class="select select-bordered select-sm"
 				bind:this={DPISelector}
 				onchange={handlePdfAsImages}
-				disabled={processingImages}>
+				disabled={processingImages || !A.mediaEditing.PDFAsImages}>
 				<option value="72">72 DPI</option>
 				<option value="150">150 DPI</option>
 				<option value="300">300 DPI</option>
@@ -95,15 +95,18 @@
 				type="checkbox"
 				id="send-as-pdf"
 				bind:checked={A.mediaEditing.PDFAsFile}
-				disabled={!currentAssistant?.pdf}
+				disabled={!currentAssistant?.pdf || isPublicPage()}
 				onchange={async () => {
 					assert(A.mediaEditing);
 					Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 				}} />
-			<label for="send-as-pdf">Send as PDF</label>
-			<InfoPopup title="Send the original file" class="z-20">
-				<p>Send the PDF file as an attachment.</p>
-			</InfoPopup>
+			<label class="relative" for="send-as-pdf"
+				>Send as PDF
+				<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
+					<p>Only Google Gemini models support direct PDF upload.</p>
+					<p>They process the file internally.</p>
+				</InfoPopup>
+			</label>
 		</div>
 	</div>
 	{#if A.mediaEditing.PDFMeta}
@@ -125,7 +128,7 @@
 			<div class="divider my-0 w-full">Pages</div>
 			{#each A.mediaEditing.PDFImages as pdfImage, i}
 				<div class="flex gap-2">
-					<input
+					<!-- <input
 						type="checkbox"
 						id={`page-${i}`}
 						checked={A.mediaEditing.PDFImagesSelected?.includes(i)}
@@ -147,7 +150,7 @@
 							}
 
 							Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
-						}} />
+						}} /> -->
 
 					{#await pdfImage}
 						<div class="loading loading-sm"></div>

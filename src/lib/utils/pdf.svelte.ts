@@ -28,8 +28,8 @@ export async function PDFThumbnail(media: MediaInterface): Promise<FileInterface
 		const context = canvas.getContext('2d');
 		assert(context);
 
-		canvas.width = 300;
-		canvas.height = 300;
+		canvas.width = 128;
+		canvas.height = 128;
 
 		// Calculate the scale to fit the canvas
 		const scale = Math.min(canvas.width / viewport.width);
@@ -77,7 +77,7 @@ export async function PDFToImages(media: MediaInterface): Promise<Promise<PDFIma
 	try {
 		for (let page = 1; page <= pdfDocument.numPages; page++) {
 			const pdfPage = await pdfDocument.getPage(page);
-			const viewport = pdfPage.getViewport({ scale: media.PDFAsImagesDPI / 72 }); // 72 DPI is the default.
+			const viewport = pdfPage.getViewport({ scale: media.PDFAsImagesDPI / 72 });
 
 			const canvas = document.createElement('canvas');
 			const context = canvas.getContext('2d');
