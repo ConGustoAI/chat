@@ -38,6 +38,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 			...sessionCookie.attributes
 		});
 	}
+
+	event.locals.session = session;
 	// debug('session', session);
 	// debug('user', user);
 

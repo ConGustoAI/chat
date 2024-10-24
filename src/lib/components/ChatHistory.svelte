@@ -43,6 +43,19 @@
 		searchStarred: boolean,
 		searchUnstarred: boolean
 	) {
+		debug(
+			'splitConversations',
+			$state.snapshot({
+				conversatonIds,
+				value,
+				eagerSearchConversations,
+				amp,
+				searchPublic,
+				searchPrivate,
+				searchStarred,
+				searchUnstarred
+			})
+		);
 		const today = new Date();
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
@@ -89,6 +102,7 @@
 
 			filteredConversations.push(c);
 		}
+		debug('filteredConversations', filteredConversations);
 
 		for (const c of filteredConversations) {
 			if (!A.conversations[c].updatedAt) {
@@ -112,6 +126,8 @@
 				lastWeekConversations.push(c);
 			} else if (date > lastMonth) {
 				lastMonthConversations.push(c);
+			} else {
+				unknownConversations.push(c);
 			}
 		}
 
@@ -271,7 +287,7 @@
 				class="absolute left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
 				{#each historyAMPOptions as option}
 					<button
-						class="btn btn-ghost btn-xs cursor-pointer text-nowrap px-4 py-0 justify-start text-sm"
+						class="btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
 						onclick={() => (searchAMP = option)}>
 						{option}
 					</button>

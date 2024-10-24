@@ -3,11 +3,12 @@
 	import { APIfetchAssistants, APIupdateUser } from '$lib/api';
 	import GrowInput from '$lib/components/GrowInput.svelte';
 	import { Check } from 'lucide-svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { A } from '$lib/appstate.svelte';
 	import { defaultsUUID } from '$lib/db/schema';
 
-	let assistants: AssistantInterface[] = $state([]);
+	import dbg from 'debug';
+	const debug = dbg('app:ui:settings:page');
 
 	let status: string | null = $state(null);
 	let statusMessage: string | null = $state(null);
@@ -23,21 +24,22 @@
 		}
 	});
 
-	onMount(async () => {
-		assistants = await APIfetchAssistants();
-	});
-
 	$effect(() => {
 		debounceUserUpdate();
 		hasUnsavedChanges = !!(status && status != 'saved');
 	});
 
 	function debounceUserUpdate() {
+		if (!A.dbUser) {
+			status = null;
+			return;
+		}
+
 		if (status === 'changed') {
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				APIupdateUser(A.dbUser!)
+				APIupdateUser($state.snapshot(A.dbUser!))
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -53,6 +55,7 @@
 	}
 
 	function statusChanged() {
+		debug('statusChanged, previously', $state.snapshot(status));
 		status = 'changed';
 	}
 </script>
@@ -63,7 +66,7 @@
 			<div class="flex flex-col gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
 				<p>{A.dbUser.email}</p>
-				<a class="btn btn-outline" href="/login/pwreset" data-sveltekit-reload>Change Password</a>
+				<p class="btn btn-disabled btn-outline" data-sveltekit-reload>Change Password</p>
 			</div>
 			<div class="relative self-start">
 				<div class="loading absolute top-1" class:hidden={status !== 'saving'}></div>
@@ -91,7 +94,7 @@
 				<span class="text-sm">Default Assistant</span>
 				<select class="select select-bordered w-full" bind:value={A.dbUser.assistant} onchange={statusChanged}>
 					<option value={defaultsUUID}>Last one used</option>
-					{#each assistants as assistant}
+					{#each Object.values(A.assistants) as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
 					{/each}
 				</select>
@@ -126,8 +129,8 @@
 			<div class="flex items-center text-error">Show cost above</div>
 
 			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showEstimate} onchange={statusChanged} />
-
 			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showInfo} onchange={statusChanged} />
+
 			<input
 				type="number"
 				class="input input-bordered w-32"
@@ -151,4 +154,6 @@
 				step="0.01" />
 		</div>
 	</section>
+{:else}
+	<a class="btn btn-outline" href="/login">Log in</a>
 {/if}

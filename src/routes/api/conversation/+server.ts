@@ -11,6 +11,7 @@ import type { RequestHandler } from './$types';
 const debug = dbg('app:api:conversation');
 
 export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
+	debug('GET <- ', { dbUser: dbUser ? dbUser.id : 'anon' });
 	let conversations;
 	if (!dbUser) {
 		conversations = await DBgetDefaultConversations();
