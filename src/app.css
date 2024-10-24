@@ -71,6 +71,8 @@
 	/* font-size: 100%; */
 }
 
+
+
 .katex * {
 	margin: 0;
 	text-align: left;
@@ -80,6 +82,13 @@
 	display: initial !important;
 }
 
+.tab-size-2 {
+	tab-size: 2;
+}
+
+.tab-size-4 {
+	tab-size: 4;
+}
 
 input.tab:checked + .tab-content,
 :is(.tab-active, [aria-selected="true"]) + .tab-content {

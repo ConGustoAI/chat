@@ -126,6 +126,6 @@ export async function PDFGetMeta(media: MediaInterface): Promise<PDFMeta> {
 
 export async function PDFGetDocument(media: MediaInterface): Promise<pdfjs.PDFDocumentProxy> {
 	assert(media.type === 'pdf');
-	assert(media.original?.url);
-	return pdfjs.getDocument({ url: media.original.url }).promise;
+	assert(media.original?.file);
+	return pdfjs.getDocument({ data: await media.original.file.arrayBuffer() }).promise;
 }

@@ -176,6 +176,13 @@
       "when": 1729717788748,
       "tag": "0024_slippery_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1729734058987,
+      "tag": "0025_overconfident_gladiator",
+      "breakpoints": true
     }
   ]
 }

@@ -64,26 +64,7 @@
 		}
 	});
 
-	let thumbnailText = $derived.by(async () => {
-		const thumbmailText = media.thumbnail ? (await media.thumbnail).text : undefined;
-		if (thumbmailText) {
-			debug('thumbnailText: Picking thumbnail');
-			return thumbmailText;
-		} else if (media.original.text) {
-			debug('thumbnailText: Picking original');
-			return media.original.text;
-		} else {
-			debug('thumbnailText: No preview text available');
-			return undefined;
-		}
-	});
-
-	// let fullyUploaded = $derived.by(async () => {
-	// 	return (
-	// 		(!media.original || media.original.status === 'ok') &&
-	// 		(!media.thumbnail || (await media.thumbnail).status === 'ok')
-	// 	);
-	// });
+	let thumbnailText: string | undefined = $derived(media.text?.slice(0, 200).trim());
 
 	async function deleteMedia() {
 		assert(A.conversation);
@@ -158,38 +139,11 @@
 		TODO: Audio
 	{:else} -->
 	<div class="relative flex h-full w-full flex-col overflow-hidden bg-base-100">
-		{#if media.type === 'image' || media.type === 'pdf'}
-			<!-- {thumbnailURL} -->
-			{#if thumbnailURL}
-				<img
-					src={thumbnailURL}
-					alt={media.filename}
-					class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
-			{/if}
-
-			<div class="absolute bottom-1 mr-2 flex h-fit w-full flex-col gap-0.5">
-				{#if media.original?.status === 'progress'}
-					<progress class="progress progress-success h-1 rounded-none" value={media.original.uploadProgress} max={100}>
-						{media.original.uploadProgress}%
-					</progress>
-				{:else if media.original?.status === 'failed'}
-					<p class=" text-xs text-error">Upload error: {media.original.uploadError}</p>
-				{/if}
-
-				{#if media.thumbnail}
-					{#await media.thumbnail}
-						<div class="loading m-auto"></div>
-					{:then thumbnail}
-						{#if thumbnail.status === 'progress'}
-							<progress class="progress progress-success h-1 rounded-none" value={thumbnail.uploadProgress} max={100}>
-								{thumbnail.uploadProgress}%
-							</progress>
-						{:else if thumbnail.status === 'failed'}
-							<p class=" text-xs text-error">Upload error: {thumbnail?.uploadError}</p>
-						{/if}
-					{/await}
-				{/if}
-			</div>
+		{#if media.type === 'image'}
+			<img
+				src={thumbnailURL}
+				alt={media.filename}
+				class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
 
 			{#if media.originalWidth != undefined}
 				<div
@@ -201,15 +155,39 @@
 					{/if}
 				</div>
 			{/if}
+		{:else if media.type === 'pdf'}
+			<img src={thumbnailURL} alt={media.filename} class="mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}
-			<p class="m-0 line-clamp-5 h-full w-full overflow-hidden break-words text-sm">
-				{thumbnailText ?? ''}
-			</p>
+			<pre class="tab-size-2 m-0 line-clamp-5 overflow-hidden text-sm">{thumbnailText ?? ''}</pre>
 		{:else}
 			<div class="flex flex-grow items-center justify-center">
 				<p class="text-center">Unsupported media type</p>
 			</div>
 		{/if}
+
+		<div class="absolute bottom-1 mr-2 flex h-fit w-full flex-col gap-0.5">
+			{#if media.original?.status === 'progress'}
+				<progress class="progress progress-success h-1 rounded-none" value={media.original.uploadProgress} max={100}>
+					{media.original.uploadProgress}%
+				</progress>
+			{:else if media.original?.status === 'failed'}
+				<p class=" text-xs text-error">Upload error: {media.original.uploadError}</p>
+			{/if}
+
+			{#if media.thumbnail}
+				{#await media.thumbnail}
+					<div class="loading m-auto"></div>
+				{:then thumbnail}
+					{#if thumbnail.status === 'progress'}
+						<progress class="progress progress-success h-1 rounded-none" value={thumbnail.uploadProgress} max={100}>
+							{thumbnail.uploadProgress}%
+						</progress>
+					{:else if thumbnail.status === 'failed'}
+						<p class=" text-xs text-error">Upload error: {thumbnail?.uploadError}</p>
+					{/if}
+				{/await}
+			{/if}
+		</div>
 
 		{#await media.thumbnail then thumbnail}
 			{#if (!media.original || media.original.status === 'ok') && (!thumbnail || thumbnail.status === 'ok')}

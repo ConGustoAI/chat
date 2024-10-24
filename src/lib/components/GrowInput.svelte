@@ -62,7 +62,7 @@
 			{oninput}
 			{onkeydown}
 			{onchange}
-			class={cn('textarea h-full  min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
+			class={cn('textarea h-full min-h-10 overflow-y-auto whitespace-pre-wrap py-2 text-base', className)}>
 		</div>
 		{#if value === '' && !focused}
 			<div class={cn('pointer-events-none absolute inset-0 p-2 opacity-50', className)}>

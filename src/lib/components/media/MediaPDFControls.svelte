@@ -45,6 +45,10 @@
 			untrack(() => handlePdfAsImages());
 		}
 	});
+
+	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
+		return A.assistants[A.conversation?.assistant ?? 'none'];
+	});
 </script>
 
 {#if A.mediaEditing}
@@ -91,6 +95,7 @@
 				type="checkbox"
 				id="send-as-pdf"
 				bind:checked={A.mediaEditing.PDFAsFile}
+				disabled={!currentAssistant?.pdf}
 				onchange={async () => {
 					assert(A.mediaEditing);
 					Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));

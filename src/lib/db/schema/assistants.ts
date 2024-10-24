@@ -27,6 +27,7 @@ export const assistantsTable = pgTable('assistants', {
 	audio: boolean('audio').notNull().default(false),
 	video: boolean('video').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
+	pdf: boolean('pdf').notNull().default(false),
 	googleSafetyThreshold: integer('google_safety',).default(0),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),

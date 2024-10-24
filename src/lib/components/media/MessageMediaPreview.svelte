@@ -47,23 +47,7 @@
 		}
 	});
 
-	let thumbnailText: string | undefined = $state(undefined);
-	$effect(() => {
-		if (media?.thumbnail instanceof Promise) {
-			media.thumbnail.then((thumbnail) => {
-				if (thumbnail.text) {
-					debug('thumbnailText: Picking thumbnail');
-					thumbnailText = thumbnail.text;
-				}
-			});
-		} else if (media?.original?.text) {
-			debug('thumbnailText: Picking original');
-			thumbnailText = media.original.text;
-		} else {
-			debug('thumbnailText: No preview text available');
-			thumbnailText = undefined;
-		}
-	});
+	let thumbnailText: string | undefined = $derived(media.text?.slice(0, 200).trim());
 
 	let uploadProgress: number | undefined = $state(undefined);
 
@@ -103,18 +87,6 @@
 			}
 			debug('media uploadProgress', uploadProgress);
 		}
-
-		// if (thumbnail && thumbnail.status === 'progress') {
-		// 	totalSize += thumbnail.size ?? 0;
-		// 	totalProgress += ((thumbnail.uploadProgress ?? 0) * (thumbnail.size ?? 0)) / 100;
-		// }
-
-		// if (totalSize) {
-		// 	uploadProgress = (totalProgress / totalSize) * 100;
-		// } else {
-		// 	uploadProgress = undefined;
-		// }
-		// debug('message uploadProgress', uploadProgress);
 	});
 
 	async function unlinkMedia() {
@@ -147,10 +119,10 @@
 				src={thumbnailURL}
 				alt={media.filename}
 				class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
+		{:else if media.type === 'pdf'}
+			<img src={thumbnailURL} alt={media.filename} class="mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}
-			<p class="m-0 line-clamp-3 overflow-hidden break-words text-sm">
-				{thumbnailText ?? ''}
-			</p>
+			<pre class="tab-size-2 m-0 line-clamp-3 overflow-hidden text-sm">{thumbnailText ?? ''}</pre>
 		{/if}
 	</div>
 

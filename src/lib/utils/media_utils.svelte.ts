@@ -102,10 +102,10 @@ export async function imageProcessResize(media: MediaInterface) {
 
 export async function mediaUpdateText(media: MediaInterface) {
 	assert(media.original);
-	assert(media.original.text !== undefined);
+	assert(media.text !== undefined);
 
 	// Create a blob from the text
-	const file = new File([media.original.text], media.filename, { type: media.original.mimeType });
+	const file = new File([media.text], media.filename, { type: media.original.mimeType });
 
 	// Update the media.original FileInterface
 	media.original.file = file;
@@ -327,21 +327,7 @@ export function mediaCreateThumbnail(media: MediaInterface): Promise<FileInterfa
 
 			return resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
 		}
-	} else if (media.type === 'text' && media.original?.text && media.original?.text.length > 1000) {
-		debug('Creating text thumbnail from original %o ', $state.snapshot(media));
-		const text = media.original.text.slice(0, 200);
-		const file = new File([text], 'thumbnail.txt', { type: 'text/plain' });
-		return new Promise((resolve) =>
-			resolve({
-				userID: media.userID,
-				mimeType: 'text/plain',
-				size: text.length,
-				text: text,
-				file,
-				url: URL.createObjectURL(file)
-			})
-		);
-	} /*if (media.type === 'pdf')*/ else {
+	} else if (media.type === 'pdf') {
 		return PDFThumbnail(media);
 	}
 }
@@ -396,6 +382,7 @@ export async function syncMedia(media: MediaInterface) {
 		} else if (media.type === 'text') {
 			assert(media.original.file);
 			media.text = await media.original.file.text();
+			debug('text', media.text);
 		} else if (media.type === 'pdf') {
 			if (!media.PDFDocument) media.PDFDocument = PDFGetDocument(media);
 			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);

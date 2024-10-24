@@ -3,7 +3,7 @@
 	import { env } from '$env/dynamic/public';
 	import { A } from '$lib/appstate.svelte';
 	import { CostEstimate, GrowInput, MediaCarousel, Notification } from '$lib/components';
-	import { fileToMedia } from '$lib/utils/media_utils.svelte';
+	import { fileToMedia, syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
@@ -133,6 +133,7 @@
 
 			if (!A.conversation.media) A.conversation.media = [];
 			A.conversation.media.push(textMedia);
+			syncMedia(A.conversation.media[A.conversation.media.length - 1]);
 
 			A.conversationUploadOpen = true;
 		} else {

@@ -124,6 +124,7 @@ declare global {
 		audio?: boolean;
 		video?: boolean;
 		prefill?: boolean;
+		pdf?: boolean;
 		googleSafetyThreshold?: number;
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -308,9 +309,6 @@ declare global {
 
 		createdAt?: Date;
 		updatedAt?: Date;
-
-		// Used by the frontend only.
-		text?: string; // For text files, the text content.
 
 		file?: File; // A freshly selected file will have a file object.
 		url?: string; // A file that has been uploaded will have a URL.

@@ -75,7 +75,9 @@
 			{:else if A.mediaEditing?.type === 'text'}
 				<div class="flex h-full max-h-full grow flex-col overflow-auto p-2">
 					<GrowInput
-						bind:value={A.mediaEditing.original!.text}
+						class="tab-size-4 font-mono"
+						spellcheck={false}
+						bind:value={A.mediaEditing.text}
 						oninput={() => (textNeedsSave = true)}
 						disabled={isPublicPage()} />
 				</div>

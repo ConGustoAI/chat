@@ -16,6 +16,7 @@ export const modelsTable = pgTable('models', {
 	audio: boolean('audio').notNull().default(false),
 	images: boolean('images').notNull().default(false),
 	prefill: boolean('prefill').notNull().default(false),
+	pdf: boolean('pdf').notNull().default(false),
 	maxImages: integer('max_images'),
 	imageTokens: real('image_tokens'), // tokens per pixel
 	maxAudio: integer('max_audio'),
