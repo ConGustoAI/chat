@@ -1,12 +1,12 @@
 import type { db } from "$lib/db";
 import { assistantsTable, defaultsUUID } from "$lib/db/schema";
-import { chatGPT4oID, claude35SonnetID, gemini15ProExp0827ID } from "./providers";
+import { chatGPT4oID, claude35SonnetID, gemini15ProExp0827ID, gemini15ProID } from "./providers";
 
 
 // Assistant IDs
 export const sonnet35ID = 'e068974a-e930-4345-8824-9397104a5030';
 export const chatGPT4oAssistantID = 'e06eec62-2c7d-415d-adc0-51fe6d62b5c6';
-export const geminiPro15ExpID = 'c3b91df2-2680-4f87-aca9-2111eca6a8c3';
+export const geminiProAssistantID = 'c3b91df2-2680-4f87-aca9-2111eca6a8c3';
 
 export const seedAssistants = async (tx: typeof db) => {
 	const defaultSystemPrompt = `
@@ -73,11 +73,11 @@ Additional instructions:
 				maxTokens: 0
 			},
 			{
-				id: geminiPro15ExpID,
+				id: geminiProAssistantID,
 				userID: defaultsUUID,
-				name: 'Gemini Pro 1.5 exp',
+				name: 'Gemini Pro 1.5',
 				about: "I'm watching you",
-				modelID: gemini15ProExp0827ID,
+				modelID: gemini15ProID,
 				apiKeyID: defaultsUUID,
 				aboutUserFromUser: true,
 				assistantInstructionsFromUser: true,
