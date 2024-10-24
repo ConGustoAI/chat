@@ -10,9 +10,6 @@ import { userInterfaceFilter } from '$lib/api';
 import { lucia } from '$lib/db/auth';
 import { DBGetPublicConversation, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
 import { filterNull } from '$lib/utils/utils';
-import path from 'path';
-import { copyFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 
 function makeDescription(conversation: ConversationInterface | undefined) {
 	if (!conversation?.messages?.length) return '';
@@ -21,24 +18,8 @@ function makeDescription(conversation: ConversationInterface | undefined) {
 	return (text.length > 80 ? text.slice(0, 77) + '...' : text).split('\n')[0];
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export const handle: Handle = async ({ event, resolve }) => {
-
-	if (process.env.NODE_ENV === 'development') {
-		const workerPath = path.resolve(__dirname, '../node_modules/pdfjs-dist/build/pdf.worker.mjs');
-		const destPath = path.resolve(__dirname, '../static/pdf.worker.mjs');
-		copyFileSync(workerPath, destPath);
-		copyFileSync(workerPath+'.map', destPath+'.map');
-	  }
-
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
-	// if (!sessionId) {
-	// 	event.locals.user = null;
-	// 	event.locals.session = null;
-	// 	return resolve(event);
-	// }
 
 	const { session, user } = await lucia.validateSession(sessionId ?? '');
 	if (session && session.fresh) {
@@ -57,9 +38,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			...sessionCookie.attributes
 		});
 	}
-	// event.locals.user = user;
-	// event.locals.session = session;
-
 	// debug('session', session);
 	// debug('user', user);
 
@@ -123,10 +101,4 @@ export const handle: Handle = async ({ event, resolve }) => {
 			return html.replace('%social_meta_tags%', meta_tags);
 		}
 	});
-
-	// debug("dbUser", event.locals.dbUser)
-
-	// debug("hook %o", {session: event.locals.session, user: event.locals.user, dbUser: event.locals.dbUser, assistants: event.locals.assistants, hiddenItems: event.locals.hiddenItems});
-
-	// return resolve(event);
 };
