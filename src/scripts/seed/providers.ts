@@ -293,8 +293,8 @@ export const seedModels = async (tx: typeof db) => {
 			{
 				id: gemini15ProID,
 				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Pro 002',
-				name: 'gemini-1.5-pro-002',
+				displayName: 'Gemini 1.5 Pro',
+				name: 'gemini-1.5-pro-latest',
 				images: true,
 				maxImages: 3600,
 				audio: true,
@@ -305,31 +305,16 @@ export const seedModels = async (tx: typeof db) => {
 				outputContext: 8192,
 				maxTemp: 2,
 				providerID: GoogleProviderID,
-				inputCost: 1.5,
+				inputCost: 1.25,
 				outputCost: 5
-			},
-			{
-				id: gemini15ProExp0827ID,
-				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Pro Exp 0827',
-				name: 'gemini-1.5-pro-exp-0827',
-				images: true,
-				audio: true,
-				video: true,
-				inputContext: 2097152,
-				outputContext: 8192,
-				maxTemp: 2,
-				providerID: GoogleProviderID,
-				inputCost: 3.5,
-				outputCost: 10.5
 			},
 			{
 				id: gemini15FlashID,
 				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Flash 002',
-				name: 'gemini-1.5-flash-002',
+				displayName: 'Gemini 1.5 Flash',
+				name: 'gemini-1.5-flash-latest',
 				images: true,
-				maxImages: 7200,
+				maxImages: 3600,
 				audio: true,
 				maxAudio: 68400,
 				video: true,
@@ -344,8 +329,8 @@ export const seedModels = async (tx: typeof db) => {
 			{
 				id: gemini15Flash8BID,
 				userID: defaultsUUID,
-				displayName: 'Gemini 1.5 Flash 8B Exp 0924',
-				name: 'gemini-1.5-flash-8b-exp-0924',
+				displayName: 'Gemini 1.5 Flash 8B',
+				name: 'gemini-1.5-flash-8b-latest',
 				images: true,
 				audio: true,
 				video: true,
@@ -353,8 +338,8 @@ export const seedModels = async (tx: typeof db) => {
 				outputContext: 8192,
 				maxTemp: 2,
 				providerID: GoogleProviderID,
-				inputCost: 0.75,
-				outputCost: 0.3
+				inputCost: 0.375,
+				outputCost: 0.15
 			}
 
 		])
