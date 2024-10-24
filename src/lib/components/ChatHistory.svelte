@@ -43,19 +43,6 @@
 		searchStarred: boolean,
 		searchUnstarred: boolean
 	) {
-		debug(
-			'splitConversations',
-			$state.snapshot({
-				conversatonIds,
-				value,
-				eagerSearchConversations,
-				amp,
-				searchPublic,
-				searchPrivate,
-				searchStarred,
-				searchUnstarred
-			})
-		);
 		const today = new Date();
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
@@ -102,7 +89,6 @@
 
 			filteredConversations.push(c);
 		}
-		debug('filteredConversations', filteredConversations);
 
 		for (const c of filteredConversations) {
 			if (!A.conversations[c].updatedAt) {

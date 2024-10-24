@@ -187,6 +187,19 @@
 	bind:checked={model.streaming}
 	oninput={() => {status = "chaged"}}
 	disabled={!edit || status === 'deleting'} /> -->
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.prefill}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updatModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
 
 <input
 	type="checkbox"
@@ -217,19 +230,6 @@
 	type="checkbox"
 	class="checkbox"
 	bind:checked={model.video}
-	oninput={() => {
-		status = 'changed';
-		debounceModelUpdate();
-	}}
-	onblur={() => {
-		clearTimeout(updateTimer);
-		updatModelNow();
-	}}
-	disabled={!edit || status === 'deleting'} />
-<input
-	type="checkbox"
-	class="checkbox"
-	bind:checked={model.prefill}
 	oninput={() => {
 		status = 'changed';
 		debounceModelUpdate();

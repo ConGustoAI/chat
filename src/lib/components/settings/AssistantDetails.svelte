@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { fixNumberInput } from '$lib/utils/utils';
+	import InfoPopup from '../InfoPopup.svelte';
 
-	let { assistant = $bindable(), model, provider, edit, onchange }: {
+	let {
+		assistant = $bindable(),
+		model,
+		provider,
+		edit,
+		onchange
+	}: {
 		assistant: AssistantInterface;
 		model: ModelInterface | undefined;
 		provider: ProviderInterface;
@@ -62,10 +69,26 @@
 			disabled={!edit} />
 	</div>
 
-	<div class="label-test text-xl" title="Images">🎨</div>
-	<div class="label-test text-xl" title="Audio">🔉</div>
-	<div class="label-test text-xl" title="Video">📺</div>
-	<div class="label-test">Prefill</div>
+	<div class="relative flex font-bold">
+		📝
+		<div class="absolute -top-5">
+			<InfoPopup title="Model supports prefill"
+				>Prefill lets you start the message for the assistant, and the assistant will continue the message.</InfoPopup>
+		</div>
+	</div>
+
+	<div class="relative flex text-xl font-bold" title="Images">
+		🎨
+		<div class="absolute -top-5"><InfoPopup title="Model suppurts images" /></div>
+	</div>
+	<div class="relative flex text-xl font-bold" title="Audio">
+		🔉
+		<div class="absolute -top-5"><InfoPopup title="Model supports audio" /></div>
+	</div>
+	<div class="relative flex text-xl font-bold" title="Video">
+		📺
+		<div class="absolute -top-5"><InfoPopup title="Model supports video" /></div>
+	</div>
 	{#if provider.type === 'google'}
 		<div class="label-test">Gemini safety sensitivity (all categories)</div>
 	{:else}
@@ -118,32 +141,33 @@
 
 	<input
 		type="checkbox"
+		id="prefillCheckbox-{assistant.id}"
+		class="checkbox checkbox-sm"
+		bind:checked={assistant.prefill}
+		disabled={!model?.prefill || !edit}
+		{onchange} />
+
+	<input
+		type="checkbox"
 		id="imagesCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.images}
 		disabled={!model?.images || !edit}
-		onchange={onchange} />
+		{onchange} />
 	<input
 		type="checkbox"
 		id="audioCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.audio}
 		disabled={!model?.audio || !edit}
-		onchange={onchange} />
+		{onchange} />
 	<input
 		type="checkbox"
 		id="videoCheckbox-{assistant.id}"
 		class="checkbox checkbox-sm"
 		bind:checked={assistant.video}
 		disabled={!model?.video || !edit}
-		onchange={onchange} />
-	<input
-		type="checkbox"
-		id="prefillCheckbox-{assistant.id}"
-		class="checkbox checkbox-sm"
-		bind:checked={assistant.prefill}
-		disabled={!model?.prefill || !edit}
-		onchange={onchange} />
+		{onchange} />
 
 	{#if provider.type === 'google'}
 		<div class="flex flex-col items-center gap-4">
@@ -157,7 +181,7 @@
 					min={0}
 					max={3}
 					disabled={!edit}
-					onchange={onchange} />
+					{onchange} />
 			</div>
 		</div>
 	{:else}
