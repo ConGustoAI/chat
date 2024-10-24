@@ -33,7 +33,8 @@
 		newProviderUserID: string;
 	} = $props();
 
-	let status: string | null | undefined = $state(null);
+	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | 'copying' | null | undefined =
+		$state(undefined);
 	let errorMessage: string | null = $state(null);
 	let updateTimer: number | NodeJS.Timeout | undefined;
 

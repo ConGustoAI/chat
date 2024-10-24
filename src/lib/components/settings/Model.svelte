@@ -21,7 +21,7 @@
 		allowHiding?: boolean;
 	} = $props();
 
-	let status: string | null | undefined = $state(null);
+	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | null | undefined = $state(undefined);
 	let errorMessage: string | null = $state(null);
 	let updateTimer: number | undefined | NodeJS.Timeout;
 
@@ -34,13 +34,13 @@
 		}
 	});
 
-	function updatModelNow() {
+	async function updatModelNow() {
 		if (!A.dbUser) {
 			goto('/login', { invalidateAll: true });
 		}
 		if (status !== 'changed') return;
 		status = 'saving';
-		return APIupsertModel(model)
+		const res = await APIupsertModel(model)
 			.then((res) => {
 				assert(!model.id || res.id == model.id, 'model ID mismatch');
 				model.id = res.id;
@@ -53,6 +53,8 @@
 				status = 'error';
 				errorMessage = e.message;
 			});
+		status = 'saved';
+		Object.assign(model, res);
 	}
 
 	function debounceModelUpdate() {
@@ -90,6 +92,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
+		status = 'changed';
 		updatModelNow();
 	}}
 	spellcheck="false"
@@ -102,10 +105,11 @@
 	spellcheck="false"
 	disabled={!edit || status === 'deleting'}
 	oninput={() => {
-		status = 'chaged';
+		status = 'changed';
 		debounceModelUpdate();
 	}}
 	onblur={() => {
+		status = 'changed';
 		clearTimeout(updateTimer);
 		updatModelNow();
 	}} />
@@ -114,7 +118,7 @@
 	class="input input-bordered w-28"
 	bind:value={model.inputContext}
 	oninput={() => {
-		status = 'chaged';
+		status = 'changed';
 		debounceModelUpdate();
 	}}
 	onblur={() => {
@@ -189,7 +193,7 @@
 	class="checkbox"
 	bind:checked={model.images}
 	oninput={() => {
-		status = 'chaged';
+		status = 'changed';
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
