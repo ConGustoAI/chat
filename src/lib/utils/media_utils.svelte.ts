@@ -429,3 +429,26 @@ export function fileToMedia(file: File): MediaInterface {
 
 	return m;
 }
+
+
+export async function addImageToSkip(page: number) {
+	assert(A.mediaEditing);
+	if (!A.mediaEditing.PDFImagesSkip) {
+		A.mediaEditing.PDFImagesSkip = [];
+	}
+	if (!A.mediaEditing.PDFImagesSkip.includes(page)) {
+		A.mediaEditing.PDFImagesSkip.push(page);
+	}
+	await APIupsertMedia(A.mediaEditing);
+}
+
+export async function removeImageFromSkip(page: number) {
+	assert(A.mediaEditing);
+	if (A.mediaEditing.PDFImagesSkip) {
+		const index = A.mediaEditing.PDFImagesSkip.indexOf(page);
+		if (index > -1) {
+			A.mediaEditing.PDFImagesSkip.splice(index, 1);
+		}
+	}
+	await APIupsertMedia(A.mediaEditing);
+}

@@ -25,7 +25,7 @@ export const mediaTable = pgTable('media', {
 	PDFAsDocument: boolean('pdf_as_document'),
 	PDFAsFile: boolean('pdf_as_file'),
 	PDFPages: integer('pdf_pages'),
-	PDFImagesSelected: integer('pdf_images_selected').array(),
+	PDFImagesSip: integer('pdf_images_skip').array(),
 
 
 	originalWidth: integer('width'),

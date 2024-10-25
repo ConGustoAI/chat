@@ -62,7 +62,6 @@
 			<div>Add a user message</div>
 			<kbd class="kbd kbd-sm w-fit rounded-md px-1 py-1">Ctrl + Shift + Enter</kbd>
 			<div>Add an assistant message</div>
-
 			<kbd class="kbd kbd-sm w-fit rounded-md px-1 py-1">Ctrl + Enter</kbd>
 			<div>Send the message</div>
 		</div>

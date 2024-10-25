@@ -6,6 +6,7 @@
 	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	import InfoPopup from '../InfoPopup.svelte';
+	import { addImageToSkip, removeImageFromSkip } from '$lib/utils/media_utils.svelte';
 	const debug = dbg('app:ui:components:MediaPDFControls');
 
 	let DPISelector: HTMLSelectElement | null = $state(null);
@@ -49,6 +50,8 @@
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
 		return A.assistants[A.conversation?.assistant ?? 'none'];
 	});
+
+
 </script>
 
 {#if A.mediaEditing}
@@ -125,37 +128,27 @@
 
 	{#if A.mediaEditing.PDFAsImages && A.mediaEditing.PDFImages}
 		<div class="flex w-full flex-col items-start overflow-auto px-4">
-			<div class="divider my-0 w-full">Pages</div>
+			<div class="divider my-0 w-full">Pages as images</div>
 			{#each A.mediaEditing.PDFImages as pdfImage, i}
 				<div class="flex gap-2">
-					<!-- <input
+					<input
 						type="checkbox"
 						id={`page-${i}`}
-						checked={A.mediaEditing.PDFImagesSelected?.includes(i)}
+						checked={!A.mediaEditing.PDFImagesSkip?.includes(i)}
 						onchange={async (e: Event) => {
 							assert(A.mediaEditing);
 							const selected = (e.target as HTMLInputElement).checked;
-							if (!A.mediaEditing.PDFImagesSelected) {
-								A.mediaEditing.PDFImagesSelected = [];
+							if (!A.mediaEditing.PDFImagesSkip) {
+								A.mediaEditing.PDFImagesSkip = [];
 							}
-							if (selected) {
-								if (!A.mediaEditing.PDFImagesSelected.includes(i)) {
-									A.mediaEditing.PDFImagesSelected.push(i);
-								}
-							} else {
-								const index = A.mediaEditing.PDFImagesSelected?.indexOf(i);
-								if (index > -1) {
-									A.mediaEditing.PDFImagesSelected?.splice(index, 1);
-								}
-							}
-
-							Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
-						}} /> -->
+							if (selected) await removeImageFromSkip(i);
+							else await addImageToSkip(i);
+						}} />
 
 					{#await pdfImage}
 						<div class="loading loading-sm"></div>
 					{:then p}
-						<p class="text-sm">Page {i}: {p.width}x{p.height}</p>
+						<p class="text-sm">Page {i + 1}: {p.width}x{p.height}</p>
 					{/await}
 				</div>
 			{/each}

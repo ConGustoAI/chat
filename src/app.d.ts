@@ -246,7 +246,7 @@ declare global {
 		// Only valid for pdf files.
 		PDFAsImages?: boolean;
 		PDFAsImagesDPI?: number;
-		PDFImagesSelected?: number[];
+		PDFImagesSkip?: number[];
 		PDFAsDocument?: boolean;
 		PDFAsFile?: boolean;
 
