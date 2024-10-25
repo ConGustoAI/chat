@@ -234,17 +234,20 @@
 							<span class="text-warning">Conversation is public</span>
 						</div>
 					{/if}
-					{#if A.dbUser?.advancedInput}
-						<div class="absolute -bottom-4 right-2 z-20 text-xs">
-							<span class="text-xs"
-								><p>
-									Ctrl-Enter - send, Shift-Enter - add without saving, Ctrl-Shift-Enter - add as assistant message
-								</p></span>
-						</div>
-					{:else}
-						<div class="absolute -bottom-4 right-2 z-20 text-xs">
-							<span class="text-xs"><p>Shift-Enter - add new line</p></span>
-						</div>
+
+					{#if !prefillEnabled}
+						{#if A.dbUser?.advancedInput}
+							<div class="absolute -bottom-4 right-2 z-20 text-xs">
+								<span class="text-xs"
+									><p>
+										Ctrl-Enter - send, Shift-Enter - add without saving, Ctrl-Shift-Enter - add as assistant message
+									</p></span>
+							</div>
+						{:else}
+							<div class="absolute -bottom-4 right-2 z-20 text-xs">
+								<span class="text-xs"><p>Shift-Enter - add new line</p></span>
+							</div>
+						{/if}
 					{/if}
 				</div>
 			{/if}

@@ -252,6 +252,21 @@ export async function _submitConversationClientSide() {
 							}
 						}
 
+						if (media.PDFAsFile) {
+							contentChunks.push({
+								type: 'text',
+								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
+							});
+
+							contentChunks.push({
+								type: 'file',
+								data: await media.original.file.arrayBuffer(),
+								mimeType: media.original.mimeType
+							});
+
+							contentChunks.push({ type: 'text', text: '</File>' });
+						}
+
 						contentChunks.push({ type: 'text', text: '</PDF>' });
 					}
 				}

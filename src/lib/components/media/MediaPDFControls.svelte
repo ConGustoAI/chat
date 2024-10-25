@@ -107,7 +107,6 @@
 				>Send as PDF
 				<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
 					<p>Only Google Gemini models support direct PDF upload.</p>
-					<p>They process the file internally.</p>
 				</InfoPopup>
 			</label>
 		</div>
