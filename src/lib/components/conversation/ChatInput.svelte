@@ -26,6 +26,12 @@
 		debug('onSubmit', { input, connversation: A.conversation });
 		if (!input) return;
 		if (!A.conversation) return;
+
+		if (!A.dbUser) {
+			await goto('/login');
+			return;
+		}
+
 		if (!A.conversation.summary) A.conversation.summary = trimLineLength(input, 128);
 
 		if (!A.conversation.messages) A.conversation.messages = [];
