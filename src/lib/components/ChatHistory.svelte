@@ -10,10 +10,12 @@
 	let { deleteConversations }: { deleteConversations: (id: string[]) => Promise<void> } = $props();
 
 	let search: string | undefined = $state(undefined);
-	let searchAMP: string | undefined = $state(undefined);
+	let searchAMP: string = $state('');
 
 	let searchOptionsOpen = $state(false);
-	let searchAMPFocused = $state(false);
+	// let searchAMPFocused = $state(false);
+	// let searchAMPOptionFocused = $state(false);
+	let searchAMPInput: HTMLInputElement | undefined = $state(undefined);
 
 	let searchPublic = $state(false);
 	let searchPrivate = $state(false);
@@ -62,12 +64,12 @@
 		for (const c of conversatonIds) {
 			const conversation = A.conversations[c];
 
-			const conversationAMP =
-				(conversation.assistantName ?? 'unknown') +
-				'/' +
-				(conversation.providerName ?? 'unknown') +
-				'/' +
-				(conversation.modelName ?? 'unknown');
+			// const conversationAMP =
+			// 	(conversation.assistantName ?? 'unknown') +
+			// 	'/' +
+			// 	(conversation.providerName ?? 'unknown') +
+			// 	'/' +
+			// 	(conversation.modelName ?? 'unknown');
 
 			// Summary match
 			if (value && !conversation.summary?.toLowerCase().includes(value.toLowerCase())) {
@@ -78,8 +80,16 @@
 				}
 			}
 
+			const ampNotFound =
+				amp &&
+				!conversation.assistantName?.toLowerCase()?.includes(amp.toLowerCase()) &&
+				!conversation.providerName?.toLowerCase().includes(amp.toLowerCase()) &&
+				!conversation.modelName?.toLowerCase().includes(amp.toLowerCase());
+
+			if (ampNotFound) continue;
+
 			// Match assistant/model/provider
-			if (amp && !conversationAMP.toLowerCase().includes(amp.toLowerCase())) continue;
+			// if (amp && !conversationAMP.toLowerCase().includes(amp.toLowerCase())) continue;
 
 			if (searchPublic && !conversation.public) continue;
 			if (searchPrivate && conversation.public) continue;
@@ -140,14 +150,46 @@
 		const m: { [key: string]: boolean } = {};
 		const p: { [key: string]: boolean } = {};
 		const a: { [key: string]: boolean } = {};
+
+		debug('findModelsProvidersAssistants', A.hiddenItems);
+
+		const hiddenModels = new Set<string>();
+		const hiddenProviders = new Set<string>();
+		const hiddenAssistants = new Set<string>();
+		A.hiddenItems.forEach((i) => {
+			if (A.models[i]) hiddenModels.add(A.models[i].name);
+			if (A.providers[i]) hiddenProviders.add(A.providers[i].name);
+			if (A.assistants[i]) hiddenAssistants.add(A.assistants[i].name);
+		});
+
 		for (const c of conversationIDs) {
 			const conversation = A.conversations[c];
 
-			if (conversation?.modelName) m[conversation.modelName] = true;
-			if (conversation?.providerName) p[conversation.providerName] = true;
-			if (conversation?.assistantName) a[conversation.assistantName] = true;
+			if (
+				conversation?.modelName &&
+				conversation?.modelName.toLowerCase().includes(searchAMP?.toLowerCase() ?? '') &&
+				!hiddenModels.has(conversation.modelName)
+			)
+				m[conversation.modelName] = true;
+			if (
+				conversation?.providerName &&
+				conversation?.providerName.toLowerCase().includes(searchAMP?.toLowerCase() ?? '') &&
+				!hiddenProviders.has(conversation.providerName)
+			)
+				p[conversation.providerName] = true;
+			if (
+				conversation?.assistantName &&
+				conversation?.assistantName.toLowerCase().includes(searchAMP?.toLowerCase() ?? '') &&
+				!hiddenAssistants.has(conversation.assistantName)
+			)
+				a[conversation.assistantName] = true;
 		}
-		return [...Object.keys(a), ...Object.keys(m), ...Object.keys(p)];
+
+		return {
+			assistants: Object.keys(a).sort(),
+			models: Object.keys(m).sort(),
+			providers: Object.keys(p).sort()
+		};
 	}
 
 	let datedConversation = $derived(
@@ -192,6 +234,28 @@
 	let searchAMPdisabled = $derived(
 		searchOptionsOpen && (!!searchAMP || searchPublic || searchPrivate || searchStarred || searchUnstarred)
 	);
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Tab' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			const buttons = document.querySelectorAll('.ampoption');
+			const currentIndex = Array.from(buttons).findIndex((b) => b === event.target);
+			let nextIndex;
+
+			if ((event.key === 'Tab' && !event.shiftKey) || event.key === 'ArrowDown') {
+				nextIndex = (currentIndex + 1) % buttons.length;
+			} else {
+				// ArrowUp
+				nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+			}
+
+			(buttons[nextIndex] as HTMLElement).focus();
+		}
+
+		if (event.key === 'Escape' && event.target) {
+			searchAMPInput?.focus();
+		}
+	}
 </script>
 
 <div>
@@ -258,28 +322,74 @@
 
 {#if searchOptionsOpen}
 	<div class="relative mx-2 flex flex-col gap-2 rounded-md bg-base-100 p-2 shadow" transition:slide={{ duration: 20 }}>
-		<input
-			type="text"
-			class="input input-sm input-bordered"
-			placeholder="Assistant/Provider/Model"
-			onfocus={() => (searchAMPFocused = true)}
-			onblur={() => {
-				searchAMPFocused = false;
-			}}
-			bind:value={searchAMP} />
+		<div class="dropdown dropdown-right">
+			<input
+				type="text"
+				role="button"
+				tabindex="0"
+				class="input input-sm input-bordered"
+				placeholder="Assistant/Provider/Model"
+				onkeydown={handleKeyDown}
+				bind:this={searchAMPInput}
+				bind:value={searchAMP} />
 
-		{#if searchAMPFocused}
-			<div
-				class="absolute left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
-				{#each historyAMPOptions as option}
-					<button
-						class="btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
-						onclick={() => (searchAMP = option)}>
-						{option}
-					</button>
-				{/each}
-			</div>
-		{/if}
+			{#if true}
+				<div
+					class="dropdown-content left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
+					{#if historyAMPOptions.assistants.length}
+						<div class="divider w-full py-0">Assistants</div>
+					{/if}
+
+					{#each historyAMPOptions.assistants as option}
+						<!-- data-index={optionIndex++} -->
+						<button
+							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+							tabindex="0"
+							onclick={(e) => {
+								searchAMP = option;
+								searchAMPInput?.focus();
+							}}
+							onkeydown={handleKeyDown}>
+							{option}
+						</button>
+					{/each}
+
+					{#if historyAMPOptions.providers.length}
+						<div class="divider w-full py-0">Providers</div>
+					{/if}
+
+					{#each historyAMPOptions.providers as option}
+						<button
+							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+							tabindex="0"
+							onclick={() => {
+								searchAMP = option;
+								searchAMPInput?.focus();
+							}}
+							onkeydown={handleKeyDown}>
+							{option}
+						</button>
+					{/each}
+
+					{#if historyAMPOptions.models.length}
+						<div class="divider w-full py-0">Models</div>
+					{/if}
+
+					{#each historyAMPOptions.models as option}
+						<button
+							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+							tabindex="0"
+							onclick={() => {
+								searchAMP = option;
+								searchAMPInput?.focus();
+							}}
+							onkeydown={handleKeyDown}>
+							{option}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 		<div class="flex gap-6 p-2">
 			<div class="flex items-center gap-2">
 				<label for="oplyPublic"><Link size={20} /></label>
