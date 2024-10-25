@@ -7,7 +7,7 @@
 	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
-	import { slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 
 	const debug = dbg('app:ui:components:ChatInput');
 
@@ -71,18 +71,66 @@
 		}
 	}
 
+	async function addMessage(role: 'user' | 'assistant' = 'user') {
+		debug('addMessage', { input, connversation: A.conversation });
+		if (!input) return;
+		if (!A.conversation) return;
+
+		if (!A.dbUser) {
+			await goto('/login');
+			return;
+		}
+
+		if (!A.conversation.summary && !A.conversation.messages?.length)
+			A.conversation.summary = trimLineLength(input, 128);
+
+		if (!A.conversation.messages) A.conversation.messages = [];
+
+		const previouslyIncludedMedia = new Set(A.conversation.messages.map((m) => m.mediaIDs).flat());
+		const newMedia = [];
+
+		for (const media of A.conversation.media ?? []) {
+			if (media.active && !previouslyIncludedMedia.has(media.id)) {
+				newMedia.push(media);
+			}
+		}
+
+		const UM: MessageInterface = { userID: A.conversation.userID, role, text: input, media: newMedia };
+		A.conversation.messages.push(UM);
+
+		input = '';
+	}
+
 	async function inputKeyboardHandler(event: any) {
 		if (
 			!A.chatStreaming &&
 			!A.mediaUploading &&
 			!A.mediaProcessing &&
 			event instanceof KeyboardEvent &&
-			event.key === 'Enter' &&
-			!event.shiftKey
+			event.key === 'Enter'
 		) {
-			event.preventDefault();
-			A.conversationUploadOpen = false;
-			await onSubmit();
+			if (A.dbUser?.advancedInput) {
+				if (event.ctrlKey && event.shiftKey) {
+					event.preventDefault();
+					A.conversationUploadOpen = false;
+					await addMessage('assistant');
+				} else if (event.ctrlKey) {
+					event.preventDefault();
+					A.conversationUploadOpen = false;
+					await onSubmit();
+				} else if (event.shiftKey) {
+					event.preventDefault();
+					await addMessage();
+				} else {
+					/* nothing to do */
+				}
+			} else {
+				if (!event.shiftKey) {
+					event.preventDefault();
+					A.conversationUploadOpen = false;
+					await onSubmit();
+				}
+			}
 		}
 	}
 
@@ -177,14 +225,28 @@
 		</div>
 		<div class="relative h-full w-full">
 			{#if inputFocus || prefillFocus}
-				<div class="absolute -top-4 right-2 z-20 text-xs">
-					<CostEstimate input={input + prefill} />
-				</div>
-				{#if A.conversation?.public}
-					<div class="absolute -top-4 left-2 z-20 text-xs">
-						<span class="text-warning">Conversation is public</span>
+				<div transition:fade={{ duration: 100 }}>
+					<div class="absolute -top-4 right-2 z-20 text-xs">
+						<CostEstimate input={input + prefill} />
 					</div>
-				{/if}
+					{#if A.conversation?.public}
+						<div class="absolute -top-4 left-2 z-20 text-xs">
+							<span class="text-warning">Conversation is public</span>
+						</div>
+					{/if}
+					{#if A.dbUser?.advancedInput}
+						<div class="absolute -bottom-4 right-2 z-20 text-xs">
+							<span class="text-xs"
+								><p>
+									Ctrl-Enter - send, Shift-Enter - add without saving, Ctrl-Shift-Enter - add as assistant message
+								</p></span>
+						</div>
+					{:else}
+						<div class="absolute -bottom-4 right-2 z-20 text-xs">
+							<span class="text-xs"><p>Shift-Enter - add new line</p></span>
+						</div>
+					{/if}
+				</div>
 			{/if}
 
 			<GrowInput

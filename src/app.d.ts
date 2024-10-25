@@ -57,6 +57,7 @@ declare global {
 		costWarn2?: number;
 		showInfo?: boolean;
 		showEstimate?: boolean;
+		advancedInput?: boolean;
 		createdAt?: Date;
 		updatedAt?: Date;
 	}

@@ -25,6 +25,7 @@ export const usersTable = pgTable('users', {
 	costWarn2: real('cost_warn2').default(5),
 	showInfo: boolean('show_info').default(false),
 	showEstimate: boolean('show_estimate').default(false),
+	advancedInput: boolean('advanced_input').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

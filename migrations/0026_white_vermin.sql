@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "advanced_input" boolean DEFAULT false;
