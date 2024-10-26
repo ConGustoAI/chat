@@ -13,20 +13,22 @@ export const mediaTable = pgTable('media', {
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	conversationID: uuid('conversation_id').references(() => conversationsTable.id, { onDelete: 'set null' }),
+	repeat: boolean('repeat').default(true),
 
 	title: text('title').notNull(),
 	filename: text('filename').notNull(),
 	type: mediaTypes('type').notNull(),
-	repeat: boolean('repeat').default(true),
-
 
 	PDFAsImages: boolean('pdf_as_images'),
 	PDFAsImagesDPI: integer('pdf_as_images_dpi'),
 	PDFAsDocument: boolean('pdf_as_document'),
 	PDFAsFile: boolean('pdf_as_file'),
-	PDFPages: integer('pdf_pages'),
-	PDFImagesSip: integer('pdf_images_skip').array(),
 
+	videoAsImages: boolean('video_as_images'),
+	videoAsFile: boolean('video_as_file'),
+
+	// For PDF and video that have been converted to images, we can skip pages/frames.
+	imagesSkip: integer('images_skip').array(),
 
 	originalWidth: integer('width'),
 	originalHeight: integer('height'),
@@ -47,13 +49,6 @@ export const mediaTable = pgTable('media', {
 	trimEnd: real('duration_end'),
 
 	originalID: uuid('original_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
-	// We keep the resized uncropped image/video to be able to show the crop area for re-crop.
-	// resizedID: uuid('transformed_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
-	// Cropped image, trimmed audio, both for video.
-	// croppedID: uuid('cropped_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
-
-	// Thumbnail - small image, audio waveform, video thumbnail, possibly gif.
-	// thumbnailID: uuid('thumbnail_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
@@ -75,16 +70,4 @@ export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 		fields: [mediaTable.originalID],
 		references: [fileTable.id]
 	})
-	// resized: one(fileTable, {
-	// 	fields: [mediaTable.resizedID],
-	// 	references: [fileTable.id]
-	// }),
-	// cropped: one(fileTable, {
-	// 	fields: [mediaTable.croppedID],
-	// 	references: [fileTable.id]
-	// }),
-	// thumbnail: one(fileTable, {
-	// 	fields: [mediaTable.thumbnailID],
-	// 	references: [fileTable.id]
-	// })
 }));

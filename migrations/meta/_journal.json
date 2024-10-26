@@ -197,6 +197,13 @@
       "when": 1729891961156,
       "tag": "0027_slim_wallflower",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1729918983080,
+      "tag": "0028_giant_vivisector",
+      "breakpoints": true
     }
   ]
 }

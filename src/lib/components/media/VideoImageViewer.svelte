@@ -6,17 +6,17 @@
 	let { media = $bindable() }: { media: MediaInterface } = $props();
 </script>
 
-{#if media.PDFImages}
-	{#each media.PDFImages as pdfImage, i}
+{#if media.videoImages}
+	{#each media.videoImages as pdfImage, i}
 		{#await pdfImage}
 			<div class="h-full w-full bg-blue-500"></div>
-			<p>Loading page {i + 1}...</p>
-		{:then p}
+			<p>Loading frame {i}...</p>
+		{:then f}
 			<div class="flex gap-1">
-				<p class="px-2">Page {i + 1}</p>
+				<p class="px-2">Frame {i} @ {f.timestamp} seconds</p>
 				<input
 					type="checkbox"
-					id={`page-${i}`}
+					id={`frme-${i}`}
 					checked={!A.mediaEditing?.imagesSkip?.includes(i)}
 					onchange={async (e: Event) => {
 						assert(A.mediaEditing);
@@ -30,9 +30,9 @@
 			</div>
 
 			<img
-				src={p.url}
-				alt={`page ${i}`}
-				class="pixilated w-full border-gray-300 object-contain p-2"
+				src={f.url}
+				alt={`Frame ${i} @ ${f.timestamp} seconds`}
+				class="pixilated border-gray-300 object-contain p-2 h-full"
 				class:opacity-50={A.mediaEditing?.imagesSkip?.includes(i)} />
 		{:catch error}
 			<p>Error loading page {i}: {error.message}</p>

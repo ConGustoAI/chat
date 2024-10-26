@@ -15,13 +15,15 @@
 	import { assert, isPublicPage } from '$lib/utils/utils';
 
 	import dbg from 'debug';
+	import VideoImageViewer from './VideoImageViewer.svelte';
+	import MediaVideoControls from './MediaVideoControls.svelte';
 	const debug = dbg('app:ui:components:MediaEditor');
 
 	let progressBar: HTMLProgressElement;
 
-	function isVideo(media: MediaInterface) {
-		return media.type === 'video';
-	}
+	// function isVideo(media: MediaInterface) {
+	// 	return media.type === 'video';
+	// }
 
 	async function updateMediaMetadata() {
 		// only update media that has been saved (uploaded) before.
@@ -35,7 +37,7 @@
 	let displayedImageURL: string | undefined = $state(undefined);
 
 	$effect(() => {
-		if (A.mediaEditing?.type === 'image') {
+		if (['image', 'video'].includes(A.mediaEditing?.type ?? '')) {
 			if (A.mediaEditing?.transformed) {
 				debug('displayedImageURL: Picking resized');
 				A.mediaEditing.transformed.then((r) => (displayedImageURL = r.url));
@@ -54,6 +56,8 @@
 	let textNeedsSave = $state(false);
 
 	$effect(() => {
+		debug('mediaEditing', $state.snapshot(A.mediaEditing));
+
 		if (A.mediaEditing) {
 			if (!A.mediaEditing.PDFAsImages && !A.mediaEditing.PDFAsDocument && !A.mediaEditing.PDFAsFile) {
 				A.mediaEditing.PDFAsImages = true;
@@ -72,6 +76,33 @@
 					src={displayedImageURL}
 					alt={A.mediaEditing.title}
 					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
+			{:else if A.mediaEditing?.type === 'video'}
+				<div role="tablist" class="tabs tabs-lifted h-full w-full">
+					<input
+						type="radio"
+						name="video-tabs"
+						role="tab"
+						class="tab text-nowrap [--tab-border-color:--tw-content]"
+						aria-label="Video"
+						checked />
+					<div class="tab-content h-full overflow-auto">
+						<!-- svelte-ignore a11y_media_has_caption -->
+						<video class="shrink grow overflow-hidden object-contain" controls>
+							<source src={A.mediaEditing.original.url} type={A.mediaEditing.original.mimeType} />
+							Your browser does not support the video tag.
+						</video>
+					</div>
+					<input
+						type="radio"
+						name="video-tabs"
+						role="tab"
+						class="tab text-nowrap"
+						aria-label="As images"
+						disabled={!A.mediaEditing.videoAsImages} />
+					<div class="tab-content h-full overflow-auto">
+						<VideoImageViewer media={A.mediaEditing} />
+					</div>
+				</div>
 			{:else if A.mediaEditing?.type === 'text'}
 				<div class="flex h-full max-h-full grow flex-col overflow-auto p-2">
 					<GrowInput
@@ -91,7 +122,6 @@
 						aria-label="Original"
 						checked />
 					<div class="tab-content h-full overflow-auto">
-						<!-- <PDFViewer media={A.mediaEditing} /> -->
 						<PDFViewer media={A.mediaEditing} />
 					</div>
 					<input
@@ -104,13 +134,7 @@
 					<div class="tab-content h-full overflow-auto">
 						<PDFImageViewer media={A.mediaEditing} />
 					</div>
-					<input
-						type="radio"
-						name="pdf-tabs"
-						role="tab"
-						class="tab text-nowrap"
-						aria-label="As document"
-						disabled/>
+					<input type="radio" name="pdf-tabs" role="tab" class="tab text-nowrap" aria-label="As document" disabled />
 					<div class="tab-content h-full overflow-auto">
 						<!-- <PDFDocumentViewer media={A.mediaEditing} /> -->
 					</div>
@@ -142,6 +166,8 @@
 
 				{#if A.mediaEditing.type === 'image'}
 					<MediaImageControls />
+				{:else if A.mediaEditing.type === 'video'}
+					<MediaVideoControls />
 				{:else if A.mediaEditing.type === 'pdf'}
 					<MediaPDFControls />
 				{:else if A.mediaEditing.type === 'text'}

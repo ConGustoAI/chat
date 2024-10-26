@@ -233,6 +233,14 @@ declare global {
 		title?: string;
 	}
 
+	interface VideoImageInterface {
+		url: string;
+		blob: Blob;
+		width: number;
+		height: number;
+		timestamp: number;
+	}
+
 	interface MediaInterface {
 		id?: string;
 		userID: string;
@@ -243,19 +251,26 @@ declare global {
 		filename: string;
 		type: 'image' | 'audio' | 'video' | 'text' | 'pdf';
 
+
 		// Only valid for pdf files.
 		PDFAsImages?: boolean;
 		PDFAsImagesDPI?: number;
-		PDFImagesSkip?: number[];
 		PDFAsDocument?: boolean;
 		PDFAsFile?: boolean;
 
-		// Only valid for text
-		text?: string;
+		videoAsImages?: boolean;
+		videoAsFile?: boolean;
+
+		// For PDF and video that has been converted to images, we can skip pages/frames.
+		imagesSkip?: number[];
+
 
 		// For images and video
 		originalWidth?: number;
 		originalHeight?: number;
+
+
+		// For audio and video
 		originalDuration?: number;
 
 		resizedWidth?: number;
@@ -271,7 +286,6 @@ declare global {
 		trimEnd?: number;
 
 		originalID?: string | null;
-		// thumbnailID?: string | null;
 
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -282,6 +296,11 @@ declare global {
 		original: FileInterface;
 
 		// Used by the frontend.
+
+		// Only valid for text
+		text?: string;
+
+
 		thumbnail?: Promise<FileInterface>;
 
 		transformed?: Promise<FileInterface>;
@@ -291,6 +310,8 @@ declare global {
 		// Promises that resolve to the iobject URLs.
 		PDFImages?: Promise<PDFImageInterface>[];
 		PDFMeta?: Promise<PDFMeta>;
+
+		videoImages?: Promise<VideoImageInterface>[];
 
 		active?: boolean;
 		processing?: number;

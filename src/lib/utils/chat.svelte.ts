@@ -201,6 +201,68 @@ export async function _submitConversationClientSide() {
 
 						contentChunks.push({ type: 'text', text: '</Image>' });
 					}
+				} else if (media.type === 'video') {
+					assert(media.original);
+					assert(media.original.file);
+					assert(media.originalDuration);
+					assert(media.originalWidth);
+					assert(media.originalHeight);
+
+					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
+
+					if (shouldAddMedia) {
+						addedMedia.push(media.id);
+
+						contentChunks.push({
+							type: 'text',
+							text:
+								`<Video ` +
+								`title="${media.title}" ` +
+								`filename="${media.filename}" ` +
+								`mimetype="${media.original.mimeType ?? 'video/mp4'}" ` +
+								`duration="${media.originalDuration} seconds" ` +
+								`resolution="${media.originalWidth}x${media.originalHeight}" ` +
+								`>`
+						});
+
+						if (media.videoAsImages) {
+							assert(media.videoImages);
+							assert(media.videoImages);
+
+							for (let i = 0; i < media.videoImages.length; i++) {
+								const image = await media.videoImages[i];
+								contentChunks.push({
+									type: 'text',
+									text: `<Frame frame="${i}" timestamp="${image.timestamp} seconds" resolution="${image.width}x${image.height}">`
+								});
+
+								contentChunks.push({
+									type: 'image',
+									image: await image.blob.arrayBuffer()
+								});
+
+								contentChunks.push({ type: 'text', text: '</Frame>' });
+							}
+						}
+
+						if (media.videoAsFile) {
+
+							contentChunks.push({
+								type: 'text',
+								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'video/mp4'}">`
+							});
+
+							contentChunks.push({
+								type: 'file',
+								data: await media.original.file.arrayBuffer(),
+								mimeType: media.original.mimeType
+							});
+
+							contentChunks.push({ type: 'text', text: '</File>' });
+						}
+
+						contentChunks.push({ type: 'text', text: '</Video>' });
+					}
 				} else if (media.type === 'text') {
 					assert(media.original);
 					assert(media.original.file);
@@ -240,7 +302,7 @@ export async function _submitConversationClientSide() {
 								const image = await media.PDFImages[i];
 								contentChunks.push({
 									type: 'text',
-									text: `<Paage page="${i}" resolution="${image.width}x${image.height}" dpi=${media.PDFAsImagesDPI}>`
+									text: `<Page page="${i}" resolution="${image.width}x${image.height}" dpi=${media.PDFAsImagesDPI}>`
 								});
 
 								contentChunks.push({

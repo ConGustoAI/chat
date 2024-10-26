@@ -5,6 +5,7 @@ import dbg from 'debug';
 import { typeFromFile } from './filetype';
 import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
+import { videoToImages, VideoGetMeta } from './video.svelte';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -266,25 +267,28 @@ export async function uploadConversationMedia() {
 
 	A.mediaUploading = (A.mediaUploading ?? 0) + 1;
 
-	// Can't upload media for a non-existing conversation.
-	let createdNewConversation = false;
-	if (!A.conversation.id) {
-		Object.assign(A.conversation, await APIupsertConversation(A.conversation));
-		createdNewConversation = true;
-	}
-	if (!A.conversation.media) A.conversation.media = [];
+	try {
+		// Can't upload media for a non-existing conversation.
+		let createdNewConversation = false;
+		if (!A.conversation.id) {
+			Object.assign(A.conversation, await APIupsertConversation(A.conversation));
+			createdNewConversation = true;
+		}
+		if (!A.conversation.media) A.conversation.media = [];
 
-	await Promise.all(A.conversation.media.map(uploadChangedMedia));
-	debug('All media uploaded!', $state.snapshot(A.conversation));
-	A.mediaUploading--;
-	return createdNewConversation;
+		await Promise.all(A.conversation.media.map(uploadChangedMedia));
+		debug('All media uploaded!', $state.snapshot(A.conversation));
+		return createdNewConversation;
+	} finally {
+		A.mediaUploading--;
+	}
 }
 
 export function mediaCreateThumbnail(media: MediaInterface): Promise<FileInterface> | undefined {
 	assert(media.original);
 	assert(media.original.file);
 
-	assert(media.type === 'image' || media.type === 'text' || media.type === 'pdf');
+	assert(['image', 'audio', 'video', 'text', 'pdf'].includes(media.type), 'Invalid media type');
 
 	if (media.type === 'image') {
 		if (media.transformed) {
@@ -379,6 +383,23 @@ export async function syncMedia(media: MediaInterface) {
 				});
 			}
 			await imageProcessResize(media);
+		} else if (media.type === 'video') {
+			if (
+				media.originalWidth === undefined ||
+				media.originalHeight === undefined ||
+				media.originalDuration === undefined
+			) {
+				const meta = await VideoGetMeta(media);
+				media.originalWidth = meta.width;
+				media.originalHeight = meta.height;
+				media.originalDuration = meta.duration;
+			}
+
+			if (media.videoAsImages && !media.videoImages) {
+				debug('extractFrames', $state.snapshot(media));
+				media.videoImages = await videoToImages(media);
+				debug('extractFrames done', $state.snapshot(media));
+			}
 		} else if (media.type === 'text') {
 			assert(media.original.file);
 			media.text = await media.original.file.text();
@@ -388,7 +409,7 @@ export async function syncMedia(media: MediaInterface) {
 			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);
 
 			// Note: This async function returns an array of promises when resolved.
-			if (media.PDFAsImages) media.PDFImages = await PDFToImages(media);
+			if (media.PDFAsImages && !media.PDFImages) media.PDFImages = await PDFToImages(media);
 		}
 
 		// if (!media.thumbnail) {
@@ -427,27 +448,30 @@ export function fileToMedia(file: File): MediaInterface {
 		m.PDFAsImagesDPI = 150;
 	}
 
+	if (m.type === 'video') {
+		m.videoAsImages = true;
+	}
+
 	return m;
 }
 
-
 export async function addImageToSkip(page: number) {
 	assert(A.mediaEditing);
-	if (!A.mediaEditing.PDFImagesSkip) {
-		A.mediaEditing.PDFImagesSkip = [];
+	if (!A.mediaEditing.imagesSkip) {
+		A.mediaEditing.imagesSkip = [];
 	}
-	if (!A.mediaEditing.PDFImagesSkip.includes(page)) {
-		A.mediaEditing.PDFImagesSkip.push(page);
+	if (!A.mediaEditing.imagesSkip.includes(page)) {
+		A.mediaEditing.imagesSkip.push(page);
 	}
 	await APIupsertMedia(A.mediaEditing);
 }
 
 export async function removeImageFromSkip(page: number) {
 	assert(A.mediaEditing);
-	if (A.mediaEditing.PDFImagesSkip) {
-		const index = A.mediaEditing.PDFImagesSkip.indexOf(page);
+	if (A.mediaEditing.imagesSkip) {
+		const index = A.mediaEditing.imagesSkip.indexOf(page);
 		if (index > -1) {
-			A.mediaEditing.PDFImagesSkip.splice(index, 1);
+			A.mediaEditing.imagesSkip.splice(index, 1);
 		}
 	}
 	await APIupsertMedia(A.mediaEditing);

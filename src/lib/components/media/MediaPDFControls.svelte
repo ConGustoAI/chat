@@ -50,8 +50,6 @@
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
 		return A.assistants[A.conversation?.assistant ?? 'none'];
 	});
-
-
 </script>
 
 {#if A.mediaEditing}
@@ -133,12 +131,12 @@
 					<input
 						type="checkbox"
 						id={`page-${i}`}
-						checked={!A.mediaEditing.PDFImagesSkip?.includes(i)}
+						checked={!A.mediaEditing.imagesSkip?.includes(i)}
 						onchange={async (e: Event) => {
 							assert(A.mediaEditing);
 							const selected = (e.target as HTMLInputElement).checked;
-							if (!A.mediaEditing.PDFImagesSkip) {
-								A.mediaEditing.PDFImagesSkip = [];
+							if (!A.mediaEditing.imagesSkip) {
+								A.mediaEditing.imagesSkip = [];
 							}
 							if (selected) await removeImageFromSkip(i);
 							else await addImageToSkip(i);

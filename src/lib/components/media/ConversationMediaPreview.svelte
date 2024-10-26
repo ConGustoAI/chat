@@ -10,10 +10,11 @@
 
 	let { media = $bindable(), message = $bindable() }: { media: MediaInterface; message?: MessageInterface } = $props();
 
-	let progressBar: HTMLProgressElement | null = $state(null);
+	let videoProgressBar: HTMLProgressElement | null = $state(null);
 
 	// Handle video seek based on mouse position
 	function handleVideoSeek(event: MouseEvent) {
+		debug('handleVideoSeek');
 		const video = event.currentTarget as HTMLVideoElement;
 		const rect = video.getBoundingClientRect();
 		const xPos = event.clientX - rect.left;
@@ -26,16 +27,18 @@
 
 	// Stop video playback when mouse leaves
 	function handleVideoStop(event: MouseEvent) {
+		debug('handleVideoStop');
 		const video = event.currentTarget as HTMLVideoElement;
 		video.pause();
 	}
 
 	// Update progress bar based on video time
 	function updateProgressBar(event: Event) {
+		debug('updateProgressBar');
 		const video = event.currentTarget as HTMLVideoElement;
-		if (progressBar) {
+		if (videoProgressBar && video.duration) {
 			const percentage = (video.currentTime / video.duration) * 100;
-			progressBar.value = percentage;
+			videoProgressBar.value = percentage;
 		}
 	}
 
@@ -47,14 +50,14 @@
 	let thumbnailURL: string | undefined = $state(undefined);
 
 	$effect(() => {
-		if (['image', 'pdf'].includes(media.type)) {
+		if (['image', 'pdf', 'video'].includes(media.type)) {
 			if (media.thumbnail) {
 				debug('thumbnailURL: Picking thumbnail');
 				media.thumbnail.then((t) => (thumbnailURL = t.url));
 			} else if (media.transformed) {
 				debug('thumbnailURL: Picking transformed');
 				media.transformed.then((r) => (thumbnailURL = r.url));
-			} else if (media.original && media.type === 'image') {
+			} else if (media.original && ['image', 'video'].includes(media.type)) {
 				debug('thumbnailURL: Picking original');
 				thumbnailURL = media.original.url;
 			} else {
@@ -120,21 +123,6 @@
 	class:opacity-50={!media.active}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
-	<!-- {#if media.type === 'video'} -->
-	<!-- svelte-ignore a11y_media_has_caption -->
-	<!-- <source src={URL.createObjectURL(media.url)} type={media.mimeType} /> -->
-	<!-- <video
-			class="grow object-cover"
-			onmousemove={(event) => handleVideoSeek(event)}
-			onmouseleave={handleVideoStop}
-			ontimeupdate={updateProgressBar}>
-			Your browser does not support the video tag.
-		</video>
-		<progress
-			bind:this={progressBar}
-			class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
-			value={0}
-			max={100}></progress> -->
 	<!-- {:else if media.type === 'audio'}
 		TODO: Audio
 	{:else} -->
@@ -155,6 +143,21 @@
 					{/if}
 				</div>
 			{/if}
+		{:else if media.type === 'video'}
+			<!-- svelte-ignore a11y_media_has_caption -->
+			<video
+				class="grow object-cover"
+				onmousemove={(event) => handleVideoSeek(event)}
+				onmouseleave={handleVideoStop}
+				ontimeupdate={updateProgressBar}>
+				Your browser does not support the video tag.
+				<source src={thumbnailURL} type={media.original.mimeType} />
+			</video>
+			<progress
+				bind:this={videoProgressBar}
+				class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
+				value="0"
+				max={100}></progress>
 		{:else if media.type === 'pdf'}
 			<img src={thumbnailURL} alt={media.filename} class="mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}
@@ -244,19 +247,20 @@
 		</div>
 
 		{#if message}
-			<div class="absolute left-0 top-0 h-full w-full p-10">
-				<button class="bg-black bg-opacity-50 text-success" onclick={addMediaToMessage}>
+			<div class="pointer-events-none absolute left-0 top-0 h-full w-full p-10">
+				<button class="pointer-events-auto bg-black bg-opacity-50 text-success" onclick={addMediaToMessage}>
 					<Plus size="fit-h" />
 				</button>
 			</div>
 		{:else}
-			<div class="absolute left-0 top-0 size-full p-10">
+			<div class="pointer-events-none absolute left-0 top-0 size-full p-10">
 				<button
-					class="rounded-md bg-black bg-opacity-50"
+					class="pointer-events-auto rounded-md bg-black bg-opacity-50"
 					onclick={() => {
 						if (A.mediaEditing) {
 							A.mediaEditing = undefined;
 						} else {
+							debug('Setting A.mediaEditing: ', $state.snapshot(media));
 							A.mediaEditing = media;
 						}
 					}}>

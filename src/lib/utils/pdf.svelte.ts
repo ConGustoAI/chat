@@ -129,3 +129,5 @@ export async function PDFGetDocument(media: MediaInterface): Promise<pdfjs.PDFDo
 	assert(media.original?.file);
 	return pdfjs.getDocument({ data: await media.original.file.arrayBuffer() }).promise;
 }
+
+
