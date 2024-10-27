@@ -115,7 +115,7 @@
 	}} />
 <input
 	type="number"
-	class="input input-bordered w-28"
+	class="input input-bordered w-28 no-spinner"
 	bind:value={model.inputContext}
 	oninput={() => {
 		status = 'changed';
@@ -129,7 +129,7 @@
 
 <input
 	type="number"
-	class="input input-bordered w-16"
+	class="input input-bordered w-16 no-spinner"
 	bind:value={model.inputCost}
 	oninput={() => {
 		status = 'changed';
@@ -142,7 +142,7 @@
 	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
-	class="input input-bordered w-28"
+	class="input input-bordered w-28 no-spinner"
 	bind:value={model.outputContext}
 	oninput={() => {
 		status = 'changed';
@@ -156,7 +156,7 @@
 
 <input
 	type="number"
-	class="input input-bordered w-16"
+	class="input input-bordered w-16 no-spinner"
 	bind:value={model.outputCost}
 	oninput={() => {
 		status = 'changed';
@@ -169,7 +169,7 @@
 	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
-	class="input input-bordered w-14"
+	class="input input-bordered w-14 no-spinner"
 	bind:value={model.maxTemp}
 	oninput={() => {
 		status = 'changed';

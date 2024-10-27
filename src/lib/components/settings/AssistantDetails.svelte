@@ -22,8 +22,8 @@
 	<div class="flex items-center gap-2 text-sm">
 		<div class="">Temperature</div>
 		<input
-			type="text"
-			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
+			type="number"
+			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none no-spinner"
 			bind:value={assistant.temperature}
 			onchange={(e) => {
 				fixNumberInput(e, 0, model?.maxTemp ?? 2);
@@ -34,8 +34,8 @@
 	<div class="flex w-fit items-center gap-2 text-sm">
 		<div class="w-fit">Top P</div>
 		<input
-			type="text"
-			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
+			type="number"
+			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none no-spinner"
 			bind:value={assistant.topP}
 			onchange={(e) => {
 				fixNumberInput(e, 0, 1);
@@ -46,8 +46,8 @@
 	<div class="flex w-fit items-center gap-2 text-sm">
 		<div class="w-fit">Top K</div>
 		<input
-			type="text"
-			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
+			type="number"
+			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none no-spinner"
 			bind:value={assistant.topK}
 			onchange={(e) => {
 				fixNumberInput(e, 0, 1000);
@@ -59,8 +59,8 @@
 	<div class="flex w-fit items-center gap-2 pr-5 text-sm">
 		<div class="w-fit">Out tokens</div>
 		<input
-			type="text"
-			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none"
+			type="number"
+			class="input input-sm input-bordered w-14 grow rounded-md py-0 leading-none no-spinner"
 			bind:value={assistant.maxTokens}
 			onchange={(e) => {
 				fixNumberInput(e, 0, model?.outputContext ?? 4096);

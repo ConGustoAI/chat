@@ -56,11 +56,10 @@
 	max-width: inherit;
 }
 
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
 	background-color: inherit;
 	padding: 1px 1px;
 }
-
 
 .prose pre {
 	background-color: inherit;
@@ -71,7 +70,15 @@
 	/* font-size: 100%; */
 }
 
-
+.no-spinner {
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
 
 .katex * {
 	margin: 0;
@@ -91,25 +98,26 @@
 }
 
 input.tab:checked + .tab-content,
-:is(.tab-active, [aria-selected="true"]) + .tab-content {
-    display: flex;
+:is(.tab-active, [aria-selected='true']) + .tab-content {
+	display: flex;
 	flex-direction: column;
 }
 input.tab:checked + .tab-content,
-:is(.tab-active, [aria-selected="true"]) + .tab-content {
-    display: flex;
+:is(.tab-active, [aria-selected='true']) + .tab-content {
+	display: flex;
 	flex-direction: column;
 }
 
-
 .bg-checkered {
-	background-image:
-		linear-gradient(45deg, #808080 25%, transparent 25%),
-		linear-gradient(-45deg, #808080 25%, transparent 25%),
-		linear-gradient(45deg, transparent 75%, #808080 75%),
+	background-image: linear-gradient(45deg, #808080 25%, transparent 25%),
+		linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%),
 		linear-gradient(-45deg, transparent 75%, #808080 75%);
 	background-size: 14px 14px;
-	background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+	background-position:
+		0 0,
+		0 7px,
+		7px -7px,
+		-7px 0px;
 }
 
 .pixilated {
@@ -117,7 +125,6 @@ input.tab:checked + .tab-content,
 	image-rendering: crisp-edges;
 	-ms-interpolation-mode: nearest-neighbor;
 }
-
 
 /* .katex-display {
 	margin-left: 0;

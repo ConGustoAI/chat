@@ -92,14 +92,15 @@ export function censorKey(dbUser: UserInterface | undefined, key: ApiKeyInterfac
 
 export function fixNumberInput(e: Event, min: number = 0, max: number = 1) {
 	const target = e.target as HTMLInputElement;
-	const value: number = Number(target.value);
+	// const value: number = Number(target.value);
+	const value: number = target.valueAsNumber;
 
 	if (isNaN(value)) {
-		target.value = min.toString();
+		target.valueAsNumber = min;
 	} else if (value > max) {
-		target.value = max.toString();
+		target.valueAsNumber = max;
 	} else if (value < min) {
-		target.value = min.toString();
+		target.valueAsNumber = min;
 	}
 	target.dispatchEvent(new Event('input', { bubbles: true }));
 }
@@ -203,4 +204,3 @@ export async function addMessage({
 export function isPublicPage() {
 	return location.pathname.startsWith('/public/');
 }
-
