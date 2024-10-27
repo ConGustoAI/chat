@@ -175,6 +175,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 		debug('Drop event', event);
+		if (message.role === 'assistant') return;
 		dragging = 0;
 		A.messageDragging = 0;
 		if (event.dataTransfer)
