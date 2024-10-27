@@ -78,8 +78,8 @@
 
 		const promises = [];
 
-		if (media.id) {
-			for (const message of A.conversation.messages ?? []) {
+		for (const message of A.conversation.messages ?? []) {
+			if (media.id) {
 				if (message.mediaIDs?.includes(media.id)) {
 					const idx = message.mediaIDs.indexOf(media.id);
 					if (idx !== -1) {
@@ -87,10 +87,13 @@
 						promises.push(APIupsertMessage(message));
 					}
 				}
+				promises.push(APIdeleteMedia(media.id));
 			}
-			promises.push(APIupsertConversation(A.conversation));
-			promises.push(APIdeleteMedia(media.id));
+			if (message.media?.includes(media)) {
+				message.media.splice(message.media.indexOf(media), 1);
+			}
 		}
+		promises.push(APIupsertConversation(A.conversation));
 
 		await Promise.all(promises);
 		URL.revokeObjectURL(media.original?.url ?? '');
@@ -151,8 +154,7 @@
 				class="grow object-cover"
 				onmousemove={(event) => handleVideoSeek(event)}
 				onmouseleave={handleVideoStop}
-				ontimeupdate={updateProgressBar}
-				>
+				ontimeupdate={updateProgressBar}>
 				Your browser does not support the video tag.
 				<source src={thumbnailURL} type={media.original.mimeType} />
 			</video>
