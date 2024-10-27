@@ -48,6 +48,10 @@
 	];
 </script>
 
+<svelte:head>
+	<title>Settings</title>
+</svelte:head>
+
 <div class="max-w-screen flex h-screen flex-col overflow-auto p-5 pb-16">
 	<a class="link flex gap-2" href="/chat">
 		<ArrowLeftCircle />Back to Chat

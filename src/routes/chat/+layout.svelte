@@ -93,6 +93,11 @@
 	}
 </script>
 
+
+<svelte:head>
+	<title>{A.conversation?.summary ?? "Congusto Chat"}</title>
+</svelte:head>
+
 <main class="relative m-0 flex h-full max-h-full w-full flex-col sm:flex-row">
 	{#if A.sidebarOpen}
 		<div

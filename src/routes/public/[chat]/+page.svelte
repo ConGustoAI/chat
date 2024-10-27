@@ -66,7 +66,7 @@
 					{#each A.conversation.messages as m, i}
 						<ChatMessage message={A.conversation.messages[i]} submitConversation={async () => {}} />
 					{/each}
-					<div class=" mb-20 w-full"></div>
+					<div class="mb-20 w-full"></div>
 				{:else}
 					<div class="flex h-full flex-col items-center">
 						{#if !A.conversation}
