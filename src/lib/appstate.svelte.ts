@@ -15,6 +15,9 @@ interface AppState {
 	sidebarOpen: boolean;
 	isMobile: boolean;
 	conversationUploadOpen: boolean;
+	conversationDragging: number;
+	messageDragging: number;
+
 	mediaEditing?: MediaInterface;
 
 	mediaUploading: number;
@@ -39,6 +42,8 @@ export const A: AppState = $state({
 	sidebarOpen: true,
 	isMobile: false,
 	conversationUploadOpen: false,
+	conversationDragging: 0,
+	messageDragging: 0,
 
 	mediaUploading: 0,
 	mediaProcessing: 0,

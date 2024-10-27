@@ -91,7 +91,7 @@
 	});
 </script>
 
-<div class={'flex shrink-0 flex-col overflow-hidden'}>
+<div class="no-drag flex shrink-0 flex-col overflow-hidden">
 	<!-- + (A.mediaEditing && A.conversation?.media?.includes(A.mediaEditing) ? ' h-[66dvh]' : '')}> -->
 	<!-- The message editing area should appear on the bottom when the carousel is invoked from inside a message -->
 	<!-- {#if A.mediaEditing && !message && A.conversation?.media?.includes(A.mediaEditing)}
@@ -111,7 +111,7 @@
 				onclick={() => document.getElementById('fileInput')?.click()}>
 				<PlusCircle size={32} />
 				{#if A.debug}
-					<p class="text-debug absolute bottom-1 right-1">{A.mediaProcessing ?? 0}</p>
+					<p class="absolute bottom-1 right-1 text-debug">{A.mediaProcessing ?? 0}</p>
 				{/if}
 			</button>
 
@@ -134,7 +134,7 @@
 				{/if}
 				<Upload size={32} />
 				{#if A.debug}
-					<p class="text-debug absolute bottom-1 right-1">{A.mediaUploading ?? 0}</p>
+					<p class="absolute bottom-1 right-1 text-debug">{A.mediaUploading ?? 0}</p>
 				{/if}
 			</button>
 		</div>

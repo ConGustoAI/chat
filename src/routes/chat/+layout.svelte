@@ -13,6 +13,9 @@
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
+	import { preventDefault } from 'svelte/legacy';
+	import { handleDataTransfer } from '$lib/utils/media_utils.svelte';
+
 	const debug = dbg('app:ui:chat');
 
 	// This will fetch the data eventually, but we are ok with the initial empty data.
@@ -73,7 +76,7 @@
 
 		if (!assistantId && A.conversation?.id) {
 			debug('No assistant ID provided, using default');
-			assistantId = A.conversation?.assistant
+			assistantId = A.conversation?.assistant;
 		}
 
 		A.conversation = newConversation(A.dbUser, assistantId, A.assistants);
@@ -91,11 +94,38 @@
 			}
 		}
 	}
+
+	function handleDrop(event: DragEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+		debug('Drop event', event);
+		A.conversationDragging = 0;
+		if (event.dataTransfer)
+			handleDataTransfer({
+				data: event.dataTransfer
+			});
+	}
+
+	let conversationDragArea = $state<HTMLDivElement | null>(null);
+
+	function dragEnter(event: DragEvent) {
+		debug('Drag enter');
+		A.conversationDragging++;
+	}
+
+	function dragLeave(event: DragEvent) {
+		debug('Drag leave');
+		A.conversationDragging--;
+	}
+
+	function handleDragOver(event: DragEvent) {
+		event.preventDefault(); // This is crucial!
+		event.stopPropagation();
+	}
 </script>
 
-
 <svelte:head>
-	<title>{A.conversation?.summary ?? "Congusto Chat"}</title>
+	<title>{A.conversation?.summary ?? 'Congusto Chat'}</title>
 </svelte:head>
 
 <main class="relative m-0 flex h-full max-h-full w-full flex-col sm:flex-row">
@@ -104,9 +134,8 @@
 			class="flex h-full w-full shrink-0 flex-col items-center justify-start gap-2 bg-base-200 p-2 sm:w-56"
 			transition:slide={{ duration: 100, axis: 'x' }}>
 			<div class="join flex w-full">
-				<button
-					class="btn btn-outline join-item btn-sm h-full grow"
-					onclick={async () => await NewChat()}>New chat</button>
+				<button class="btn btn-outline join-item btn-sm h-full grow" onclick={async () => await NewChat()}
+					>New chat</button>
 				<details class="dropdown dropdown-end join-item my-0 h-full" bind:this={assistantSelectDropdown}>
 					<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
 					<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
@@ -134,7 +163,14 @@
 
 	<div class="divider divider-horizontal hidden w-1 sm:block" class:hidden={!A.sidebarOpen}></div>
 
-	<div class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit">
+	<div
+		role="document"
+		class="mx-0 flex h-full w-full shrink flex-col overflow-hidden bg-inherit"
+		ondrop={handleDrop}
+		ondragover={handleDragOver}
+		ondragenter={dragEnter}
+		ondragleave={dragLeave}
+		bind:this={conversationDragArea}>
 		<ChatTitle />
 		<div class="mb-auto flex w-full grow flex-col justify-start overflow-y-auto bg-transparent bg-opacity-10">
 			{#if A.conversation?.messages}

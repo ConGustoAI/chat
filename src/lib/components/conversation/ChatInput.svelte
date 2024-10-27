@@ -3,7 +3,7 @@
 	import { env } from '$env/dynamic/public';
 	import { A } from '$lib/appstate.svelte';
 	import { CostEstimate, GrowInput, MediaCarousel, Notification } from '$lib/components';
-	import { fileToMedia, syncMedia } from '$lib/utils/media_utils.svelte';
+	import { fileToMedia, handleDataTransfer, syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
@@ -169,38 +169,21 @@
 
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 
-	async function handlePaste(event: ClipboardEvent, textBox: HTMLDivElement | null) {
-		debug('handlePaste', event.clipboardData?.getData('text/plain'));
+	async function handlePaste(event: ClipboardEvent) {
+		debug('handlePaste', event, event.clipboardData?.items);
 		event.preventDefault();
-		const text = event.clipboardData?.getData('text/plain');
-		if (!text) return;
-		// document.execCommand('insertText', false, text);
-
-		const numLines = text.split('\n').length;
-		debug('numLines', numLines);
-
-		if (numLines > 20 || text.length > 1000) {
-			const textFile = new File([text], 'pasted.txt', { type: 'text/plain' });
-			const textMedia = await fileToMedia(textFile);
-
-			assert(A.conversation);
-
-			if (!A.conversation.media) A.conversation.media = [];
-			A.conversation.media.push(textMedia);
-			syncMedia(A.conversation.media[A.conversation.media.length - 1]);
-
-			A.conversationUploadOpen = true;
-		} else {
-			assert(textBox);
-			document.execCommand('insertText', false, text);
-		}
+		if (event.clipboardData)
+			handleDataTransfer({
+				data: event.clipboardData,
+				handle_string: true
+			});
 	}
 </script>
 
 <div class="relative flex h-fit w-full flex-col gap-2">
 	<Notification messageType="error" bind:message={chatError} />
 
-	{#if uploadEnabled && A.conversationUploadOpen}
+	{#if uploadEnabled && (A.conversationUploadOpen || A.conversationDragging)}
 		<div
 			class="absolute bottom-full flex max-h-[80vh] w-full flex-col overflow-visible bg-base-200"
 			transition:slide={{ duration: 200 }}>
@@ -259,7 +242,7 @@
 				{handlePaste}
 				disabled={A.chatStreaming}
 				placeholder="User message"
-				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap px-12" />
+				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap break-all px-12" />
 			<div class="absolute bottom-1 left-2">
 				<button
 					class="btn btn-circle btn-sm relative"

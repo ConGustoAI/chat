@@ -120,6 +120,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="relative flex h-full w-full flex-col justify-between gap-0.5 rounded-md bg-base-300 p-1"
+	draggable="false"
 	class:opacity-50={!media.active}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
@@ -131,6 +132,7 @@
 			<img
 				src={thumbnailURL}
 				alt={media.filename}
+				draggable="false"
 				class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
 
 			{#if media.originalWidth != undefined}
@@ -149,7 +151,8 @@
 				class="grow object-cover"
 				onmousemove={(event) => handleVideoSeek(event)}
 				onmouseleave={handleVideoStop}
-				ontimeupdate={updateProgressBar}>
+				ontimeupdate={updateProgressBar}
+				>
 				Your browser does not support the video tag.
 				<source src={thumbnailURL} type={media.original.mimeType} />
 			</video>

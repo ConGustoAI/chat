@@ -476,3 +476,84 @@ export async function removeImageFromSkip(page: number) {
 	}
 	await APIupsertMedia(A.mediaEditing);
 }
+
+// Handle paste and drag&drop events
+// For paste, set handle_string to true to handle text pastes as well as file pastes.
+export function handleDataTransfer({
+	data,
+	handle_string: handleString = false,
+	message = undefined
+}: {
+	data: DataTransfer;
+	handle_string?: boolean;
+	message?: MessageInterface;
+}) {
+	const newMedia: MediaInterface[] = $state([]);
+	let newText: string | undefined;
+
+	if (handleString) {
+		Array.from(data.items ?? []).forEach((item) => {
+			debug('item', item);
+
+			if (item.kind === 'string' && item.type === 'text/plain') {
+				newText = data.getData('text/plain');
+			}
+		});
+	}
+
+	// The paste can have either string or file data, but not both.
+	// If we got string data, handle paste as normal.
+	if (newText) {
+		const numLines = newText.split('\n').length;
+
+		if (numLines > 20 || newText.length > 1000) {
+			const textFile = new File([newText], 'pasted.txt', { type: 'text/plain' });
+			const textMedia = fileToMedia(textFile);
+
+			assert(A.conversation);
+
+			if (!A.conversation.media) A.conversation.media = [];
+			A.conversation.media.push(textMedia);
+			syncMedia(A.conversation.media[A.conversation.media.length - 1]);
+
+			A.conversationUploadOpen = true;
+		} else {
+			document.execCommand('insertText', false, newText);
+		}
+	} else {
+		// If we got file data, handle it as media.
+		Array.from(data.items ?? []).forEach(async (item) => {
+			if (item.kind === 'file') {
+				const file = item.getAsFile();
+				if (file) {
+
+					// Don't add a file more than once
+					if (
+						!A.conversation?.media?.some(
+							(m) =>
+								m.original?.size === file.size &&
+								m.original?.file?.lastModified === file.lastModified &&
+								m.filename === file.name
+						)
+					) {
+						newMedia.push(fileToMedia(file));
+					}
+				}
+			}
+		});
+
+		if (newMedia.length) {
+			assert(A.conversation);
+
+			if (!A.conversation.media) A.conversation.media = [];
+			A.conversation.media.push(...newMedia);
+			newMedia.forEach(syncMedia);
+			if (message) {
+				if (!message.media) message.media = [];
+				message.media.push(...newMedia);
+			} else {
+				A.conversationUploadOpen = true;
+			}
+		}
+	}
+}

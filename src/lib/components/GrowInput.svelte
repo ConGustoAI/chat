@@ -25,18 +25,18 @@
 		oninput?: (event: Event) => void;
 		onkeydown?: (event: KeyboardEvent) => void;
 		onchange?: (event: Event) => void;
-		handlePaste?: (event: ClipboardEvent, textBox: HTMLDivElement | null) => void;
+		handlePaste?: (event: ClipboardEvent) => void;
 	}>();
 
 	let textBox: HTMLDivElement | null = $state(null);
 
-	function _handlePaste(event: ClipboardEvent, textBox: HTMLDivElement | null) {
+	function _handlePaste(event: ClipboardEvent) {
 		event.preventDefault();
+		debug('handlePaste',  event );
 		const text = event.clipboardData?.getData('text/plain');
-		if (!textBox || !text) return;
+		if (!text) return;
 		document.execCommand('insertText', false, text);
 	}
-
 </script>
 
 <div class="relative h-full w-full">
@@ -58,7 +58,7 @@
 			bind:innerText={value}
 			onfocus={() => (focused = true)}
 			onblur={() => (focused = false)}
-			onpaste={() => handlePaste(event, textBox)}
+			onpaste={(event) => handlePaste(event)}
 			{oninput}
 			{onkeydown}
 			{onchange}
