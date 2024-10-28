@@ -91,7 +91,7 @@
 	let savedSummary: string;
 </script>
 
-<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 bg-base-200 border-b border-base-content">
+<div class="navbar mx-0 min-h-12 w-full min-w-0 items-center gap-4 border-b border-base-content bg-base-200">
 	<!-- navbar-start -->
 	<div class="flex min-w-0 shrink-0 gap-2">
 		{#if isPublicPage()}
@@ -162,7 +162,15 @@
 								}
 							}} />
 					{:else}
-						<div class="items-bottom flex w-full shrink gap-1">
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<div
+							class="items-bottom flex w-full shrink gap-1 cursor-pointer"
+							role="textbox"
+							tabindex="0"
+							ondblclick={() => {
+								savedSummary = A.conversation!.summary ?? '';
+								editingSummary = true;
+							}}>
 							<p class="shrink truncate">
 								{A.conversation.summary ?? 'New chat'}
 							</p>
