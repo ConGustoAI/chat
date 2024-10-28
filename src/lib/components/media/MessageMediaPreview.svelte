@@ -3,7 +3,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import { assert, isPublicPage } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { RefreshCcwIcon, RefreshCwOff, X, Edit, Eye } from 'lucide-svelte';
+	import { RefreshCcwIcon, RefreshCwOff, X, Edit, Eye, AudioLines, Volume1, Volume2 } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	const debug = dbg('app:ui:components:MessageMediaPreview');
 
@@ -30,14 +30,14 @@
 
 	let thumbnailURL: string | undefined = $state(undefined);
 	$effect(() => {
-		if (['image', 'pdf'].includes(media.type)) {
+		if (['image', 'pdf', 'video', 'audio'].includes(media.type)) {
 			if (media.thumbnail) {
 				debug('thumbnailURL: Picking thumbnail');
 				media.thumbnail.then((t) => (thumbnailURL = t.url));
 			} else if (media.transformed) {
 				debug('thumbnailURL: Picking resized');
 				media.transformed.then((r) => (thumbnailURL = r.url));
-			} else if (media.original && media.type === 'image') {
+			} else if (media.original) {
 				debug('thumbnailURL: Picking original');
 				thumbnailURL = media.original.url;
 			} else {
@@ -105,13 +105,42 @@
 		}
 	}
 
+	let audioPlayer: HTMLAudioElement | undefined = $state();
+	let mediaPlaybackProgressBar: HTMLProgressElement | undefined = $state();
+	let isPlaying = $state(false);
+
+	$effect(() => {
+		if (audioPlayer) {
+			audioPlayer.addEventListener('play', () => (isPlaying = true));
+			audioPlayer.addEventListener('pause', () => (isPlaying = false));
+			audioPlayer.addEventListener('ended', () => (isPlaying = false));
+
+			return () => {
+				audioPlayer?.removeEventListener('play', () => (isPlaying = true));
+				audioPlayer?.removeEventListener('pause', () => (isPlaying = false));
+				audioPlayer?.removeEventListener('ended', () => (isPlaying = false));
+			};
+		}
+	});
+
+	$effect(() => {
+		let interval: number | NodeJS.Timeout;
+		if (isPlaying) {
+			interval = setInterval(() => {
+				volumeIcon = volumeIcon === 1 ? 2 : 1;
+			}, 500); // Switch every second
+		}
+		return () => clearInterval(interval);
+	});
+
+	let volumeIcon = $state(1);
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class="relative flex h-full w-full flex-col justify-between gap-0.5 rounded-md bg-base-300 p-1"
-	class:opacity-50={!media.active && !isPublicPage() }
+	class:opacity-50={!media.active && !isPublicPage()}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}>
 	<div class="flex h-full w-full flex-col overflow-hidden bg-base-100">
@@ -120,6 +149,36 @@
 				src={thumbnailURL}
 				alt={media.filename}
 				class="pixilated bg-checkered mx-auto h-full w-full overflow-hidden object-contain" />
+		{:else if media.type === 'audio'}
+			<div class=" flex h-full w-full flex-col">
+				<button
+					class="z-20"
+					onclick={() => {
+						debug('Playing audio');
+						if (audioPlayer?.paused) audioPlayer.play();
+						else audioPlayer?.pause();
+					}}>
+					{#if !isPlaying}
+						<AudioLines />
+					{:else}
+						<div in:fade={{ duration: 200 }}>
+							{#if volumeIcon === 1}
+								<Volume1 />
+							{:else}
+								<Volume2 />
+							{/if}
+						</div>
+					{/if}
+				</button>
+				<audio class="h-full w-full grow" bind:this={audioPlayer}>
+					<source src={thumbnailURL} />
+				</audio>
+				<progress
+					bind:this={mediaPlaybackProgressBar}
+					class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
+					value="0"
+					max={100}></progress>
+			</div>
 		{:else if media.type === 'pdf'}
 			<img src={thumbnailURL} alt={media.filename} class="mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}

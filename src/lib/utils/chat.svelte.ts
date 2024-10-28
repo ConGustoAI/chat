@@ -9,7 +9,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, type CoreAssistantMessage, type CoreUserMessage, type UserContent } from 'ai';
 import dbg from 'debug';
 import { uploadConversationMedia } from './media_utils.svelte';
-import { assert, promptHash } from './utils';
+import { assert, promptHash, secondstoMMSS } from './utils';
 const debug = dbg('app:lib:utils:chat');
 
 export let abortController: AbortController | undefined = undefined;
@@ -201,6 +201,36 @@ export async function _submitConversationClientSide() {
 
 						contentChunks.push({ type: 'text', text: '</Image>' });
 					}
+				} else if (media.type === 'audio') {
+					assert(media.original);
+					assert(media.original.file);
+					assert(media.originalDuration);
+
+					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
+
+					if (shouldAddMedia) {
+						addedMedia.push(media.id);
+						contentChunks.push({
+							type: 'text',
+							text:
+								`<Audio ` +
+								`title="${media.title}" ` +
+								`filename="${media.filename}" ` +
+								`mimetype="${media.original.mimeType ?? 'audio/mpeg'}" ` +
+								`duration="${secondstoMMSS(media.originalDuration)}" ` +
+								`>`
+						});
+
+						contentChunks.push({
+							type: 'file',
+							data: await media.original.file.arrayBuffer(),
+							mimeType: media.original.mimeType
+						});
+
+						contentChunks.push({ type: 'text', text: '</Audio>' });
+					}
+
+
 				} else if (media.type === 'video') {
 					assert(media.original);
 					assert(media.original.file);

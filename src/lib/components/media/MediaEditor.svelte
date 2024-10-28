@@ -5,6 +5,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import {
 		GrowInput,
+		MediaAudioControls,
 		MediaImageControls,
 		MediaPDFControls,
 		PDFDocumentViewer,
@@ -76,6 +77,13 @@
 					src={displayedImageURL}
 					alt={A.mediaEditing.title}
 					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
+			{:else if A.mediaEditing?.type === 'audio'}
+				<div class="flex h-full max-h-full grow flex-col overflow-auto p-2">
+					<audio class="shrink grow w-full" controls>
+						<source src={A.mediaEditing.original.url} />
+						Your browser does not support the audio tag.
+					</audio>
+				</div>
 			{:else if A.mediaEditing?.type === 'video'}
 				<div role="tablist" class="tabs tabs-lifted h-full w-full">
 					<input
@@ -166,6 +174,8 @@
 
 				{#if A.mediaEditing.type === 'image'}
 					<MediaImageControls />
+				{:else if A.mediaEditing.type === 'audio'}
+					<MediaAudioControls />
 				{:else if A.mediaEditing.type === 'video'}
 					<MediaVideoControls />
 				{:else if A.mediaEditing.type === 'pdf'}
@@ -197,41 +207,3 @@
 			A.mediaEditing = undefined;
 		}}>close</button>
 </dialog>
-{#if false}
-	<div class="flex flex-col justify-start gap-2 rounded-sm">
-		<!-- {#if media.type === 'video'}
-				<video
-					class="grow object-cover"
-					on:mousemove={(event) => handleVideoSeek(event)}
-					on:mouseleave={handleVideoStop}
-					on:timeupdate={updateProgressBar}>
-					<source src={URL.createObjectURL(media.file)} type={media.mimeType} />
-					Your browser does not support the video tag.
-				</video>
-				<progress
-					bind:this={progressBar}
-					class="progress progress-error absolute bottom-0 z-20 h-1 rounded-none"
-					value={0}
-					max={100}></progress>
-			{:else}
-				<img
-					src={media.url ?? '#'}
-					alt={media.title}
-					class="mx-auto my-auto h-[inherit] max-h-[100%] bg-gray-600 object-contain" />
-			{/if} -->
-
-		<!-- <div class="tab-content h-[inherit] max-h-[100vh] flex-col justify-center bg-gray-600 p-6">
-				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/08-130Miraflores-NYK_DIANA_-_Flickr_-_Salvador.C.jpg/450px-08-130Miraflores-NYK_DIANA_-_Flickr_-_Salvador.C.jpg" alt="cat" class="h-full w-full object-contain" />
-
-			</div> -->
-
-		<!-- <label class="absolute right-1 top-1 z-30">
-				<input type="checkbox" class="checkbox checkbox-sm" />
-			</label>
-			{#if isHovered}
-				<input type="text" class="input input-xs input-bordered absolute bottom-1 w-full" />
-			{:else}
-				<div class="break-all text-sm"></div>
-			{/if} -->
-	</div>
-{/if}

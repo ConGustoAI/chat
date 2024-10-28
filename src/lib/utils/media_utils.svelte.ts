@@ -5,7 +5,7 @@ import dbg from 'debug';
 import { typeFromFile } from './filetype';
 import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
-import { videoToImages, VideoGetMeta } from './video.svelte';
+import { VideoGetMeta, videoToImages } from './video.svelte';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -400,6 +400,17 @@ export async function syncMedia(media: MediaInterface) {
 				media.videoImages = await videoToImages(media);
 				debug('extractFrames done', $state.snapshot(media));
 			}
+		} else if (media.type === 'audio') {
+			assert(media.original.file);
+
+			debug('audio', media.original.file);
+			const audioContext = new AudioContext();
+			const arraybuffer = await media.original.file.arrayBuffer();
+
+			const audioBuffer = await audioContext.decodeAudioData(arraybuffer);
+
+			media.originalDuration = audioBuffer.duration;
+			debug('audio duration', media.originalDuration);
 		} else if (media.type === 'text') {
 			assert(media.original.file);
 			media.text = await media.original.file.text();
@@ -526,7 +537,6 @@ export function handleDataTransfer({
 			if (item.kind === 'file') {
 				const file = item.getAsFile();
 				if (file) {
-
 					// Don't add a file more than once
 					if (
 						!A.conversation?.media?.some(

@@ -115,14 +115,3 @@ export function typeFromFile(file: File): 'image' | 'video' | 'audio' | 'text' |
 
 	throw new Error('Unknown media type: ' + mimeType);
 }
-
-async function isTextFile(file: File): Promise<boolean> {
-	const blob = file.slice(0, 100 * 1024); // Read first 100KB of the file
-	const text = await blob.text();
-
-	// Check if the content is valid UTF-8 text
-	// This regex matches common control characters that shouldn't appear in text files
-	// eslint-disable-next-line no-control-regex
-	const controlCharsRegex = /[\x00-\x08\x0E-\x1F\x7F-\x9F]/;
-	return !controlCharsRegex.test(text);
-}

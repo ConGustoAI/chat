@@ -204,3 +204,9 @@ export async function addMessage({
 export function isPublicPage() {
 	return location.pathname.startsWith('/public/');
 }
+
+export function secondstoMMSS(seconds: number) {
+	const minutes = Math.floor(seconds / 60);
+	const remainingSeconds = Math.round((seconds % 60) * 10) / 10;
+	return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds.toFixed(1).padStart(4, '0')}`;
+}
