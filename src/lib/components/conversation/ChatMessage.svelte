@@ -133,31 +133,6 @@
 				handle_string: true,
 				message
 			});
-
-		// const text = event.clipboardData?.getData('text/plain');
-		// if (!text) return;
-		// // document.execCommand('insertText', false, text);
-
-		// const numLines = text.split('\n').length;
-		// debug('numLines', numLines);
-
-		// if (numLines > 20 || text.length > 1000) {
-		// 	const textFile = new File([text], 'pasted.txt', { type: 'text/plain' });
-		// 	const textMedia = fileToMedia(textFile);
-
-		// 	assert(A.conversation);
-
-		// 	if (!A.conversation.media) A.conversation.media = [];
-		// 	A.conversation.media.push(textMedia);
-
-		// 	if (!message.media) message.media = [];
-		// 	message.media.push(textMedia);
-
-		// 	A.conversationUploadOpen = true;
-		// } else {
-		// 	// assert(textBox);
-		// 	document.execCommand('insertText', false, text);
-		// }
 	}
 
 	function shouldShowDivider() {

@@ -24,7 +24,6 @@
 
 	async function onSubmit() {
 		debug('onSubmit', { input, connversation: A.conversation });
-		if (!input) return;
 		if (!A.conversation) return;
 
 		if (!A.dbUser) {
@@ -32,7 +31,6 @@
 			return;
 		}
 
-		if (!A.conversation.summary) A.conversation.summary = trimLineLength(input, 128);
 
 		if (!A.conversation.messages) A.conversation.messages = [];
 
@@ -44,6 +42,17 @@
 				newMedia.push(media);
 			}
 		}
+
+		if (!input && !newMedia.length) return;
+
+		if (!A.conversation.summary) {
+			if (input) {
+				A.conversation.summary = trimLineLength(input, 128);
+			} else {
+				A.conversation.summary = newMedia.map((m) => m.title).join(', ');
+			}
+		}
+
 
 		const UM: MessageInterface = { userID: A.conversation.userID, role: 'user', text: input, media: newMedia };
 		const AM: MessageInterface = { userID: A.conversation.userID, role: 'assistant', text: prefill };
