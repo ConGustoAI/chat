@@ -4,7 +4,8 @@
 	import { addMessage, assert, isPublicPage, updateMessage } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Copy, Edit, Menu, Repeat } from 'lucide-svelte';
-	import { DeleteButton, Cost } from '$lib/components';
+	import { DeleteButton, Cost, DeleteMessageButton } from '$lib/components';
+	import { deleteMedia } from '$lib/utils/media_utils.svelte';
 
 	const debug = dbg('app:ui:components:ChatMessageControls');
 
@@ -36,6 +37,24 @@
 			...A.conversation.messages.slice(currentIndex + 1)
 		];
 	}
+
+	async function deleteMessageWithMedia() {
+		debug('deleteMessageWithMedia', { conversation: A.conversation, message });
+
+		assert(A.conversation, 'Conversation missing');
+		assert(A.conversation.messages, 'Messages missing');
+
+		const promises: Promise<void>[] = [];
+
+		for (let i = (message.media?.length ?? 0) - 1; i >= 0; i--) {
+			promises.push(deleteMedia(message.media![i]));
+		}
+
+		await Promise.all(promises);
+
+		await deleteMessage();
+	}
+
 
 	async function reGenerate() {
 		debug('reGenerate', { conversation: A.conversation, message });
@@ -83,6 +102,12 @@
 		)
 			return true;
 	}
+
+	$inspect(message).with((t, c) => {
+		debug('message', t, c);
+	});
+
+
 </script>
 
 <div class="absolute right-0 top-0 flex flex-col pr-2">
@@ -142,11 +167,13 @@
 				navigator.clipboard.writeText(message.text);
 			}}><Copy size={15} /></button>
 		{#if !isPublicPage()}
-			<DeleteButton
+			<DeleteMessageButton
 				title="Delete message"
 				class="dropdown-end"
 				btnClass="btn-xs btn-ghost rounded-md p-1"
-				deleteAction={deleteMessage} />
+				deleteAction={deleteMessage}
+				deleteWithMediaAction={message.role === 'user' ? deleteMessageWithMedia : undefined}
+				/>
 		{/if}
 		{#if !A.dbUser || A.dbUser.hacker || isPublicPage()}
 			<button

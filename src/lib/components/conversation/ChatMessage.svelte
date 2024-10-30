@@ -73,7 +73,7 @@
 	}
 
 	async function saveMessage() {
-		debug('updateMessage', { conversation: A.conversation, message });
+		debug('saveMessage', { conversation: A.conversation, message });
 
 		message.uploadOpen = false;
 		let newConversation = false;
@@ -93,7 +93,7 @@
 			m.conversationID = A.conversation.id;
 		}
 
-		if (newConversation) await uploadConversationMedia();
+		await uploadConversationMedia();
 		message.mediaIDs = message.media?.map((m) => m.id!) ?? [];
 
 		savingMessage = true;

@@ -2,6 +2,7 @@
 	import { APIdeleteMedia, APIupsertConversation, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
 	import { DeleteButton } from '$lib/components';
+	import { deleteMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Edit, RefreshCcwIcon, RefreshCwOff, Upload, Plus, AudioLines, Volume1, Volume2 } from 'lucide-svelte';
@@ -98,38 +99,6 @@
 		return () => clearInterval(interval);
 	});
 
-	async function deleteMedia() {
-		assert(A.conversation);
-		assert(A.conversation.media);
-
-		const mediaIdx = A.conversation.media.indexOf(media);
-		assert(mediaIdx !== -1);
-
-		const promises = [];
-
-		for (const message of A.conversation.messages ?? []) {
-			if (media.id) {
-				if (message.mediaIDs?.includes(media.id)) {
-					const idx = message.mediaIDs.indexOf(media.id);
-					if (idx !== -1) {
-						message.mediaIDs.splice(idx, 1);
-						promises.push(APIupsertMessage(message));
-					}
-				}
-				promises.push(APIdeleteMedia(media.id));
-			}
-			if (message.media?.includes(media)) {
-				message.media.splice(message.media.indexOf(media), 1);
-			}
-		}
-		promises.push(APIupsertConversation(A.conversation));
-
-		await Promise.all(promises);
-		URL.revokeObjectURL(media.original?.url ?? '');
-		URL.revokeObjectURL((await media.thumbnail)?.url ?? '');
-
-		A.conversation.media.splice(A.conversation.media.indexOf(media), 1);
-	}
 
 	async function addMediaToMessage() {
 		assert(message);
@@ -147,7 +116,11 @@
 			}
 		}
 	}
+
+
 </script>
+
+
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
@@ -298,7 +271,7 @@
 			<DeleteButton
 				btnClass="btn-xs p-0 text-error"
 				class="dropdown-bottom  text-error "
-				deleteAction={deleteMedia}
+				deleteAction={async () => await deleteMedia(media)}
 				title="Delete file" />
 			{#if !A.dbUser || A.dbUser.hacker}
 				<label
