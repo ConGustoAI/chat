@@ -172,7 +172,7 @@
 				class="dropdown-end"
 				btnClass="btn-xs btn-ghost rounded-md p-1"
 				deleteAction={deleteMessage}
-				deleteWithMediaAction={message.role === 'user' ? deleteMessageWithMedia : undefined}
+				deleteWithMediaAction={(message.role === 'user' && message.media?.length) ? deleteMessageWithMedia : undefined}
 				/>
 		{/if}
 		{#if !A.dbUser || A.dbUser.hacker || isPublicPage()}
