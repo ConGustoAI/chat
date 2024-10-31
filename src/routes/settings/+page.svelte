@@ -160,9 +160,9 @@
 			<div class="divider w-full">Ussage statistics</div>
 			<div class="grid grid-cols-[auto,max-content,max-content,4rem] items-center gap-4 gap-y-2">
 				<div class="font-bold">API Key</div>
-				<div class="font-bold">Usage</div>
+				<div class="font-bold">$ Usage</div>
 				<div class="relative font-bold">
-					Remainder
+					$ Remainder
 					<InfoPopup title="Remaining balance">
 						<p>The balance is calculated based on the usage in this app only, we can't request the current value from the provider</p>
 					</InfoPopup>

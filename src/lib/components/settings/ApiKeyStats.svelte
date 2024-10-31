@@ -45,39 +45,33 @@
 
 <div>{provider}/{apiKey.label}</div>
 
-<div class="flex w-fit items-baseline gap-1">
-	<div class="label">$</div>
-	<input
-		type="number"
-		class="no-spinner input input-sm input-bordered w-fit"
-		bind:value={apiKey.usage}
-		onchange={(e) => {
-			status = 'changed';
-			fixNumberInput(e, 0, 99999);
-			debounceKeyUpdate();
-		}}
-		onblur={() => {
-			clearTimeout(updateTimer);
-			updateKeyNow();
-		}} />
-</div>
+<input
+	type="number"
+	class="no-spinner input input-sm input-bordered w-fit"
+	bind:value={apiKey.usage}
+	onchange={(e) => {
+		status = 'changed';
+		fixNumberInput(e, 0, 99999);
+		debounceKeyUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateKeyNow();
+	}} />
 
-<div class="flex items-baseline gap-1">
-	<div class="label">$</div>
-	<input
-		type="number"
-		class="no-spinner input input-sm input-bordered w-fit"
-		bind:value={apiKey.remainder}
-		oninput={(e) => {
-			status = 'changed';
-			fixNumberInput(e, 0, Infinity);
-			debounceKeyUpdate();
-		}}
-		onblur={() => {
-			clearTimeout(updateTimer);
-			updateKeyNow();
-		}} />
-</div>
+<input
+	type="number"
+	class="no-spinner input input-sm input-bordered w-fit"
+	bind:value={apiKey.remainder}
+	oninput={(e) => {
+		status = 'changed';
+		fixNumberInput(e, 0, Infinity);
+		debounceKeyUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateKeyNow();
+	}} />
 <div class="self-center">
 	<div class="loading" class:hidden={status !== 'saving'}></div>
 	<div class="" class:hidden={status !== 'saved'}>
