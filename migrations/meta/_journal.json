@@ -204,6 +204,13 @@
       "when": 1729918983080,
       "tag": "0028_giant_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1730406016926,
+      "tag": "0029_absent_sprite",
+      "breakpoints": true
     }
   ]
 }

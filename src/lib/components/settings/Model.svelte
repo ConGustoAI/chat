@@ -34,7 +34,7 @@
 		}
 	});
 
-	async function updatModelNow() {
+	async function updateModelNow() {
 		if (!A.dbUser) {
 			goto('/login', { invalidateAll: true });
 		}
@@ -60,7 +60,7 @@
 	function debounceModelUpdate() {
 		debug('debounceModelUpdate');
 		clearTimeout(updateTimer);
-		updateTimer = setTimeout(updatModelNow, 750);
+		updateTimer = setTimeout(updateModelNow, 750);
 	}
 
 	async function toggleHidden() {
@@ -93,7 +93,7 @@
 	onblur={() => {
 		clearTimeout(updateTimer);
 		status = 'changed';
-		updatModelNow();
+		updateModelNow();
 	}}
 	spellcheck="false"
 	disabled={!edit || status === 'deleting'} />
@@ -111,7 +111,7 @@
 	onblur={() => {
 		status = 'changed';
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}} />
 <input
 	type="number"
@@ -123,7 +123,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 
@@ -137,7 +137,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 <input
@@ -150,7 +150,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 
@@ -164,7 +164,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 <input
@@ -177,7 +177,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 
@@ -197,7 +197,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 
@@ -210,7 +210,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 <input
@@ -223,7 +223,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 <input
@@ -236,7 +236,7 @@
 	}}
 	onblur={() => {
 		clearTimeout(updateTimer);
-		updatModelNow();
+		updateModelNow();
 	}}
 	disabled={!edit || status === 'deleting'} />
 

@@ -8,6 +8,7 @@
 	import { defaultsUUID } from '$lib/db/schema';
 
 	import dbg from 'debug';
+	import ApiKeyStats from '$lib/components/settings/ApiKeyStats.svelte';
 	const debug = dbg('app:ui:settings:page');
 
 	let status: string | null = $state(null);
@@ -133,25 +134,43 @@
 
 			<input
 				type="number"
-				class="input input-bordered w-32"
+				class="input input-sm input-bordered w-32"
 				bind:value={A.dbUser.costShow}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
-				class="input input-bordered w-32"
+				class="input input-sm input-bordered w-32"
 				bind:value={A.dbUser.costWarn1}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
-				class="input input-bordered w-32"
+				class="input input-sm input-bordered w-32"
 				bind:value={A.dbUser.costWarn2}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
+		</div>
+
+		<div class="flex w-fit flex-col">
+			<div class="divider w-full">Ussage statistics</div>
+			<div class="grid grid-cols-[auto,max-content,max-content,4rem] items-center gap-4 gap-y-2">
+				<div class="font-bold">API Key</div>
+				<div class="font-bold">Usage</div>
+				<div class="font-bold">Remainder</div>
+				<div></div>
+
+				{#each Object.values(A.providers).toSorted((a, b) => a.name.localeCompare(b.name)) as p}
+					{#each Object.values(A.apiKeys).toSorted((a, b) => a.label.localeCompare(b.label)) as k}
+						{#if k.providerID === p.id}
+							<ApiKeyStats provider={p.name} bind:apiKey={A.apiKeys[k.id!]} />
+						{/if}
+					{/each}
+				{/each}
+			</div>
 		</div>
 	</section>
 {:else}

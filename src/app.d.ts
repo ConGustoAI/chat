@@ -69,7 +69,7 @@ declare global {
 		type: ProviderType;
 		openAIStreamUsage?: boolean;
 		baseURL: string;
-		apiKeys?: ApiKeyInterface[];
+		// apiKeys?: ApiKeyInterface[];
 		models?: ModelInterface[];
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -81,6 +81,8 @@ declare global {
 		providerID: string;
 		key: string;
 		label: string;
+		usage: number;
+		remainder: number;
 		createdAt?: Date;
 		updatedAt?: Date;
 	}

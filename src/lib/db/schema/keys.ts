@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { assistantsTable } from './assistants';
 import { providersTable } from './providers';
 import { usersTable } from './users';
@@ -14,6 +14,10 @@ export const apiKeysTable = pgTable('api_keys', {
 		.notNull(),
 	label: text('label').notNull(),
 	key: text('key').notNull(),
+
+	usage: real('usage').notNull().default(0),
+	remainder: real('remainder').notNull().default(0),
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

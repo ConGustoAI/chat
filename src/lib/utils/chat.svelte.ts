@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { APIupdateUser, APIupsertConversation, APIupsertMessage } from '$lib/api';
+import { APIupdateUser, APIupsertConversation, APIupsertKey, APIupsertMessage } from '$lib/api';
 import { APIupsertPrompt } from '$lib/api/prompt';
 import { A } from '$lib/appstate.svelte';
 import { defaultsUUID } from '$lib/db/schema';
@@ -229,8 +229,6 @@ export async function _submitConversationClientSide() {
 
 						contentChunks.push({ type: 'text', text: '</Audio>' });
 					}
-
-
 				} else if (media.type === 'video') {
 					assert(media.original);
 					assert(media.original.file);
@@ -276,7 +274,6 @@ export async function _submitConversationClientSide() {
 						}
 
 						if (media.videoAsFile) {
-
 							contentChunks.push({
 								type: 'text',
 								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'video/mp4'}">`
@@ -414,6 +411,7 @@ export async function _submitConversationClientSide() {
 		debug('streamText result:', JSON.stringify(result, null, 2));
 		assert(A.conversation);
 		assert(A.dbUser);
+		assert(apiKey);
 
 		const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
 
@@ -454,7 +452,7 @@ export async function _submitConversationClientSide() {
 		const [iUM, iP] = await Promise.all([APIupsertMessage($state.snapshot(UM)), APIupsertPrompt(prompt)]);
 
 		// Insert/update the rest in parallel
-		const [iAM, iC, iU] = await Promise.all([
+		const [iAM, iC, iU, iAK] = await Promise.all([
 			APIupsertMessage($state.snapshot(AM)),
 			APIupsertConversation($state.snapshot(A.conversation)),
 			async () => {
@@ -464,13 +462,19 @@ export async function _submitConversationClientSide() {
 					}
 					await APIupdateUser(A.dbUser);
 				}
-			}
+			},
+			APIupsertKey({
+				...apiKey,
+				usage: apiKey.usage + AM.tokensInCost + AM.tokensOutCost,
+				remainder: Math.max(0, apiKey.remainder - AM.tokensInCost - AM.tokensOutCost)
+			})
 		]);
 
 		Object.assign(A.dbUser, iU);
 		Object.assign(UM, iUM);
 		Object.assign(AM, iAM);
 		Object.assign(A.conversation, iC);
+		Object.assign(apiKey, iAK);
 
 		iAM.prompt = iP;
 		debug('After updating the DB: %o', {
@@ -478,7 +482,8 @@ export async function _submitConversationClientSide() {
 			assistantMessage: iAM,
 			conversation: iC,
 			prompt: iP,
-			user: iU
+			user: iU,
+			apiKey: { usage: iAK.usage, remainder: iAK.remainder }
 		});
 	}
 
