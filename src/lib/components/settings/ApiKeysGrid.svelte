@@ -35,7 +35,9 @@
 			userID: newChildUserID,
 			providerID: provider.id!,
 			label: provider.name + ' Key',
-			key: ''
+			key: '',
+			usage: 0,
+			remainder: 0,
 		});
 		A.apiKeys[apiKey.id!] = apiKey;
 

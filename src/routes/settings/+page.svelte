@@ -9,6 +9,7 @@
 
 	import dbg from 'debug';
 	import ApiKeyStats from '$lib/components/settings/ApiKeyStats.svelte';
+	import { InfoPopup } from '$lib/components';
 	const debug = dbg('app:ui:settings:page');
 
 	let status: string | null = $state(null);
@@ -160,7 +161,12 @@
 			<div class="grid grid-cols-[auto,max-content,max-content,4rem] items-center gap-4 gap-y-2">
 				<div class="font-bold">API Key</div>
 				<div class="font-bold">Usage</div>
-				<div class="font-bold">Remainder</div>
+				<div class="relative font-bold">
+					Remainder
+					<InfoPopup title="Remaining balance">
+						<p>The balance is calculated based on the usage in this app only, we can't request the current value from the provider</p>
+					</InfoPopup>
+				</div>
 				<div></div>
 
 				{#each Object.values(A.providers).toSorted((a, b) => a.name.localeCompare(b.name)) as p}
