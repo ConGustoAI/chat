@@ -73,16 +73,24 @@
 
 	let thumbnailText: string | undefined = $derived(media.text?.slice(0, 200).trim());
 
+	let numWords: number | undefined = $derived.by(() => {
+		if (media.text) return media.text.split(/\s+/).length;
+	});
+
+	let numLines: number | undefined = $derived.by(() => {
+		if (media.text) return media.text.split(/\n/).length;
+	});
+
 	$effect(() => {
 		if (audioPlayer) {
-			audioPlayer.addEventListener('play', () => isPlaying = true);
-			audioPlayer.addEventListener('pause', () => isPlaying = false);
-			audioPlayer.addEventListener('ended', () => isPlaying = false);
+			audioPlayer.addEventListener('play', () => (isPlaying = true));
+			audioPlayer.addEventListener('pause', () => (isPlaying = false));
+			audioPlayer.addEventListener('ended', () => (isPlaying = false));
 
 			return () => {
-				audioPlayer?.removeEventListener('play', () => isPlaying = true);
-				audioPlayer?.removeEventListener('pause', () => isPlaying = false);
-				audioPlayer?.removeEventListener('ended', () => isPlaying = false);
+				audioPlayer?.removeEventListener('play', () => (isPlaying = true));
+				audioPlayer?.removeEventListener('pause', () => (isPlaying = false));
+				audioPlayer?.removeEventListener('ended', () => (isPlaying = false));
 			};
 		}
 	});
@@ -90,7 +98,7 @@
 	let volumeIcon = $state(1);
 
 	$effect(() => {
-		let interval: number|NodeJS.Timeout;
+		let interval: number | NodeJS.Timeout;
 		if (isPlaying) {
 			interval = setInterval(() => {
 				volumeIcon = volumeIcon === 1 ? 2 : 1;
@@ -98,7 +106,6 @@
 		}
 		return () => clearInterval(interval);
 	});
-
 
 	async function addMediaToMessage() {
 		assert(message);
@@ -116,11 +123,7 @@
 			}
 		}
 	}
-
-
 </script>
-
-
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
@@ -166,7 +169,7 @@
 				value="0"
 				max={100}></progress>
 		{:else if media.type === 'audio'}
-			<div class="flex flex-col w-full h-full">
+			<div class="flex h-full w-full flex-col">
 				<button
 					onclick={() => {
 						debug('Playing audio');
@@ -194,12 +197,21 @@
 					value="0"
 					max={100}></progress>
 			</div>
-
-
 		{:else if media.type === 'pdf'}
 			<img src={thumbnailURL} alt={media.filename} class="mx-auto h-full w-full overflow-hidden object-contain" />
 		{:else if media.type === 'text'}
 			<pre class="tab-size-2 m-0 line-clamp-5 overflow-hidden text-sm">{thumbnailText ?? ''}</pre>
+			<div
+				class="absolute bottom-0 right-0 rounded-none bg-black bg-opacity-50 px-1 text-end text-sm text-primary-content">
+				<p>
+					{#if numWords != undefined}
+						W: {numWords}
+					{/if}
+					{#if numLines != undefined}
+						L: {numLines}
+					{/if}
+				</p>
+			</div>
 		{:else}
 			<div class="flex flex-grow items-center justify-center">
 				<p class="text-center">Unsupported media type</p>
