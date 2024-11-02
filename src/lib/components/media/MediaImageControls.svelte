@@ -70,8 +70,8 @@
 	{/if}
 
 	<div class="mt-auto flex flex-col items-end">
-		<div class="flex max-h-32 w-32 items-center bg-black">
-			<img src={thumbnailURL} alt="preview" class="bg-checkered border object-contain" />
+		<div class="flex h-32 w-32 flex-col items-center border">
+			<img src={thumbnailURL} alt="preview" class="bg-checkered shrink grow overflow-hidden object-contain" />
 		</div>
 		<p class="">{A.mediaEditing.filename}</p>
 		<p>Original: {A.mediaEditing.originalWidth}x{A.mediaEditing.originalHeight}</p>

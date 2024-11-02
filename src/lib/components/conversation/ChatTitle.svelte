@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { APIupsertConversation, APIupsertMessage } from '$lib/api';
+	import { APIupsertConversation, APIupsertMedia, APIupsertMessage, messageInterfaceFilter } from '$lib/api';
 	import { ConversationAssistant, ConversationInfo, Cost, ProfileCircle, ShareConversation } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
 	import dbg from 'debug';
 	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { trimLineLength, assert, isPublicPage } from '$lib/utils/utils';
+	import { syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { sanityCheckConversationMedia } from '$lib/utils/sanity-check.svelte';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 
@@ -52,39 +54,85 @@
 
 		cloningConversation = true;
 
-		const clone = { ...A.conversation };
-		delete clone.id;
-		clone.summary = trimLineLength('+' + clone.summary, 128);
+		// All media in the conversation should now have IDs.
+		await uploadConversationMedia();
+
+		sanityCheckConversationMedia(A.conversation);
+
+		let clone = { ...$state.snapshot(A.conversation) } as ConversationInterface;
+		clone.id = undefined;
+		clone.summary = trimLineLength('+' + (clone.summary ?? 'New Chat'), 128);
 		clone.public = false;
 		clone.order = undefined;
 		clone.userID = A.dbUser.id;
 		clone.updatedAt = undefined;
 		clone.createdAt = undefined;
-		const insertedConversation = await APIupsertConversation(clone);
-		debug('insertedConversation', { insertedConversation });
-		if (!insertedConversation?.id) return;
 
-		insertedConversation.messages = [];
+		// Make it a $state?
+		clone = await APIupsertConversation(clone) as ConversationInterface;
+		debug('inserted clone conversation: ', clone);
+		assert(clone.id);
+		clone.messages = [];
+		clone.media = [];
 
-		// We have to inser one by one to make sure the order is set correctly.
-		for (const m of clone.messages ?? []) {
-			delete m.id;
-			m.conversationID = insertedConversation.id;
-			m.userID = A.dbUser.id;
-			m.order = undefined;
-			m.createdAt = undefined;
-			m.updatedAt = undefined;
+		// Maps between the IDs of the original and cloned media.
+		const mediaConversionTable = new Map<string, string>();
 
-			// TODO: Do this in parallel
-			const insertedMessage = await APIupsertMessage(m);
-			debug('insertedMessage', { insertedMessage });
-			insertedConversation.messages.push(insertedMessage);
+		for (const media of A.conversation.media ?? []) {
+			assert(media.id);
+			let mediaClone = { ...media } as MediaInterface;
+			mediaClone.id = undefined;
+			mediaClone.conversationID = clone.id;
+			mediaClone.userID = A.dbUser.id;
+			mediaClone.createdAt = undefined;
+			mediaClone.updatedAt = undefined;
+
+			Object.assign(mediaClone, await APIupsertMedia(mediaClone));
+			debug('inserted media clone', mediaClone);
+			assert(mediaClone.id);
+			syncMedia(mediaClone);
+
+			mediaConversionTable.set(media.id, mediaClone.id);
+			clone.media.push(mediaClone);
 		}
 
-		A.conversations[insertedConversation.id] = insertedConversation;
-		A.conversationOrder = [insertedConversation.id, ...A.conversationOrder];
+		// We have to inser one by one to make sure the order is set correctly.
+		for (const m of A.conversation.messages ?? []) {
+			let messageClone = { ...$state.snapshot(m) } as MessageInterface
+			messageClone.id = undefined;
+			messageClone.conversationID = clone.id;
+			messageClone.userID = A.dbUser.id;
+			messageClone.order = undefined;
+			messageClone.createdAt = undefined;
+			messageClone.updatedAt = undefined;
+			messageClone.media = [];
+			messageClone.mediaIDs = [];
+
+			// Replace the media and IDs with the cloned ones.
+			for (const media of m.media ?? []) {
+				assert(media.id);
+				const clonedMedia = clone.media.find((m) => m.id === mediaConversionTable.get(media.id!));
+				assert(clonedMedia?.id);
+
+				messageClone.media.push(clonedMedia);
+				messageClone.mediaIDs.push(clonedMedia.id);
+			}
+
+			// TODO: Do this in parallel
+			Object.assign(messageClone, await APIupsertMessage(messageClone));
+
+
+			debug('inserted message clone ', messageClone);
+			clone.messages.push(messageClone);
+		}
+
+		sanityCheckConversationMedia(clone);
+
+		A.conversations[clone.id] = clone;
+		A.conversationOrder = [clone.id, ...A.conversationOrder];
+
 		cloningConversation = false;
-		await goto('/chat/' + insertedConversation.id);
+		await goto('/chat/' + clone.id);
 	}
 
 	let summaryHovered = $state(false);
@@ -164,7 +212,7 @@
 					{:else}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<div
-							class="items-bottom flex w-full shrink gap-1 cursor-pointer"
+							class="items-bottom flex w-full shrink cursor-pointer gap-1"
 							role="textbox"
 							tabindex="0"
 							ondblclick={() => {
