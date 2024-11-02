@@ -602,3 +602,23 @@ export async function deleteMedia(media: MediaInterface) {
 	A.conversation.media.splice(A.conversation.media.indexOf(media), 1);
 }
 
+export function assistantSupportsMedia(assistant: AssistantInterface, media: MediaInterface) {
+	if (media.type === 'text') return true;
+	if (media.type === 'image' && assistant.images) return true;
+	if (media.type === 'audio' && assistant.audio) return true;
+	if (media.type === 'video') {
+		if (!media.videoAsImages && !media.videoAsFile) return false;
+		if (media.videoAsImages && !assistant.images) return false;
+		if (media.videoAsFile && !assistant.video) return false;
+		return true;
+	}
+
+	if (media.type === 'pdf') {
+		if (!media.PDFAsImages && !media.PDFAsFile) return false;
+		if (media.PDFAsImages && !assistant.images) return false;
+		if (media.PDFAsFile && !assistant.pdf) return false;
+		return true;
+	}
+
+	return false;
+}

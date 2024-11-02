@@ -93,10 +93,11 @@ declare global {
 		name: string;
 		displayName: string;
 		streaming?: boolean;
+		prefill?: boolean;
 		images?: boolean;
 		audio?: boolean;
 		video?: boolean;
-		prefill?: boolean;
+		pdf?: boolean;
 		inputContext: number;
 		outputContext: number;
 		inputCost?: number; // Cost in dollars per 1,000,000 tokens
@@ -123,10 +124,10 @@ declare global {
 		topP: number;
 		topK: number;
 		maxTokens: number;
+		prefill?: boolean;
 		images?: boolean;
 		audio?: boolean;
 		video?: boolean;
-		prefill?: boolean;
 		pdf?: boolean;
 		googleSafetyThreshold?: number;
 		createdAt?: Date;

@@ -18,7 +18,7 @@
 </script>
 
 <div
-	class="grid w-full grid-cols-[min-content,max-content,max-content,max-content,min-content,min-content,min-content,min-content,auto] items-center gap-x-4 gap-y-2">
+	class="grid w-full grid-cols-[min-content,max-content,max-content,max-content,min-content,min-content,min-content,min-content,min-content,auto] items-center gap-x-4 gap-y-2">
 	<div class="flex items-center gap-2 text-sm">
 		<div class="">Temperature</div>
 		<input
@@ -88,6 +88,10 @@
 	<div class="relative flex text-xl font-bold" title="Video">
 		📺
 		<div class="absolute -top-5"><InfoPopup title="Model supports video" /></div>
+	</div>
+	<div class="relative flex text-xl font-bold" title="PDF">
+		🖨️
+		<div class="absolute -top-5"><InfoPopup title="Model supports PDF" /></div>
 	</div>
 	{#if provider.type === 'google'}
 		<div class="label-test">Gemini safety sensitivity (all categories)</div>
@@ -168,6 +172,15 @@
 		bind:checked={assistant.video}
 		disabled={!model?.video || !edit}
 		{onchange} />
+
+	<input
+		type="checkbox"
+		id="pdfCheckbox-{assistant.id}"
+		class="checkbox checkbox-sm"
+		bind:checked={assistant.pdf}
+		disabled={!model?.pdf || !edit}
+		{onchange} />
+
 
 	{#if provider.type === 'google'}
 		<div class="flex flex-col items-center gap-4">

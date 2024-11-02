@@ -12,7 +12,12 @@
 		PDFImageViewer,
 		PDFViewer
 	} from '$lib/components';
-	import { mediaResizeFromPreset, mediaUpdateText, resizePresets } from '$lib/utils/media_utils.svelte';
+	import {
+		assistantSupportsMedia,
+		mediaResizeFromPreset,
+		mediaUpdateText,
+		resizePresets
+	} from '$lib/utils/media_utils.svelte';
 	import { assert, isPublicPage } from '$lib/utils/utils';
 
 	import dbg from 'debug';
@@ -56,14 +61,40 @@
 	let titleUpdating: boolean = $state(false);
 	let textNeedsSave = $state(false);
 
+	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
+		return A.assistants[A.conversation?.assistant ?? 'none'];
+	});
+
 	$effect(() => {
 		debug('mediaEditing', $state.snapshot(A.mediaEditing));
 
 		if (A.mediaEditing) {
-			if (!A.mediaEditing.PDFAsImages && !A.mediaEditing.PDFAsDocument && !A.mediaEditing.PDFAsFile) {
+			if (
+				!A.mediaEditing.PDFAsImages &&
+				!A.mediaEditing.PDFAsDocument &&
+				!A.mediaEditing.PDFAsFile &&
+				currentAssistant.images
+			) {
 				A.mediaEditing.PDFAsImages = true;
 			}
+
+			if (
+				!A.mediaEditing.videoAsImages &&
+				!A.mediaEditing.videoAsFile &&
+				currentAssistant.images
+			) {
+				A.mediaEditing.videoAsImages = true;
+			}
 		}
+	});
+
+	let mediaSupported = $derived.by(() => {
+		assert(A.mediaEditing, 'No media editing');
+		if (!A.conversation?.assistant) return true;
+		const assistant = A.assistants[A.conversation.assistant];
+		assert(assistant, 'Assistant not found');
+
+		return assistantSupportsMedia(assistant, A.mediaEditing);
 	});
 </script>
 
@@ -79,7 +110,7 @@
 					class="pixilated bg-checkered shrink grow self-stretch overflow-hidden object-contain" />
 			{:else if A.mediaEditing?.type === 'audio'}
 				<div class="flex h-full max-h-full grow flex-col overflow-auto p-2">
-					<audio class="shrink grow w-full" controls>
+					<audio class="w-full shrink grow" controls>
 						<source src={A.mediaEditing.original.url} />
 						Your browser does not support the audio tag.
 					</audio>
@@ -151,6 +182,12 @@
 
 			<div
 				class="flex min-w-fit shrink-0 grow-0 flex-col items-end justify-start gap-1 overflow-visible border-t p-1 md:border-l md:border-t-0">
+				{#if !mediaSupported}
+					<div class="w-full text-center text-error">
+						<p>Media type not supported</p>
+					</div>
+				{/if}
+
 				<div class="flex items-baseline gap-2">
 					<p class="label mr-auto">Title:</p>
 					{#if titleUpdating}

@@ -78,12 +78,12 @@
 		// Maps between the IDs of the original and cloned media.
 		const mediaConversionTable = new Map<string, string>();
 
-		for (const media of A.conversation.media ?? []) {
+		const mediaPromises = (A.conversation.media ?? []).map(async (media) => {
 			assert(media.id);
 			let mediaClone = { ...media } as MediaInterface;
 			mediaClone.id = undefined;
 			mediaClone.conversationID = clone.id;
-			mediaClone.userID = A.dbUser.id;
+			mediaClone.userID = A.dbUser!.id;
 			mediaClone.createdAt = undefined;
 			mediaClone.updatedAt = undefined;
 
@@ -93,16 +93,18 @@
 			syncMedia(mediaClone);
 
 			mediaConversionTable.set(media.id, mediaClone.id);
-			clone.media.push(mediaClone);
-		}
+			clone.media!.push(mediaClone);
+		});
+
+		await Promise.all(mediaPromises);
 
 		// We have to inser one by one to make sure the order is set correctly.
-		for (const m of A.conversation.messages ?? []) {
+		const messagePromises = (A.conversation.messages ?? []).map(async (m) => {
 			let messageClone = { ...$state.snapshot(m) } as MessageInterface
 			messageClone.id = undefined;
 			messageClone.conversationID = clone.id;
-			messageClone.userID = A.dbUser.id;
-			messageClone.order = undefined;
+			messageClone.userID = A.dbUser!.id;
+			// Note: We don't reset the message order. The order does not have to be unique between conversations.
 			messageClone.createdAt = undefined;
 			messageClone.updatedAt = undefined;
 			messageClone.media = [];
@@ -111,20 +113,19 @@
 			// Replace the media and IDs with the cloned ones.
 			for (const media of m.media ?? []) {
 				assert(media.id);
-				const clonedMedia = clone.media.find((m) => m.id === mediaConversionTable.get(media.id!));
+				const clonedMedia = clone.media!.find((m) => m.id === mediaConversionTable.get(media.id!));
 				assert(clonedMedia?.id);
 
 				messageClone.media.push(clonedMedia);
 				messageClone.mediaIDs.push(clonedMedia.id);
 			}
 
-			// TODO: Do this in parallel
 			Object.assign(messageClone, await APIupsertMessage(messageClone));
-
-
 			debug('inserted message clone ', messageClone);
-			clone.messages.push(messageClone);
-		}
+			return messageClone;
+		});
+
+		clone.messages = await Promise.all(messagePromises);
 
 		sanityCheckConversationMedia(clone);
 

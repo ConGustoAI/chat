@@ -194,10 +194,17 @@ export async function _submitConversationClientSide() {
 								`>`
 						});
 
-						contentChunks.push({
-							type: 'image',
-							image: await file.file.arrayBuffer()
-						});
+						if (assistant.images) {
+							contentChunks.push({
+								type: 'image',
+								image: await file.file.arrayBuffer()
+							});
+						} else {
+							contentChunks.push({
+								type: 'text',
+								text: 'Image files are not supported by this assistant. Tell the user that images are not supported by this assistant.'
+							});
+						}
 
 						contentChunks.push({ type: 'text', text: '</Image>' });
 					}
@@ -221,11 +228,18 @@ export async function _submitConversationClientSide() {
 								`>`
 						});
 
-						contentChunks.push({
-							type: 'file',
-							data: await media.original.file.arrayBuffer(),
-							mimeType: media.original.mimeType
-						});
+						if (assistant.audio) {
+							contentChunks.push({
+								type: 'file',
+								data: await media.original.file.arrayBuffer(),
+								mimeType: media.original.mimeType
+							});
+						} else {
+							contentChunks.push({
+								type: 'text',
+								text: 'Audio files are not supported by this assistant. Tell the user that audio files are not supported by this assistant.'
+							});
+						}
 
 						contentChunks.push({ type: 'text', text: '</Audio>' });
 					}
@@ -253,7 +267,7 @@ export async function _submitConversationClientSide() {
 								`>`
 						});
 
-						if (media.videoAsImages) {
+						if (media.videoAsImages && assistant.images) {
 							assert(media.videoImages);
 							assert(media.videoImages);
 
@@ -273,7 +287,7 @@ export async function _submitConversationClientSide() {
 							}
 						}
 
-						if (media.videoAsFile) {
+						if (media.videoAsFile && assistant.video) {
 							contentChunks.push({
 								type: 'text',
 								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'video/mp4'}">`
@@ -286,6 +300,27 @@ export async function _submitConversationClientSide() {
 							});
 
 							contentChunks.push({ type: 'text', text: '</File>' });
+						}
+
+						if (!assistant.video && !assistant.images) {
+							contentChunks.push({
+								type: 'text',
+								text: 'The user did not specify the format of the video file. Instruct them to select the format in the media editor and try again.'
+							});
+						}
+
+						if (!assistant.video && media.videoAsFile && !media.videoAsImages) {
+							contentChunks.push({
+								type: 'text',
+								text: 'User is trying to send a video file, but this assistant does not support video. Tell the user that video files are not supported by this assistant.'
+							});
+						}
+
+						if (!assistant.images && media.videoAsImages && !media.videoAsFile) {
+							contentChunks.push({
+								type: 'text',
+								text: 'User is trying to send video as images, but the assistant does not support images. Tell the user that images are not supported by this assistant.'
+							});
 						}
 
 						contentChunks.push({ type: 'text', text: '</Video>' });
@@ -322,7 +357,7 @@ export async function _submitConversationClientSide() {
 							text: `<PDF title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
 						});
 
-						if (media.PDFAsImages) {
+						if (media.PDFAsImages && assistant.images) {
 							assert(media.PDFImages);
 							assert(media.PDFImages);
 							for (let i = 0; i < media.PDFImages.length; i++) {
@@ -341,7 +376,7 @@ export async function _submitConversationClientSide() {
 							}
 						}
 
-						if (media.PDFAsFile) {
+						if (media.PDFAsFile && assistant.pdf) {
 							contentChunks.push({
 								type: 'text',
 								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
@@ -354,6 +389,27 @@ export async function _submitConversationClientSide() {
 							});
 
 							contentChunks.push({ type: 'text', text: '</File>' });
+						}
+
+						if (!media.PDFAsImages && !media.PDFAsFile) {
+							contentChunks.push({
+								type: 'text',
+								text: 'User did not specify the format of the PDF file. Instruct them to select the format in the media editor and try again.'
+							});
+						}
+
+						if (!assistant.pdf && media.PDFAsFile && !media.PDFAsImages) {
+							contentChunks.push({
+								type: 'text',
+								text: 'User is trying to send a PDF file, but this assistant does not support PDF as files. Tell the user that PDF files are not supported by this assistant.'
+							});
+						}
+
+						if (!assistant.images && media.PDFAsImages && !media.PDFAsFile) {
+							contentChunks.push({
+								type: 'text',
+								text: 'User is trying to send PDF as images, but the assistant does not support images. Tell the user that images are not supported by this assistant.'
+							});
 						}
 
 						contentChunks.push({ type: 'text', text: '</PDF>' });

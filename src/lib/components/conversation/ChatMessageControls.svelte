@@ -103,9 +103,9 @@
 			return true;
 	}
 
-	$inspect(message).with((t, c) => {
-		debug('message', t, c);
-	});
+	// $inspect(message).with((t, c) => {
+	// 	debug('message', t, c);
+	// });
 
 
 </script>

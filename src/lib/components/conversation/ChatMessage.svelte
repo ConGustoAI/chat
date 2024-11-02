@@ -18,6 +18,7 @@
 	import { fileToMedia, handleDataTransfer, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { assert, isPublicPage, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
+	import { char } from 'drizzle-orm/pg-core';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -66,6 +67,7 @@
 		try {
 			// Update the conversation
 			await submitConversation();
+			chatError = undefined;
 		} catch (e) {
 			chatError = (e as Error).message ?? 'An unknown error occurred';
 		}

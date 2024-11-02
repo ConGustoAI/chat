@@ -56,43 +56,45 @@
 			<input
 				type="checkbox"
 				id="as-images"
-				disabled={processingImages || isPublicPage()}
+				disabled={(currentAssistant && !currentAssistant.images && !A.mediaEditing.videoAsImages) ||
+					processingImages ||
+					isPublicPage()}
 				bind:checked={A.mediaEditing.videoAsImages}
 				onchange={async () => {
 					assert(A.mediaEditing);
 					if (A.mediaEditing.videoAsImages) await handleVideoAsImages();
 				}} />
 			<label for="as-images">As images</label>
-			<!-- <select
-				class="select select-bordered select-sm"
-				bind:this={DPISelector}
-				onchange={handleVideoAsImages}
-				disabled={processingImages || !A.mediaEditing.PDFAsImages}>
-				<option value="72">72 DPI</option>
-				<option value="150">150 DPI</option>
-				<option value="300">300 DPI</option>
-			</select> -->
 		</div>
+		{#if A.mediaEditing.videoAsImages && currentAssistant && !currentAssistant.images}
+			<div class="col-start-2 w-full text-error">
+				<p>Assistant does not support images</p>
+			</div>
+		{/if}
+
 		<div class="col-start-2 mt-2 flex items-center gap-2">
 			<input
 				type="checkbox"
 				id="send-as-pdf"
 				bind:checked={A.mediaEditing.videoAsFile}
-				disabled={!currentAssistant?.video || isPublicPage()}
+				disabled={(currentAssistant && !currentAssistant?.video && !A.mediaEditing.videoAsFile) || isPublicPage()}
 				onchange={async () => {
 					assert(A.mediaEditing);
 					Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 				}} />
-			<label class="relative" for="send-as-pdf"
-				>Send as Video
-				{#if !currentAssistant?.video}
-					<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
-						<p>Only Google Gemini models support direct Video upload.</p>
-						<p>Check your assistant and model settings to enable it if the provider supports video</p>
-					</InfoPopup>
-				{/if}
-			</label>
+			<label class="relative" for="send-as-pdf">Send as Video </label>
+			{#if !currentAssistant?.video}
+				<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
+					<p>Only Google Gemini models support direct Video upload.</p>
+					<p>Check your assistant and model settings to enable it if the provider supports video</p>
+				</InfoPopup>
+			{/if}
 		</div>
+		{#if A.mediaEditing.videoAsFile && currentAssistant && !currentAssistant.video}
+			<div class="col-start-2 w-full text-error">
+				<p>Assistant does not support video</p>
+			</div>
+		{/if}
 	</div>
 
 	<div class="flex w-full flex-col items-start gap-1 px-4">

@@ -240,6 +240,20 @@
 	}}
 	disabled={!edit || status === 'deleting'} />
 
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.pdf}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
+
 <button
 	class="btn btn-outline"
 	disabled={status === 'hiding' || !allowHiding}

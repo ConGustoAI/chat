@@ -62,7 +62,9 @@
 			<input
 				type="checkbox"
 				id="as-images"
-				disabled={processingImages || isPublicPage()}
+				disabled={processingImages ||
+					(currentAssistant && !currentAssistant.images && !A.mediaEditing.PDFAsImages) ||
+					isPublicPage()}
 				bind:checked={A.mediaEditing.PDFAsImages}
 				onchange={async () => {
 					assert(A.mediaEditing);
@@ -79,6 +81,13 @@
 				<option value="300">300 DPI</option>
 			</select>
 		</div>
+
+		{#if A.mediaEditing.PDFAsImages && currentAssistant && !currentAssistant.images}
+			<div class="col-start-2 w-full text-error">
+				<p>Assistant does not support images</p>
+			</div>
+		{/if}
+
 		<div class="col-start-2 mt-2 flex items-center gap-2">
 			<input
 				disabled
@@ -91,23 +100,28 @@
 				}} />
 			<label for="extract-text-images">Extract text and images</label>
 		</div>
+
 		<div class="col-start-2 mt-2 flex items-center gap-2">
 			<input
 				type="checkbox"
 				id="send-as-pdf"
 				bind:checked={A.mediaEditing.PDFAsFile}
-				disabled={!currentAssistant?.pdf || isPublicPage()}
+				disabled={(currentAssistant && !A.mediaEditing.PDFAsFile && !currentAssistant?.pdf) || isPublicPage()}
 				onchange={async () => {
 					assert(A.mediaEditing);
 					Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 				}} />
-			<label class="relative" for="send-as-pdf"
-				>Send as PDF
-				<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
-					<p>Only Google Gemini models support direct PDF upload.</p>
-				</InfoPopup>
-			</label>
+			<label class="relative" for="send-as-pdf">Send as PDF </label>
+			<InfoPopup title="Send the original file as attachment" class="-top-2 right-2 z-20">
+				<p>Only Google Gemini models support direct PDF upload.</p>
+			</InfoPopup>
 		</div>
+
+		{#if A.mediaEditing.PDFAsFile && currentAssistant && !currentAssistant.pdf}
+			<div class="col-start-2 w-full text-error">
+				<p>Assistant does not support PDF</p>
+			</div>
+		{/if}
 	</div>
 	{#if A.mediaEditing.PDFMeta}
 		<div class="flex w-full flex-col items-start gap-1 px-4">

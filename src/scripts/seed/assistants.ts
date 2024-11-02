@@ -1,6 +1,6 @@
 import type { db } from "$lib/db";
 import { assistantsTable, defaultsUUID } from "$lib/db/schema";
-import { chatGPT4oID, claude35SonnetID, gemini15ProExp0827ID, gemini15ProID } from "./providers";
+import { chatGPT4oID, claude35SonnetID, gemini15ProID } from "./providers";
 
 
 // Assistant IDs
@@ -82,10 +82,11 @@ Additional instructions:
 				aboutUserFromUser: true,
 				assistantInstructionsFromUser: true,
 				systemPrompt: `You are Gemini. ${defaultSystemPrompt}`,
-				images: true,
-				audio: false,
-				video: false,
 				prefill: false,
+				images: true,
+				audio: true,
+				video: true,
+				pdf: true,
 				temperature: 0,
 				topP: 0,
 				topK: 0,
