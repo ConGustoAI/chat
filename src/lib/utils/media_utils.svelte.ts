@@ -1,4 +1,4 @@
-import { APIupsertConversation, APIupsertFile, APIupsertMedia, APIupsertMessage, fetchFileByURL } from '$lib/api';
+import { APIdeleteMedia, APIupsertConversation, APIupsertFile, APIupsertMedia, APIupsertMessage, fetchFileByURL } from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
@@ -591,7 +591,7 @@ export async function deleteMedia(media: MediaInterface) {
 			message.media.splice(message.media.indexOf(media), 1);
 		}
 	}
-	// if (media.id) promises.push(APIdeleteMedia(media.id));
+	if (media.id) promises.push(APIdeleteMedia(media.id));
 
 	promises.push(APIupsertConversation(A.conversation));
 
