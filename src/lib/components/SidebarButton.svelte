@@ -3,7 +3,10 @@
 	import { A } from '$lib/appstate.svelte';
 </script>
 
-<button class="btn btn-circle rounded-xl" onclick={() => (A.sidebarOpen = !A.sidebarOpen)}>
+<button
+	class="btn btn-circle rounded-xl"
+	aria-label={A.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+	onclick={() => (A.sidebarOpen = !A.sidebarOpen)}>
 	{#if A.sidebarOpen}
 		<ArrowLeftSquare />
 	{:else}

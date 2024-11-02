@@ -157,8 +157,8 @@
 			{#if updatingLike}
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
-				<label class="swap">
-					<input type="checkbox" bind:checked={A.conversation.like} onchange={updateLike} />
+				<label class="swap" aria-label="Star conversation">
+					<input aria-label="Star conversation" type="checkbox" bind:checked={A.conversation.like} onchange={updateLike} />
 					<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
 					<div class="swap-off"><Star color="var(--star)" /></div>
 				</label>
@@ -196,6 +196,7 @@
 				{#if A.conversation}
 					{#if editingSummary}
 						<input
+							aria-label="Conversation summary"
 							type="text"
 							class="input input-sm input-bordered w-full grow"
 							bind:value={A.conversation.summary}
@@ -213,6 +214,7 @@
 					{:else}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<div
+							aria-label="Conversation summary"
 							class="items-bottom flex w-full shrink cursor-pointer gap-1"
 							role="textbox"
 							tabindex="0"

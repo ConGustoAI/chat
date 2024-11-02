@@ -3,6 +3,7 @@
 </script>
 
 <button
+	aria-label="Close error message"
 	class="text-{messageType} self-start"
 	onclick={() => {
 		message = '';

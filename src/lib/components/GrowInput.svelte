@@ -15,7 +15,8 @@
 		onkeydown = () => {},
 		onchange = () => {},
 		handlePaste = _handlePaste,
-		autofocus = false
+		autofocus = false,
+		arialabel="",
 	} = $props<{
 		value: string | undefined;
 		placeholder?: string;
@@ -28,6 +29,7 @@
 		onchange?: (event: Event) => void;
 		handlePaste?: (event: ClipboardEvent) => void;
 		autofocus?: boolean;
+		arialabel?: string;
 	}>();
 
 	let textBox: HTMLDivElement | null = $state(null);
@@ -53,6 +55,7 @@
 	{:else}
 		<!-- svelte-ignore a11y_autofocus -->
 		<div
+			aria-label={arialabel}
 			{autofocus}
 			tabindex={0}
 			role="textbox"

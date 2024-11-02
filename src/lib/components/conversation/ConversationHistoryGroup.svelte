@@ -24,6 +24,7 @@
 </script>
 
 <div class="divider w-full grow-0">{title}</div>
+
 {#each group as c}
 	<li
 		class="tooltip relative min-h-8 w-full grow-0 p-0"
@@ -32,6 +33,7 @@
 		<input
 			type="checkbox"
 			class="checkbox absolute left-1 top-1/2 z-10 m-0 -translate-y-1/2 transform p-0"
+			aria-label="Select conversation"
 			name="selectedConversations"
 			checked={selectedConversations.includes(c)}
 			onchange={(e) => handleCheckboxChange(e, c)} />

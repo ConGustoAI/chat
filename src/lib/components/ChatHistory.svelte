@@ -261,6 +261,7 @@
 <div>
 	<div class="relative w-full">
 		<input
+			aria-label="Select all conversations"
 			type="checkbox"
 			class="checkbox absolute left-3 top-1/2 z-10 -translate-y-1/2 transform"
 			name="selectAll"
@@ -311,6 +312,7 @@
 
 <div class="divider w-full grow-0">
 	<button
+		aria-label="Search options"
 		class="btn-outline mx-0 flex h-4 w-fit items-center rounded-full border px-4"
 		disabled={searchAMPdisabled}
 		class:btn-disabled={searchAMPdisabled}
@@ -333,62 +335,59 @@
 				bind:this={searchAMPInput}
 				bind:value={searchAMP} />
 
-			{#if true}
-				<div
-					class="dropdown-content left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
-					{#if historyAMPOptions.assistants.length}
-						<div class="divider w-full py-0">Assistants</div>
-					{/if}
+			<div
+				class="dropdown-content left-full top-2 z-40 ml-1 flex w-fit flex-col justify-start rounded-md bg-base-200 shadow-lg">
+				{#if historyAMPOptions.assistants.length}
+					<div class="divider w-full py-0">Assistants</div>
+				{/if}
 
-					{#each historyAMPOptions.assistants as option}
-						<!-- data-index={optionIndex++} -->
-						<button
-							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
-							tabindex="0"
-							onclick={(e) => {
-								searchAMP = option;
-								searchAMPInput?.focus();
-							}}
-							onkeydown={handleKeyDown}>
-							{option}
-						</button>
-					{/each}
+				{#each historyAMPOptions.assistants as option}
+					<button
+						class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+						tabindex="0"
+						onclick={(e) => {
+							searchAMP = option;
+							searchAMPInput?.focus();
+						}}
+						onkeydown={handleKeyDown}>
+						{option}
+					</button>
+				{/each}
 
-					{#if historyAMPOptions.providers.length}
-						<div class="divider w-full py-0">Providers</div>
-					{/if}
+				{#if historyAMPOptions.providers.length}
+					<div class="divider w-full py-0">Providers</div>
+				{/if}
 
-					{#each historyAMPOptions.providers as option}
-						<button
-							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
-							tabindex="0"
-							onclick={() => {
-								searchAMP = option;
-								searchAMPInput?.focus();
-							}}
-							onkeydown={handleKeyDown}>
-							{option}
-						</button>
-					{/each}
+				{#each historyAMPOptions.providers as option}
+					<button
+						class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+						tabindex="0"
+						onclick={() => {
+							searchAMP = option;
+							searchAMPInput?.focus();
+						}}
+						onkeydown={handleKeyDown}>
+						{option}
+					</button>
+				{/each}
 
-					{#if historyAMPOptions.models.length}
-						<div class="divider w-full py-0">Models</div>
-					{/if}
+				{#if historyAMPOptions.models.length}
+					<div class="divider w-full py-0">Models</div>
+				{/if}
 
-					{#each historyAMPOptions.models as option}
-						<button
-							class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
-							tabindex="0"
-							onclick={() => {
-								searchAMP = option;
-								searchAMPInput?.focus();
-							}}
-							onkeydown={handleKeyDown}>
-							{option}
-						</button>
-					{/each}
-				</div>
-			{/if}
+				{#each historyAMPOptions.models as option}
+					<button
+						class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
+						tabindex="0"
+						onclick={() => {
+							searchAMP = option;
+							searchAMPInput?.focus();
+						}}
+						onkeydown={handleKeyDown}>
+						{option}
+					</button>
+				{/each}
+			</div>
 		</div>
 		<div class="flex gap-6 p-2">
 			<div class="flex items-center gap-2">

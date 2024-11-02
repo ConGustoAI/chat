@@ -205,6 +205,7 @@
 			class="tooltip tooltip-right z-[200]"
 			data-tip={prefillAvailable ? null : 'Prefill not available for this assistant'}>
 			<button
+				aria-label="Prefill Assistant message"
 				class="row-span-2 w-6 p-0"
 				class:-rotate-90={!prefillEnabled}
 				onclick={() => {
@@ -252,9 +253,11 @@
 				disabled={A.chatStreaming}
 				placeholder="User message"
 				autofocus
+				arialabel="Start chatting"
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap break-all px-12" />
 			<div class="absolute bottom-1 left-2">
 				<button
+					aria-label="Upload media"
 					class="btn btn-circle btn-sm relative"
 					onclick={() => {
 						A.conversationUploadOpen = !A.conversationUploadOpen;
@@ -279,7 +282,7 @@
 			<div class="absolute bottom-1 right-2">
 				{#if A.chatStreaming}
 					<div class="relative">
-						<button class="btn btn-sm" onclick={cancelConversation}>
+						<button aria-label="Cancel" class="btn btn-sm" onclick={cancelConversation}>
 							<div class="relative">
 								<StopCircle />
 								<span class="absolute inset-0 flex items-center justify-center">
@@ -291,6 +294,7 @@
 				{:else}
 					<button
 						class="btn btn-sm rounded-md"
+						aria-label="Send"
 						onclick={onSubmit}
 						disabled={A.chatStreaming || !!A.mediaProcessing || !!A.mediaUploading || !input.trim()}
 						class:btn-disabled={A.chatStreaming || A.mediaProcessing || A.mediaUploading || !input.trim()}>
@@ -307,6 +311,7 @@
 					onkeydown={inputKeyboardHandler}
 					disabled={A.chatStreaming}
 					placeholder="Start Assistant message"
+					arialabel="Prefill Assistant message"
 					class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap" />
 			</div>
 		{/if}
