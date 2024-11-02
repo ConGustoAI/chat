@@ -251,6 +251,7 @@
 				{handlePaste}
 				disabled={A.chatStreaming}
 				placeholder="User message"
+				autofocus
 				class="textarea-bordered h-fit max-h-96 w-full whitespace-pre-wrap text-wrap break-all px-12" />
 			<div class="absolute bottom-1 left-2">
 				<button

@@ -280,7 +280,10 @@
 						bind:focused={inputFocus}
 						bind:value={message.text}
 						onkeydown={inputKeyboardHandler}
-						{handlePaste} />
+						{handlePaste}
+						autofocus={true}
+
+						/>
 					<div class="mt-2 flex w-full items-start justify-start gap-2">
 						<button
 							class="btn btn-outline btn-sm"

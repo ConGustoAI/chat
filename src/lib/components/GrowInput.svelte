@@ -14,7 +14,8 @@
 		oninput = () => {},
 		onkeydown = () => {},
 		onchange = () => {},
-		handlePaste = _handlePaste
+		handlePaste = _handlePaste,
+		autofocus = false
 	} = $props<{
 		value: string | undefined;
 		placeholder?: string;
@@ -26,6 +27,7 @@
 		onkeydown?: (event: KeyboardEvent) => void;
 		onchange?: (event: Event) => void;
 		handlePaste?: (event: ClipboardEvent) => void;
+		autofocus?: boolean;
 	}>();
 
 	let textBox: HTMLDivElement | null = $state(null);
@@ -49,7 +51,9 @@
 			{value}
 		</div>
 	{:else}
+		<!-- svelte-ignore a11y_autofocus -->
 		<div
+			{autofocus}
 			tabindex={0}
 			role="textbox"
 			contenteditable
