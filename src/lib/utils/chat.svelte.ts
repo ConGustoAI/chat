@@ -492,7 +492,12 @@ export async function _submitConversationClientSide() {
 		AM.markdownCache = undefined;
 
 		AM.messagesSent = JSON.stringify(sanitizeData(inputMessages));
-		AM.result = JSON.stringify(result);
+		AM.result = JSON.stringify({
+			...result,
+			response: undefined,
+			steps: undefined,
+			responseMessages: undefined,
+		});
 
 		A.conversation.tokensIn = (A.conversation.tokensIn ?? 0) + AM.tokensIn;
 		A.conversation.tokensOut = (A.conversation.tokensOut ?? 0) + AM.tokensOut;
