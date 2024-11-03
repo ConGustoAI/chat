@@ -5,7 +5,11 @@
 
 {#if A.conversation}
 	{#if !A.conversation.id || A.dbUser?.hacker}
-		<select class="select select-bordered select-sm" bind:value={A.conversation.assistant} name="select-assistant" aria-label="Select assistant">
+		<select
+			class="select select-bordered select-sm"
+			bind:value={A.conversation.assistantID}
+			name="select-assistant"
+			aria-label="Select assistant">
 			<option disabled>Your assistants</option>
 			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
@@ -23,8 +27,8 @@
 		<div class="text-lg">{A.conversation.assistantName ?? ''}</div>
 	{/if}
 
-	{#if A.conversation.assistant}
-		{@const assistant = A.assistants[A.conversation?.assistant ?? 'empty']}
+	{#if A.conversation.assistantID}
+		{@const assistant = A.assistants[A.conversation?.assistantID ?? 'empty']}
 		{@const model = A.models[assistant?.modelID ?? 'empty']}
 		{@const provider = A.providers[model?.providerID ?? 'empty']}
 		{@const providerKey = Object.entries(A.apiKeys).find(([id, key]) => key.providerID === provider?.id)}
@@ -34,7 +38,7 @@
 			{#if !model}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no model</span>
-					<a href="/settings/assistants/#{A.conversation.assistant}" class="link">Edit assistant</a>
+					<a href="/settings/assistants/#{A.conversation.assistantID}" class="link">Edit assistant</a>
 				</div>
 			{:else if !providerKey}
 				<div class="flex flex-col text-sm">
@@ -44,7 +48,7 @@
 			{:else if !assistantKey && assistant.apiKeyID !== defaultsUUID}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no API key</span>
-					<a href="/settings/assistants/#{A.conversation.assistant}" class="link">Edit assistant</a>
+					<a href="/settings/assistants/#{A.conversation.assistantID}" class="link">Edit assistant</a>
 				</div>
 			{/if}
 		{/if}

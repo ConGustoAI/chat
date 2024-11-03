@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { browser } from '$app/environment';
-	import { APIfetchConversation, APIfetchPublicConversation } from '$lib/api';
-	import { ChatMessage, ChatTitle, MetaTag } from '$lib/components';
-	import { onMount, untrack } from 'svelte';
+	import { APIfetchPublicConversation } from '$lib/api';
+	import { ChatMessage, ChatTitle } from '$lib/components';
+	import { untrack } from 'svelte';
 
-	import dbg from 'debug';
 	import { A } from '$lib/appstate.svelte';
 	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
+	import { syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
-	import { mediaCreateThumbnail, imageProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
+	import dbg from 'debug';
 	const debug = dbg('app:ui:public');
 
 	async function fetchConversation(convID: string): Promise<void> {

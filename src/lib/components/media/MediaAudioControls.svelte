@@ -10,7 +10,7 @@
 	const debug = dbg('app:ui:components:MediaAudioControls');
 
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
-		return A.assistants[A.conversation?.assistant ?? 'none'];
+		return A.assistants[A.conversation?.assistantID ?? 'none'];
 	});
 </script>
 

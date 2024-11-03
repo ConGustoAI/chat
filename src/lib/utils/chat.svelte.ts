@@ -24,10 +24,10 @@ export async function _submitConversationClientSide() {
 	}
 
 	if (!A.conversation) throw new Error('The conversation is missing.');
-	if (!A.conversation.assistant) throw new Error('No assistant assigned.');
+	if (!A.conversation.assistantID) throw new Error('No assistant assigned.');
 	if (!A.conversation.messages) throw new Error('The conversation messages are missing.');
 
-	const assistant = A.assistants[A.conversation.assistant];
+	const assistant = A.assistants[A.conversation.assistantID];
 	if (!assistant) throw new Error('Selected assistant not avaiable');
 	if (!assistant.modelID) throw new Error('Assistant has not model specified');
 	if (!assistant.apiKeyID) throw new Error('Assistant has no API key specified');
@@ -58,7 +58,7 @@ export async function _submitConversationClientSide() {
 	const [UM, AM] = A.conversation.messages.slice(-2);
 	if (AM.text && !assistant.prefill) throw new Error('Assistant does not support prefill');
 
-	await uploadConversationMedia();
+	await uploadConversationMedia(apiKey);
 
 	const mediaIDs =
 		UM.media?.map((m) => {
@@ -195,9 +195,16 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (assistant.images) {
+							let data;
+							if (provider.type === 'google') {
+								assert(file.googleUploadFileURI);
+								data = file.googleUploadFileURI;
+							} else {
+								data = await file.file.arrayBuffer();
+							}
 							contentChunks.push({
 								type: 'image',
-								image: await file.file.arrayBuffer()
+								image: data
 							});
 						} else {
 							contentChunks.push({
@@ -205,7 +212,6 @@ export async function _submitConversationClientSide() {
 								text: 'Image files are not supported by this assistant. Tell the user that images are not supported by this assistant.'
 							});
 						}
-
 						contentChunks.push({ type: 'text', text: '</Image>' });
 					}
 				} else if (media.type === 'audio') {
@@ -268,11 +274,12 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (media.videoAsImages && assistant.images) {
-							assert(media.videoImages);
-							assert(media.videoImages);
+							assert(media.derivedImages);
+							assert(media.derivedImages);
 
-							for (let i = 0; i < media.videoImages.length; i++) {
-								const image = await media.videoImages[i];
+							for (let i = 0; i < media.derivedImages.length; i++) {
+								const image = await media.derivedImages[i];
+								assert(image.file);
 								contentChunks.push({
 									type: 'text',
 									text: `<Frame frame="${i}" timestamp="${image.timestamp} seconds" resolution="${image.width}x${image.height}">`
@@ -280,7 +287,7 @@ export async function _submitConversationClientSide() {
 
 								contentChunks.push({
 									type: 'image',
-									image: await image.blob.arrayBuffer()
+									image: await image.file.arrayBuffer()
 								});
 
 								contentChunks.push({ type: 'text', text: '</Frame>' });
@@ -293,9 +300,16 @@ export async function _submitConversationClientSide() {
 								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'video/mp4'}">`
 							});
 
+							let data;
+							if (provider.type === 'google') {
+								assert(media.original.googleUploadFileURI);
+								data = media.original.googleUploadFileURI;
+							} else {
+								data = await media.original.file.arrayBuffer();
+							}
 							contentChunks.push({
 								type: 'file',
-								data: await media.original.file.arrayBuffer(),
+								data,
 								mimeType: media.original.mimeType
 							});
 
@@ -357,11 +371,13 @@ export async function _submitConversationClientSide() {
 							text: `<PDF title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
 						});
 
-						if (media.PDFAsImages && assistant.images) {
-							assert(media.PDFImages);
-							assert(media.PDFImages);
-							for (let i = 0; i < media.PDFImages.length; i++) {
-								const image = await media.PDFImages[i];
+						if (media.derivedImages && assistant.images) {
+							assert(media.derivedImages);
+							assert(media.derivedImages);
+							for (let i = 0; i < media.derivedImages.length; i++) {
+								const image = await media.derivedImages[i];
+								assert(image.file);
+
 								contentChunks.push({
 									type: 'text',
 									text: `<Page page="${i}" resolution="${image.width}x${image.height}" dpi=${media.PDFAsImagesDPI}>`
@@ -369,7 +385,7 @@ export async function _submitConversationClientSide() {
 
 								contentChunks.push({
 									type: 'image',
-									image: await image.blob.arrayBuffer()
+									image: await image.file.arrayBuffer()
 								});
 
 								contentChunks.push({ type: 'text', text: '</Page>' });
@@ -382,9 +398,16 @@ export async function _submitConversationClientSide() {
 								text: `<File title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
 							});
 
+							let data;
+							if (provider.type === 'google') {
+								assert(media.original.googleUploadFileURI);
+								data = media.original.googleUploadFileURI;
+							} else {
+								data = await media.original.file.arrayBuffer();
+							}
 							contentChunks.push({
 								type: 'file',
-								data: await media.original.file.arrayBuffer(),
+								data,
 								mimeType: media.original.mimeType
 							});
 
@@ -436,9 +459,9 @@ export async function _submitConversationClientSide() {
 	debug('inputMessages:', inputMessages);
 
 	A.conversation.assistantName = assistant.name;
-	A.conversation.model = model.id;
+	A.conversation.modelID = model.id;
 	A.conversation.modelName = model.name;
-	A.conversation.provider = provider.id;
+	A.conversation.providerID = provider.id;
 	A.conversation.providerName = provider.name;
 
 	if (!A.conversation.id) {
@@ -496,7 +519,7 @@ export async function _submitConversationClientSide() {
 			...result,
 			response: undefined,
 			steps: undefined,
-			responseMessages: undefined,
+			responseMessages: undefined
 		});
 
 		A.conversation.tokensIn = (A.conversation.tokensIn ?? 0) + AM.tokensIn;
@@ -621,14 +644,14 @@ export async function submitConversationClientSide() {
 					assistantMessage = {
 						...assistantMessage,
 						finishReason: 'aborted',
-						assistantID: A.conversation.assistant,
-						assistantName: A.assistants[A.conversation.assistant ?? 'unknown']?.name ?? 'Unknown',
-						model: A.assistants[A.conversation.assistant ?? 'unknown']?.modelID ?? 'Unknown',
+						assistantID: A.conversation.assistantID,
+						assistantName: A.assistants[A.conversation.assistantID ?? 'unknown']?.name ?? 'Unknown',
+						model: A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'Unknown',
 						modelName:
-							A.models[A.assistants[A.conversation.assistant ?? 'unknown']?.modelID ?? 'unknown']?.name ?? 'Unknown',
-						temperature: A.assistants[A.conversation.assistant ?? 'unknown']?.temperature ?? 0,
-						topP: A.assistants[A.conversation.assistant ?? 'unknown']?.topP ?? 0,
-						topK: A.assistants[A.conversation.assistant ?? 'unknown']?.topK ?? 0,
+							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.name ?? 'Unknown',
+						temperature: A.assistants[A.conversation.assistantID ?? 'unknown']?.temperature ?? 0,
+						topP: A.assistants[A.conversation.assistantID ?? 'unknown']?.topP ?? 0,
+						topK: A.assistants[A.conversation.assistantID ?? 'unknown']?.topK ?? 0,
 						conversationID: A.conversation.id
 					};
 

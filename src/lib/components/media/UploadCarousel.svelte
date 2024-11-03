@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
 	import { PlusCircle, Upload } from 'lucide-svelte';
-	import { ConversationMediaPreview, MediaEditor } from '.';
+	import { ConversationMediaPreview } from '.';
 
-	import { fileToMedia, mediaCreateThumbnail, syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { goto } from '$app/navigation';
+	import { fileToMedia, syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 
-	import dbg from 'debug';
-	import { untrack } from 'svelte';
 	import { assert } from '$lib/utils/utils';
-	import { typeFromFile } from '$lib/utils/filetype';
-	const debug = dbg('app:ui:components:MediaCarousel');
+	import dbg from 'debug';
+	const debug = dbg('app:ui:components:UploadCarousel');
 
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
 
@@ -42,7 +40,7 @@
 			A.conversation.media.map(syncMedia);
 
 			// svelte-ignore state_snapshot_uncloneable
-			debug('Files added: ', A.conversation);
+			debug('Files added to conversation: ', $state.snapshot(A.conversation));
 			input.value = '';
 		}
 	}

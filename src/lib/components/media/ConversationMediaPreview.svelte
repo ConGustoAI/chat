@@ -5,7 +5,17 @@
 	import { assistantSupportsMedia, deleteMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { Edit, RefreshCcwIcon, RefreshCwOff, Upload, Plus, AudioLines, Volume1, Volume2, AlertTriangle } from 'lucide-svelte';
+	import {
+		Edit,
+		RefreshCcwIcon,
+		RefreshCwOff,
+		Upload,
+		Plus,
+		AudioLines,
+		Volume1,
+		Volume2,
+		AlertTriangle
+	} from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	const debug = dbg('app:ui:components:ConversatoinMediaPreview');
 
@@ -125,13 +135,12 @@
 	}
 
 	let mediaSupported = $derived.by(() => {
-		if (!A.conversation?.assistant) return true;
-		const assistant = A.assistants[A.conversation.assistant];
+		if (!A.conversation?.assistantID) return true;
+		const assistant = A.assistants[A.conversation.assistantID];
 		assert(assistant, 'Assistant not found');
 
 		return assistantSupportsMedia(assistant, media);
 	});
-
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -227,14 +236,13 @@
 			</div>
 		{/if}
 
-		{#if !(mediaSupported === true) }
+		{#if !(mediaSupported === true)}
 			<div class="pointer-events-none absolute left-0 top-0 size-full p-5">
 				<div class="pointer-events-auto rounded-md bg-black bg-opacity-50 text-error">
 					<AlertTriangle size="fit-h" />
 				</div>
 			</div>
 		{/if}
-
 
 		<div class="absolute bottom-1 mr-2 flex h-fit w-full flex-col gap-0.5">
 			{#if media.original?.status === 'progress'}

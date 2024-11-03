@@ -31,7 +31,6 @@
 			return;
 		}
 
-
 		if (!A.conversation.messages) A.conversation.messages = [];
 
 		const previouslyIncludedMedia = new Set(A.conversation.messages.map((m) => m.mediaIDs).flat());
@@ -52,7 +51,6 @@
 				A.conversation.summary = newMedia.map((m) => m.title).join(', ');
 			}
 		}
-
 
 		const UM: MessageInterface = { userID: A.conversation.userID, role: 'user', text: input, media: newMedia };
 		const AM: MessageInterface = { userID: A.conversation.userID, role: 'assistant', text: prefill };
@@ -152,7 +150,7 @@
 
 	$effect(() => {
 		debug('Chatinput Effect');
-		if (A.assistants[A.conversation?.assistant ?? '']?.prefill) prefillAvailable = true;
+		if (A.assistants[A.conversation?.assistantID ?? '']?.prefill) prefillAvailable = true;
 		else {
 			prefillEnabled = false;
 			prefillAvailable = false;

@@ -9,7 +9,7 @@
 
 		if (!messages) messages = A.conversation?.messages;
 
-		const assistant = A.assistants[A.conversation?.assistant ?? 'unknown'];
+		const assistant = A.assistants[A.conversation?.assistantID ?? 'unknown'];
 
 		// If we had previous messages, the system prompt is counted as part of the first message.
 		if (messages && messages.length > 0) {
@@ -33,7 +33,7 @@
 	}
 
 	function estimateCost(tokens: number) {
-		const assistant = A.assistants[A.conversation?.assistant ?? 'unknown'];
+		const assistant = A.assistants[A.conversation?.assistantID ?? 'unknown'];
 		if (!assistant) return 0;
 		const model = A.models[assistant.modelID ?? 'unknown'];
 		if (!model) return 0;

@@ -1,4 +1,11 @@
-import { APIdeleteMedia, APIupsertConversation, APIupsertFile, APIupsertMedia, APIupsertMessage, fetchFileByURL } from '$lib/api';
+import {
+	APIdeleteMedia,
+	APIupsertConversation,
+	APIupsertFile,
+	APIupsertMedia,
+	APIupsertMessage,
+	fetchFileByURL
+} from '$lib/api';
 import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
@@ -6,6 +13,8 @@ import { typeFromFile } from './filetype';
 import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
 import { VideoGetMeta, videoToImages } from './video.svelte';
+import { googleUploadIfNeeded } from './googleUpload.svelte';
+// import { geminiUpload } from './geminiUpload.svelte';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -223,44 +232,25 @@ export async function mediaResizeFromPreset(
 	}
 }
 
-export async function uploadChangedMedia(media: MediaInterface) {
-	if (!A.conversation?.id) throw new Error('Conversation ID missing');
+export async function uploadChangedMedia(media: MediaInterface, apiKey?: ApiKeyInterface) {
+	assert(media.original);
+	assert(A.conversation?.id); // Conversation should be created at this point.
 
-	const uploadPromises = [];
-	let mediaNeedsUpdate = false;
-
-	if (!media.original && media.originalID) mediaNeedsUpdate = true;
-	if (media.original && !media.original.id) {
-		mediaNeedsUpdate = true;
-		uploadPromises.push(async () => {
-			assert(media.original);
-			Object.assign(media.original, await uploadFile(media.original));
-		});
-	}
-
-	// if (!media.thumbnail && media.thumbnailID) mediaNeedsUpdate = true;
-	// if (media.thumbnail && !(await media.thumbnail).id) {
-	// 	mediaNeedsUpdate = true;
-	// 	uploadPromises.push(async () => {
-	// 		assert(media.thumbnail);
-	// 		Object.assign(media.thumbnail, { ...(await uploadFile(await media.thumbnail)), isThumbnail: true });
-	// 	});
-	// }
-
-	if (mediaNeedsUpdate) {
-		await Promise.all(uploadPromises.map((p) => p()));
-
-		media.originalID = media.original?.id ?? null;
-		// media.thumbnailID = (await media.thumbnail)?.id ?? null;
-		media.conversationID = A.conversation.id ?? null;
-
+	if (!media.original.id) {
+		Object.assign(media.original, await uploadFile(media.original));
+		assert(media.original.id);
+		media.originalID = media.original.id;
+		media.conversationID = A.conversation?.id;
 		const updatedMedia = await APIupsertMedia(media);
 		debug('media uploaded!', updatedMedia);
 		Object.assign(media, updatedMedia);
 	}
+
+	if (apiKey) await googleUploadIfNeeded(media.original, media.filename, apiKey);
+
 }
 
-export async function uploadConversationMedia() {
+export async function uploadConversationMedia(apiKey?: ApiKeyInterface) {
 	if (!A.conversation) throw Error('Conversation missing');
 
 	debug('uploadMedia', $state.snapshot(A.conversation));
@@ -276,8 +266,9 @@ export async function uploadConversationMedia() {
 		}
 		if (!A.conversation.media) A.conversation.media = [];
 
-		await Promise.all(A.conversation.media.map(uploadChangedMedia));
+		await Promise.all(A.conversation.media.map((m) => uploadChangedMedia(m, apiKey)));
 		debug('All media uploaded!', $state.snapshot(A.conversation));
+
 		return createdNewConversation;
 	} finally {
 		A.mediaUploading--;
@@ -395,9 +386,9 @@ export async function syncMedia(media: MediaInterface) {
 				media.originalDuration = meta.duration;
 			}
 
-			if (media.videoAsImages && !media.videoImages) {
+			if (media.videoAsImages && !media.derivedImages) {
 				debug('extractFrames', $state.snapshot(media));
-				media.videoImages = await videoToImages(media);
+				media.derivedImages = await videoToImages(media);
 				debug('extractFrames done', $state.snapshot(media));
 			}
 		} else if (media.type === 'audio') {
@@ -420,7 +411,7 @@ export async function syncMedia(media: MediaInterface) {
 			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);
 
 			// Note: This async function returns an array of promises when resolved.
-			if (media.PDFAsImages && !media.PDFImages) media.PDFImages = await PDFToImages(media);
+			if (media.PDFAsImages && !media.derivedImages) media.derivedImages = await PDFToImages(media);
 		}
 
 		// if (!media.thumbnail) {

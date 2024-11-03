@@ -6,8 +6,8 @@
 	let { media = $bindable() }: { media: MediaInterface } = $props();
 </script>
 
-{#if media.videoImages}
-	{#each media.videoImages as pdfImage, i}
+{#if media.derivedImages}
+	{#each media.derivedImages as pdfImage, i}
 		{#await pdfImage}
 			<div class="h-full w-full bg-blue-500"></div>
 			<p>Loading frame {i}...</p>

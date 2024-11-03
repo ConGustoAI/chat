@@ -2,6 +2,7 @@
 	import { A } from '$lib/appstate.svelte';
 	import { TokenStats } from '$lib/components';
 	import { assert } from '$lib/utils/utils';
+
 	import { JsonView } from '@zerodevx/svelte-json-view';
 
 	import dbg from 'debug';
@@ -134,7 +135,7 @@
 	</div>
 	<div class="wrap flex w-full flex-col gap-2 break-words">
 		{#if message.messagesSent && A.dbUser?.hacker}
-			<div class="collapse bg-base-200 p-0 rounded-none">
+			<div class="collapse rounded-none bg-base-200 p-0">
 				<input bind:this={messagesSentDropdown} type="checkbox" class="peer min-h-0" />
 				<div class="collapse-title min-h-0 bg-base-200 p-2 text-primary-content peer-checked:bg-base-100">
 					<div class="flex justify-end gap-2">
@@ -154,10 +155,10 @@
 							aria-label="Download as JSON"
 							class="btn btn-ghost z-50 size-5 min-h-fit rounded-md p-0"
 							title="Download as JSON"
-							onclick={()=> {
+							onclick={() => {
 								assert(message.messagesSent);
-								handleDownloadAsJson(message.messagesSent, `message-${message.id}.json`)}
-							}>
+								handleDownloadAsJson(message.messagesSent, `message-${message.id}.json`);
+							}}>
 							<Download />
 						</button>
 					</div>
@@ -170,7 +171,7 @@
 		{/if}
 
 		{#if message.result && A.dbUser?.hacker}
-			<div class="collapse bg-base-200 rounded-none">
+			<div class="collapse rounded-none bg-base-200">
 				<input bind:this={resultDropdown} type="checkbox" class="peer min-h-0" />
 				<div class="collapse-title min-h-0 bg-base-200 p-2 text-primary-content peer-checked:bg-base-100">
 					<div class="flex justify-end gap-2">

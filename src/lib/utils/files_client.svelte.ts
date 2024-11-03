@@ -51,7 +51,6 @@ export async function uploadFile(file: FileInterface) {
 	file.status = 'progress';
 	file.uploadProgress = 0;
 	Object.assign(file, await APIupsertFile(file, true));
-	// file = { ...file, ...(await APIupsertFile(file, true)) };
 
 	assert(file.uploadURL, 'No upload URL returned');
 	debug('uploadFile insertion: ', $state.snapshot(file));
@@ -63,7 +62,7 @@ export async function uploadFile(file: FileInterface) {
 
 	// Update status
 	Object.assign(file, await APIupsertFile(file, true));
-	// file = { ...file, ...(await APIupsertFile(file, true)) };
+
 	debug('uploadFile finished', $state.snapshot(file));
 	return file;
 }

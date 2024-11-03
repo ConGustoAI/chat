@@ -26,13 +26,13 @@ export async function VideoGetMeta(media: MediaInterface): Promise<VideoMeta> {
 	});
 }
 
-export function videoToImages(media: MediaInterface, fps = 1): Promise<Promise<VideoImageInterface>[]> {
+export function videoToImages(media: MediaInterface, fps = 1): Promise<Promise<DerivedImageInterface>[]> {
 	assert(media.type === 'video');
 	assert(media.original.url);
 
 	return new Promise((resolve) => {
 		assert(media.original.url);
-		const frames: Promise<VideoImageInterface>[] = [];
+		const frames: Promise<DerivedImageInterface>[] = [];
 		const video = document.createElement('video');
 		video.src = media.original.url;
 
@@ -52,7 +52,7 @@ export function videoToImages(media: MediaInterface, fps = 1): Promise<Promise<V
 				const timestamp = video.currentTime;
 
 				ctx.drawImage(video, 0, 0);
-				const frame: Promise<VideoImageInterface> = new Promise((resolve) => {
+				const frame: Promise<DerivedImageInterface> = new Promise((resolve) => {
 					canvas.toBlob((blob) => {
 						assert(blob);
 						resolve({

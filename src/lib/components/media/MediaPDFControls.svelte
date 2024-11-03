@@ -27,7 +27,7 @@
 			// This avoids flicker, as otherwise there would be a short period of no images displayed
 			/// while the promises resolve.
 			await Promise.all(newImages);
-			A.mediaEditing.PDFImages = newImages;
+			A.mediaEditing.derivedImages = newImages;
 			Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 		} finally {
 			processingImages = false;
@@ -48,7 +48,7 @@
 	});
 
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
-		return A.assistants[A.conversation?.assistant ?? 'none'];
+		return A.assistants[A.conversation?.assistantID ?? 'none'];
 	});
 </script>
 
@@ -137,10 +137,10 @@
 		</div>
 	{/if}
 
-	{#if A.mediaEditing.PDFAsImages && A.mediaEditing.PDFImages}
+	{#if A.mediaEditing.PDFAsImages && A.mediaEditing.derivedImages}
 		<div class="flex w-full flex-col items-start overflow-auto px-4">
 			<div class="divider my-0 w-full">Pages as images</div>
-			{#each A.mediaEditing.PDFImages as pdfImage, i}
+			{#each A.mediaEditing.derivedImages as pdfImage, i}
 				<div class="flex gap-2">
 					<input
 						type="checkbox"

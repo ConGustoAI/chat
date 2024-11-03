@@ -28,7 +28,7 @@
 			// This avoids flicker, as otherwise there would be a short period of no images displayed
 			/// while the promises resolve.
 			await Promise.all(newImages);
-			A.mediaEditing.videoImages = newImages;
+			A.mediaEditing.derivedImages = newImages;
 			Object.assign(A.mediaEditing, await APIupsertMedia(A.mediaEditing));
 		} finally {
 			processingImages = false;
@@ -36,13 +36,13 @@
 	}
 
 	$effect(() => {
-		if (A.mediaEditing?.videoAsImages && !A.mediaEditing.videoImages) {
+		if (A.mediaEditing?.videoAsImages && !A.mediaEditing.derivedImages) {
 			untrack(() => handleVideoAsImages());
 		}
 	});
 
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
-		return A.assistants[A.conversation?.assistant ?? 'none'];
+		return A.assistants[A.conversation?.assistantID ?? 'none'];
 	});
 </script>
 
@@ -104,10 +104,10 @@
 		<p class="text-sm">Height: {A.mediaEditing.originalHeight}</p>
 	</div>
 
-	{#if A.mediaEditing.videoAsImages && A.mediaEditing.videoImages}
+	{#if A.mediaEditing.videoAsImages && A.mediaEditing.derivedImages}
 		<div class="flex w-full flex-col items-start overflow-auto px-4">
 			<div class="divider my-0 w-full">Pages as images</div>
-			{#each A.mediaEditing.videoImages as frame, i}
+			{#each A.mediaEditing.derivedImages as frame, i}
 				<div class="flex gap-2">
 					{#await frame}
 						<div class="loading loading-sm"></div>

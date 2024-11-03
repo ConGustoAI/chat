@@ -1,6 +1,7 @@
 node_modules
 package-lock.json
 .cursorignore
+static/pdf.worker.mjs
 
 # Output
 .output

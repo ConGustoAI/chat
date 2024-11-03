@@ -62,7 +62,7 @@
 	let textNeedsSave = $state(false);
 
 	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
-		return A.assistants[A.conversation?.assistant ?? 'none'];
+		return A.assistants[A.conversation?.assistantID ?? 'none'];
 	});
 
 	$effect(() => {
@@ -78,11 +78,7 @@
 				A.mediaEditing.PDFAsImages = true;
 			}
 
-			if (
-				!A.mediaEditing.videoAsImages &&
-				!A.mediaEditing.videoAsFile &&
-				currentAssistant.images
-			) {
+			if (!A.mediaEditing.videoAsImages && !A.mediaEditing.videoAsFile && currentAssistant.images) {
 				A.mediaEditing.videoAsImages = true;
 			}
 		}
@@ -90,8 +86,8 @@
 
 	let mediaSupported = $derived.by(() => {
 		assert(A.mediaEditing, 'No media editing');
-		if (!A.conversation?.assistant) return true;
-		const assistant = A.assistants[A.conversation.assistant];
+		if (!A.conversation?.assistantID) return true;
+		const assistant = A.assistants[A.conversation.assistantID];
 		assert(assistant, 'Assistant not found');
 
 		return assistantSupportsMedia(assistant, A.mediaEditing);

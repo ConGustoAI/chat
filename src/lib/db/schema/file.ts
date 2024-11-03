@@ -17,6 +17,10 @@ export const fileTable = pgTable('file', {
 
 	status: uploadStatus('status'),
 
+	googleUploadFileID: text('google_file_id'), // The file ID returned by google
+	googleUploadFileURI: text('google_uri'), // The upload ID returned by google
+	googleUploadExpiresAt: text('google_expires_at'),
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('update_at').notNull().defaultNow()
 });

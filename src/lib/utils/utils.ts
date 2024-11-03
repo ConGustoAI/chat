@@ -61,7 +61,7 @@ export function newConversation(
 
 	return {
 		userID: dbUser.id,
-		assistant: assistantID || defaultsUUID
+		assistantID: assistantID
 	};
 }
 

@@ -7,7 +7,6 @@ export { default as DeleteButton } from './DeleteButton.svelte';
 export { default as DeleteMessageButton } from './DeleteMessageButton.svelte';
 export { default as Notification } from './Notification.svelte';
 export { default as InfoPopup } from './InfoPopup.svelte';
-export { default as MetaTag } from './MetaTag.svelte';
 
 export * from './settings';
 export * from './conversation';

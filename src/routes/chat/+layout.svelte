@@ -76,7 +76,7 @@
 
 		if (!assistantId && A.conversation?.id) {
 			debug('No assistant ID provided, using default');
-			assistantId = A.conversation?.assistant;
+			assistantId = A.conversation?.assistantID;
 		}
 
 		A.conversation = newConversation(A.dbUser, assistantId, A.assistants);

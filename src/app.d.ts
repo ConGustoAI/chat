@@ -196,12 +196,13 @@ declare global {
 		id?: string;
 		order?: number;
 		userID: string;
-		assistant?: string;
+		assistantID?: string;
+
 		// Used for search.
 		assistantName?: string;
-		model?: string;
+		modelID?: string;
 		modelName?: string;
-		provider?: string;
+		providerID?: string;
 		providerName?: string;
 
 		summary?: string;
@@ -215,7 +216,7 @@ declare global {
 		// For o1 models.
 		tokensReasoning?: number;
 		tokensReasoningCost?: number;
-		messages?: MessageInterface[];
+
 		updatedAt?: Date;
 		createdAt?: Date;
 
@@ -225,13 +226,6 @@ declare global {
 		media?: MediaInterface[];
 	}
 
-	interface PDFImageInterface {
-		url: string;
-		blob: Blob;
-		width: number;
-		height: number;
-	}
-
 	interface PDFMeta {
 		numPages: number;
 		author?: string;
@@ -239,12 +233,10 @@ declare global {
 		title?: string;
 	}
 
-	interface VideoImageInterface {
-		url: string;
-		blob: Blob;
+	interface DerivedImageInterface extends FileInterface {
 		width: number;
 		height: number;
-		timestamp: number;
+		timestamp?: number; // For video images.
 	}
 
 	interface MediaInterface {
@@ -310,14 +302,28 @@ declare global {
 
 		PDFDocument?: Promise<PDFDocumentProxy>;
 		// Promises that resolve to the iobject URLs.
-		PDFImages?: Promise<PDFImageInterface>[];
 		PDFMeta?: Promise<PDFMeta>;
 
-		videoImages?: Promise<VideoImageInterface>[];
+		// For converting video or PDF to images.
+		derivedImages?: Promise<DerivedImageInterface>[];
 
 		active?: boolean;
 		processing?: number;
 	}
+
+	// interface GoogleUploadInterface {
+	// 	createTime: string | Date;
+	// 	displayName: string | Date;
+	// 	expirationTime: string | Date;
+	// 	mimeType: string;
+	// 	name: string; // files/sdfsdfsdf
+	// 	displayName: string; // Human readable name.
+	// 	sha256Hash: string; // Base64 encoded.
+	// 	sizeBytes: string;
+	// 	state: 'PROCESSING' | 'ACTIVE' | 'FAILED' | 'STATE_UNSPECIFIED';
+	// 	updateTime: string;
+	// 	uri: string;
+	// }
 
 	interface FileInterface {
 		id?: string;
@@ -328,6 +334,10 @@ declare global {
 		isThumbnail?: boolean;
 
 		status?: 'progress' | 'ok' | 'failed' | null;
+
+		googleUploadFileID?: string;
+		googleUploadFileURI?: string;
+		googleUploadExpiresAt?: string;
 
 		// Don't send to the backend.
 
@@ -341,6 +351,8 @@ declare global {
 		uploadProgress?: number;
 		uploadError?: string;
 		uploading?: boolean;
+
+		// googelUpload?: GoogleUploadInterface;
 	}
 
 	type undefinedNull = undefined | null;
