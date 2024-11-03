@@ -56,3 +56,6 @@ let {a = "hello", b}: {a: string, b: number} = $props()
 Note: The preview syntax
 let { x = 42 } = $props<{ x?: string }>();
 no longer works.
+
+## Event changes
+Use onclick={...} instead of on:click={...}

@@ -43,6 +43,10 @@ export const messagesTable = pgTable('messages', {
 		.array()
 		.default(sql`ARRAY[]::uuid[]`),
 
+
+	messagesSent: text('messages_sent'),
+	result: text('result'),
+
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
 		.notNull()

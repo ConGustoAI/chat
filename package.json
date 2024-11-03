@@ -66,6 +66,7 @@
 		"@sveltejs/adapter-auto": "^3.3.1",
 		"@sveltejs/adapter-node": "^5.2.9",
 		"@types/pdfjs-dist": "^2.10.378",
+		"@zerodevx/svelte-json-view": "^1.0.11",
 		"ai": "^3.4.30",
 		"arctic": "^1.9.2",
 		"busboy": "^1.6.0",
@@ -78,6 +79,7 @@
 		"hast-util-class-list": "https://github.com/xl0/hast-util-class-list",
 		"hast-util-has-property": "^3.0.0",
 		"hast-util-is-element": "^3.0.0",
+		"i": "^0.3.7",
 		"katex": "^0.16.11",
 		"lowlight": "^3.1.0",
 		"lucide-svelte": "^0.447.0",
@@ -99,6 +101,7 @@
 		"remark-html": "^16.0.1",
 		"remark-math": "^6.0.0",
 		"remark-rehype": "^11.1.1",
+		"svelte-json-tree": "^2.2.0",
 		"svelte-meta-tags": "^3.1.4",
 		"tailwind-merge": "^2.5.4",
 		"tailwind-variants": "^0.2.1"

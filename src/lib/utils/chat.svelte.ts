@@ -491,6 +491,9 @@ export async function _submitConversationClientSide() {
 
 		AM.markdownCache = undefined;
 
+		AM.messagesSent = JSON.stringify(sanitizeData(inputMessages));
+		AM.result = JSON.stringify(result);
+
 		A.conversation.tokensIn = (A.conversation.tokensIn ?? 0) + AM.tokensIn;
 		A.conversation.tokensOut = (A.conversation.tokensOut ?? 0) + AM.tokensOut;
 		A.conversation.tokensInCost = (A.conversation.tokensInCost ?? 0) + AM.tokensInCost;
@@ -640,4 +643,17 @@ export async function submitConversationClientSide() {
 
 		A.chatStreaming = false;
 	}
+}
+
+function sanitizeData(data: unknown): unknown {
+	if (data instanceof ArrayBuffer) {
+		return `[ArrayBuffer ${data.byteLength} bytes]`;
+	}
+	if (Array.isArray(data)) {
+		return data.map(sanitizeData);
+	}
+	if (data && typeof data === 'object') {
+		return Object.fromEntries(Object.entries(data).map(([key, value]) => [key, sanitizeData(value)]));
+	}
+	return data;
 }

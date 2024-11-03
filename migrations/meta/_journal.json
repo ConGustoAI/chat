@@ -211,6 +211,13 @@
       "when": 1730406016926,
       "tag": "0029_absent_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1730598556766,
+      "tag": "0030_opposite_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

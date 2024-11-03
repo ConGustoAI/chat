@@ -180,6 +180,9 @@ declare global {
 		editing?: boolean;
 		originalText?: string; // Saven when editing to be able to cancel the edit.
 		uploadOpen?: boolean;
+
+		messagesSent?: string;
+		result?: string;
 	}
 
 	interface PromptInterface {
@@ -254,7 +257,6 @@ declare global {
 		filename: string;
 		type: 'image' | 'audio' | 'video' | 'text' | 'pdf';
 
-
 		// Only valid for pdf files.
 		PDFAsImages?: boolean;
 		PDFAsImagesDPI?: number;
@@ -267,11 +269,9 @@ declare global {
 		// For PDF and video that has been converted to images, we can skip pages/frames.
 		imagesSkip?: number[];
 
-
 		// For images and video
 		originalWidth?: number;
 		originalHeight?: number;
-
 
 		// For audio and video
 		originalDuration?: number;
@@ -302,7 +302,6 @@ declare global {
 
 		// Only valid for text
 		text?: string;
-
 
 		thumbnail?: Promise<FileInterface>;
 

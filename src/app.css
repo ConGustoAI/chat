@@ -142,3 +142,13 @@ input.tab:checked + .tab-content,
 		margin-left: 10rem !important;
 	}
 } */
+
+.wrap {
+	font-family: monospace;
+	font-size: 14px;
+	--jsonBorderLeft: none;
+}
+
+.wrap ul {
+	padding-left: 10px !important;
+}
