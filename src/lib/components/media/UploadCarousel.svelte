@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
-	import { PlusCircle, Upload } from 'lucide-svelte';
+	import { PlusCircle, Upload, FileHeart, FolderHeart, CloudUpload, FilePlus, FolderPlus } from 'lucide-svelte';
 	import { ConversationMediaPreview } from '.';
 
 	import { goto } from '$app/navigation';
@@ -103,18 +103,29 @@
 		aria-label="Image upload area">
 		<!-- Clickable box for file upload -->
 
-		<div class="flex flex-col gap-3">
+		<div class="flex flex-col gap-1.5">
 			<button
-				class="btn carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
-				onclick={() => document.getElementById('fileInput')?.click()}>
-				<PlusCircle size={32} />
+				class="btn carousel-item btn-outline relative h-9 min-h-8 w-14 items-center justify-center rounded-sm p-0"
+				onclick={() => document.getElementById('fileInput')?.click()}
+				title="Upload one or more files">
+				<FilePlus size={32} />
 				{#if A.debug}
 					<p class="absolute bottom-1 right-1 text-debug">{A.mediaProcessing ?? 0}</p>
 				{/if}
 			</button>
 
 			<button
-				class="btn btn-disabled carousel-item btn-outline relative h-14 w-14 items-center justify-center rounded-sm p-0"
+				class="btn carousel-item btn-outline relative h-9 min-h-8 items-center justify-center rounded-sm p-0"
+				title="Upload one of more directory"
+				onclick={() => document.getElementById('directoryInput')?.click()}>
+				<FolderPlus size={32} />
+				{#if A.debug}
+					<p class="absolute bottom-1 right-1 text-debug">{A.mediaProcessing ?? 0}</p>
+				{/if}
+			</button>
+
+			<button
+				class="btn btn-disabled carousel-item btn-outline relative h-9 min-h-8 w-14 items-center justify-center rounded-sm p-0"
 				class:btn-disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
 				disabled={!meidaNeedsUpload || totalUploadProgress !== undefined}
 				onclick={async () => {
@@ -126,18 +137,22 @@
 				}}>
 				{#if totalUploadProgress !== undefined}
 					<progress
-						class="progress-success absolute h-full w-full -rotate-90 opacity-50"
+						class="progress-success absolute h-full w-full opacity-50"
 						value={totalUploadProgress}
 						max={100}></progress>
 				{/if}
-				<Upload size={32} />
+				<CloudUpload size={32} />
 				{#if A.debug}
 					<p class="absolute bottom-1 right-1 text-debug">{A.mediaUploading ?? 0}</p>
 				{/if}
 			</button>
 		</div>
+
 		<!-- Hidden file input -->
 		<input id="fileInput" type="file" class="hidden" onchange={handleFileChange} multiple />
+
+		<!-- Hidden directory input -->
+		<input id="directoryInput" type="file" class="hidden" webkitdirectory multiple onchange={handleFileChange} />
 
 		<!-- Display uploaded images or videos -->
 		{#if A.conversation?.media}

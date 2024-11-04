@@ -434,7 +434,7 @@ export function fileToMedia(file: File): MediaInterface {
 		active: true,
 		repeat: true,
 		userID: A.dbUser.id,
-		title: file.name,
+		title: file.webkitRelativePath ?? file.name,
 		filename: file.name,
 		type,
 		original: {

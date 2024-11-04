@@ -10,23 +10,6 @@
 	let { media = $bindable(), message = $bindable() }: { media: MediaInterface; message: MessageInterface } = $props();
 
 	let isHovered = $state(false);
-	let mediaWidth: number | undefined = $state();
-	let mediaHeight: number | undefined = $state();
-
-	$effect(() => {
-		if (media.resizedWidth != undefined) {
-			assert(media.resizedHeight != undefined);
-			mediaWidth = media.resizedWidth;
-			mediaHeight = media.resizedHeight;
-		} else if (media.originalWidth != undefined) {
-			assert(media.originalWidth != undefined);
-			mediaWidth = media.originalWidth;
-			mediaHeight = media.originalHeight;
-		} else {
-			mediaWidth = undefined;
-			mediaHeight = undefined;
-		}
-	});
 
 	let thumbnailURL: string | undefined = $state(undefined);
 	$effect(() => {
@@ -110,20 +93,6 @@
 	let isPlaying = $state(false);
 
 	$effect(() => {
-		if (audioPlayer) {
-			audioPlayer.addEventListener('play', () => (isPlaying = true));
-			audioPlayer.addEventListener('pause', () => (isPlaying = false));
-			audioPlayer.addEventListener('ended', () => (isPlaying = false));
-
-			return () => {
-				audioPlayer?.removeEventListener('play', () => (isPlaying = true));
-				audioPlayer?.removeEventListener('pause', () => (isPlaying = false));
-				audioPlayer?.removeEventListener('ended', () => (isPlaying = false));
-			};
-		}
-	});
-
-	$effect(() => {
 		let interval: number | NodeJS.Timeout;
 		if (isPlaying) {
 			interval = setInterval(() => {
@@ -170,7 +139,18 @@
 						</div>
 					{/if}
 				</button>
-				<audio class="h-full w-full grow" bind:this={audioPlayer}>
+				<audio
+					class="h-full w-full grow"
+					bind:this={audioPlayer}
+					onplay={() => {
+						isPlaying = true;
+					}}
+					onpause={() => {
+						isPlaying = false;
+					}}
+					onended={() => {
+						isPlaying = false;
+					}}>
 					<source src={thumbnailURL} />
 				</audio>
 				<progress
