@@ -48,21 +48,27 @@ export async function uploadFile(file: FileInterface) {
 	if (!file.file) throw new Error('File not found');
 	debug('uploadFile', $state.snapshot(file));
 
-	file.status = 'progress';
-	file.uploadProgress = 0;
-	Object.assign(file, await APIupsertFile(file, true));
+	if (file.size > 0) {
+		file.status = 'progress';
+		file.uploadProgress = 0;
+		Object.assign(file, await APIupsertFile(file, true));
 
-	assert(file.uploadURL, 'No upload URL returned');
-	debug('uploadFile insertion: ', $state.snapshot(file));
+		assert(file.uploadURL, 'No upload URL returned');
+		debug('uploadFile insertion: ', $state.snapshot(file));
 
-	const res = await putFile(file);
-	debug('uploadFile putFile: ', $state.snapshot(res));
-	Object.assign(file, res);
-	// debug('uploadFile putFile assign: ', $state.snapshot(file));
+		const res = await putFile(file);
+		debug('uploadFile putFile: ', $state.snapshot(res));
+		Object.assign(file, res);
+		// debug('uploadFile putFile assign: ', $state.snapshot(file));
 
-	// Update status
-	Object.assign(file, await APIupsertFile(file, true));
+		// Update status
+		Object.assign(file, await APIupsertFile(file, true));
 
-	debug('uploadFile finished', $state.snapshot(file));
+		debug('uploadFile finished', $state.snapshot(file));
+	} else {
+		debug('uploadFile empty file', $state.snapshot(file));
+		file.status = 'ok';
+		Object.assign(file, await APIupsertFile(file));
+	}
 	return file;
 }

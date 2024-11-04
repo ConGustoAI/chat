@@ -70,7 +70,7 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
 
-		if (m.original) m.original.url = await getDownloadURL(m.original);
+		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
 	}
 
 	return conversation;
@@ -118,7 +118,7 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		if (m.original && m.original?.userID !== conversation.userID)
 			throw new Error("Media file 'original' user ID mismatch");
 
-		if (m.original) m.original.url = await getDownloadURL(m.original);
+		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
 
 		debug('media: %o', m);
 

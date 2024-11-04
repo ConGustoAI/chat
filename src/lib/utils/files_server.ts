@@ -65,6 +65,8 @@ function getDirectURLs(file: FileInterface) {
 }
 
 export async function getDownloadURL(file: FileInterface) {
+	if (file.size === 0) return '';
+
 	if (env.FILES_URL_TYPE === 'cloudfront') {
 		return getCloudFrontSignedURLs(file);
 	} else if (env.FILES_URL_TYPE === 's3') {

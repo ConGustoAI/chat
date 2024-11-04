@@ -15,10 +15,9 @@
 	import { Computer, PlusCircle, Smile } from 'lucide-svelte';
 
 	import { ChatMessageControls, Notification } from '$lib/components';
-	import { fileToMedia, handleDataTransfer, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
-	import { assert, isPublicPage, trimLineLength } from '$lib/utils/utils';
+	import { handleDataTransfer, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
+	import { isPublicPage, trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { char } from 'drizzle-orm/pg-core';
 	const debug = dbg('app:ui:components:ChatMessage');
 
 	let {
@@ -130,7 +129,7 @@
 		debug('handlePaste', event.clipboardData?.getData('text/plain'));
 		event.preventDefault();
 		if (event.clipboardData)
-			handleDataTransfer({
+			await handleDataTransfer({
 				data: event.clipboardData,
 				handle_string: true,
 				message
@@ -148,7 +147,7 @@
 
 	let dragging = $state(0);
 
-	function handleDrop(event: DragEvent) {
+	async function handleDrop(event: DragEvent) {
 		event.preventDefault();
 		event.stopPropagation();
 		debug('Drop event', event);
@@ -156,7 +155,7 @@
 		dragging = 0;
 		A.messageDragging = 0;
 		if (event.dataTransfer)
-			handleDataTransfer({
+			await handleDataTransfer({
 				data: event.dataTransfer,
 				message: message
 			});

@@ -25,7 +25,7 @@ export async function POST({ request, locals: { dbUser }, url }) {
 		? parseFloat(envPublic.PUBLIC_MAX_FILE_SIZE_MB) * 1024 * 1024
 		: +Infinity;
 
-	if (!file.size) error(400, 'No file size');
+	if (file.size === undefined) error(400, 'No file size');
 	if (file.size > maxSize) error(400, 'File too large');
 	if (!file.mimeType) error(400, 'No mime type');
 

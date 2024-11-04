@@ -3,8 +3,8 @@
 	import { env } from '$env/dynamic/public';
 	import { A } from '$lib/appstate.svelte';
 	import { CostEstimate, GrowInput, MediaCarousel, Notification } from '$lib/components';
-	import { fileToMedia, handleDataTransfer, syncMedia } from '$lib/utils/media_utils.svelte';
-	import { assert, trimLineLength } from '$lib/utils/utils';
+	import { handleDataTransfer } from '$lib/utils/media_utils.svelte';
+	import { trimLineLength } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { ChevronDown, Send, StopCircle, Upload } from 'lucide-svelte';
 	import { fade, slide } from 'svelte/transition';
@@ -180,7 +180,7 @@
 		debug('handlePaste', event, event.clipboardData?.items);
 		event.preventDefault();
 		if (event.clipboardData)
-			handleDataTransfer({
+			await handleDataTransfer({
 				data: event.clipboardData,
 				handle_string: true
 			});

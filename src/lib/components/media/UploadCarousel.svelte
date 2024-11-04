@@ -13,7 +13,7 @@
 	let { message = $bindable() }: { message?: MessageInterface } = $props();
 
 	// Handle file input change
-	function handleFileChange(event: Event) {
+	async function handleFileChange(event: Event) {
 		if (!A.conversation) throw new Error('Conversation missing');
 
 		const input = event.target as HTMLInputElement;
@@ -33,7 +33,7 @@
 					)
 			);
 
-			const newMedia = newFiles.map(fileToMedia);
+			const newMedia = await Promise.all(newFiles.map(fileToMedia));
 
 			A.conversation.media.push(...newMedia);
 
@@ -136,10 +136,8 @@
 					}
 				}}>
 				{#if totalUploadProgress !== undefined}
-					<progress
-						class="progress-success absolute h-full w-full opacity-50"
-						value={totalUploadProgress}
-						max={100}></progress>
+					<progress class="progress-success absolute h-full w-full opacity-50" value={totalUploadProgress} max={100}
+					></progress>
 				{/if}
 				<CloudUpload size={32} />
 				{#if A.debug}

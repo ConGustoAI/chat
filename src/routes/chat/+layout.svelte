@@ -95,13 +95,13 @@
 		}
 	}
 
-	function handleDrop(event: DragEvent) {
+	async function handleDrop(event: DragEvent) {
 		event.preventDefault();
 		event.stopPropagation();
 		debug('Drop event', event);
 		A.conversationDragging = 0;
 		if (event.dataTransfer)
-			handleDataTransfer({
+			await handleDataTransfer({
 				data: event.dataTransfer
 			});
 	}

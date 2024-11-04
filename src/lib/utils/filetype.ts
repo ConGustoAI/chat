@@ -1,4 +1,23 @@
-export function typeFromFile(file: File): 'image' | 'video' | 'audio' | 'text' | 'pdf' {
+import dbg from 'debug';
+const debug = dbg('app:filetype');
+
+async function isTextFile(file: File): Promise<boolean> {
+	return new Promise((resolve) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const content = reader.result as string;
+			const isText = !content.includes('\u0000');
+			resolve(isText);
+		};
+		reader.onerror = () => {
+			resolve(false);
+		};
+		reader.readAsText(file.slice(0, 10000));
+	});
+}
+
+
+export async function typeFromFile(file: File): Promise<'image' | 'video' | 'audio' | 'text' | 'pdf'> {
 	const mimeType = file.type;
 	const filename = file.name;
 
@@ -101,17 +120,18 @@ export function typeFromFile(file: File): 'image' | 'video' | 'audio' | 'text' |
 		'.el',
 		'.prolog',
 		'.forth',
-		'.zig'
+		'.zig',
+		// '.svelte'
 	];
 	if (textExtensions.some((ext) => filename.toLowerCase().endsWith(ext))) {
 		return 'text';
 	}
 
 	// Content-based check
-	// const isText = await isTextFile(file);
-	// if (isText) {
-	// 	return 'text';
-	// }
-
+	const isText = await isTextFile(file);
+	if (isText) {
+		return 'text';
+	}
+	debug('Unknown media type:', file, mimeType);
 	throw new Error('Unknown media type: ' + mimeType);
 }

@@ -70,15 +70,21 @@
 
 		if (A.mediaEditing) {
 			if (
+				A.mediaEditing.type === 'pdf' &&
 				!A.mediaEditing.PDFAsImages &&
 				!A.mediaEditing.PDFAsDocument &&
 				!A.mediaEditing.PDFAsFile &&
-				currentAssistant.images
+				(!currentAssistant || currentAssistant.images)
 			) {
 				A.mediaEditing.PDFAsImages = true;
 			}
 
-			if (!A.mediaEditing.videoAsImages && !A.mediaEditing.videoAsFile && currentAssistant.images) {
+			if (
+				A.mediaEditing.type === 'video' &&
+				!A.mediaEditing.videoAsImages &&
+				!A.mediaEditing.videoAsFile &&
+				(!currentAssistant || currentAssistant.images)
+			) {
 				A.mediaEditing.videoAsImages = true;
 			}
 		}

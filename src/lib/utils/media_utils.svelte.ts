@@ -330,7 +330,11 @@ export function mediaCreateThumbnail(media: MediaInterface): Promise<FileInterfa
 export async function syncFileURL(file: FileInterface, filename: string = 'file') {
 	debug('syncFileURL', $state.snapshot(file));
 
-	assert(file.file || file.url, 'FileInterface must have a file or URL');
+	// Empty file
+	if (!file.file && !file.url) {
+		file.file = new File([], filename);
+		file.url = URL.createObjectURL(file.file);
+	}
 
 	if (file.url && !file.file) {
 		// We replace the original URL with a blob URL to avoid re-fetching the file.
@@ -424,21 +428,21 @@ export async function syncMedia(media: MediaInterface) {
 	}
 }
 
-export function fileToMedia(file: File): MediaInterface {
+export async function fileToMedia(file: File): Promise<MediaInterface> {
 	if (!A.dbUser) throw new Error('User not logged in');
 
-	const type = typeFromFile(file);
+	const type = await typeFromFile(file);
 	debug('fileToMedia', type);
 
 	const m: MediaInterface = {
 		active: true,
 		repeat: true,
 		userID: A.dbUser.id,
-		title: file.webkitRelativePath ?? file.name,
+		title: file.webkitRelativePath || file.name,
 		filename: file.name,
 		type,
 		original: {
-			mimeType: file.type,
+			mimeType: file.type || (type === 'text' ? 'text/plain' : 'application/octet-stream'),
 			size: file.size,
 			userID: A.dbUser.id,
 			file: file
@@ -481,7 +485,7 @@ export async function removeImageFromSkip(page: number) {
 
 // Handle paste and drag&drop events
 // For paste, set handle_string to true to handle text pastes as well as file pastes.
-export function handleDataTransfer({
+export async function handleDataTransfer({
 	data,
 	handle_string: handleString = false,
 	message = undefined
@@ -510,7 +514,7 @@ export function handleDataTransfer({
 
 		if (numLines > 20 || newText.length > 1000) {
 			const textFile = new File([newText], 'pasted.txt', { type: 'text/plain' });
-			const textMedia = fileToMedia(textFile);
+			const textMedia = await fileToMedia(textFile);
 
 			assert(A.conversation);
 
@@ -537,7 +541,7 @@ export function handleDataTransfer({
 								m.filename === file.name
 						)
 					) {
-						newMedia.push(fileToMedia(file));
+						newMedia.push(await fileToMedia(file));
 					}
 				}
 			}
