@@ -164,7 +164,7 @@
 					</div>
 				</div>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="collapse-content bg-primary text-primary-content" onkeydown={handleKeydownSelectAll} tabindex="-1">
+				<div class="collapse-content bg-primary text-primary-content break-all" onkeydown={handleKeydownSelectAll} tabindex="-1">
 					<JsonView json={JSON.parse(message.messagesSent)} depth={3} />
 				</div>
 			</div>
@@ -200,7 +200,7 @@
 					</div>
 				</div>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="collapse-content bg-primary text-primary-content" onkeydown={handleKeydownSelectAll} tabindex="-1">
+				<div class="collapse-content bg-primary text-primary-content break-all" onkeydown={handleKeydownSelectAll} tabindex="-1">
 					<JsonView json={JSON.parse(message.result)} depth={2} />
 				</div>
 			</div>
