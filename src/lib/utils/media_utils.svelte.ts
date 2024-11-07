@@ -494,7 +494,7 @@ export async function handleDataTransfer({
 	handle_string?: boolean;
 	message?: MessageInterface;
 }) {
-	const newMedia: MediaInterface[] = $state([]);
+	const newMedia: MediaInterface[] = [];
 	let newText: string | undefined;
 
 	if (handleString) {
@@ -528,9 +528,10 @@ export async function handleDataTransfer({
 		}
 	} else {
 		// If we got file data, handle it as media.
-		Array.from(data.items ?? []).forEach(async (item) => {
+		await Promise.all(Array.from(data.items ?? []).map(async (item) => {
 			if (item.kind === 'file') {
 				const file = item.getAsFile();
+
 				if (file) {
 					// Don't add a file more than once
 					if (
@@ -541,11 +542,12 @@ export async function handleDataTransfer({
 								m.filename === file.name
 						)
 					) {
+						debug('pushing ', file);
 						newMedia.push(await fileToMedia(file));
 					}
 				}
 			}
-		});
+		}));
 
 		if (newMedia.length) {
 			assert(A.conversation);
@@ -559,6 +561,8 @@ export async function handleDataTransfer({
 			} else {
 				A.conversationUploadOpen = true;
 			}
+
+			debug('Added media to conversation ', {newMedia: $state.snapshot(newMedia), conversation: $state.snapshot(A.conversation)});
 		}
 	}
 }

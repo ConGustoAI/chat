@@ -177,7 +177,7 @@
 	let uploadEnabled = !env.PUBLIC_DISABLE_UPLOADS || env.PUBLIC_DISABLE_UPLOADS !== 'true';
 
 	async function handlePaste(event: ClipboardEvent) {
-		debug('handlePaste', event, event.clipboardData?.items);
+		debug('handlePaste', event.clipboardData?.items);
 		event.preventDefault();
 		if (event.clipboardData)
 			await handleDataTransfer({
