@@ -513,7 +513,14 @@ export async function handleDataTransfer({
 		const numLines = newText.split('\n').length;
 
 		if (numLines > 20 || newText.length > 1000) {
-			const textFile = new File([newText], 'pasted.txt', { type: 'text/plain' });
+
+			let filename = "pasted";
+			let i = 1;
+			while (A.conversation?.media?.some((m) => m.filename === filename)) {
+				filename = `pasted-${i++}`;
+			}
+
+			const textFile = new File([newText], filename, { type: 'text/plain' });
 			const textMedia = await fileToMedia(textFile);
 
 			assert(A.conversation);
