@@ -12,6 +12,7 @@ import { lucia } from '$lib/db/auth';
 import { randomUUID } from 'crypto';
 import { authUsersTable } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { assert } from '$lib/utils/utils';
 
 // http://localhost:5173/login/google?
 // state=N9r2FiFnk9yMUhDEDCHNUs4PjPDxxjgDOh9CfVJ6G2M&
@@ -40,9 +41,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		error(400, 'Error validating code');
 	}
 
+	debug('tokens', tokens);
+
+	assert(tokens.tokenType().toLowerCase() === 'bearer', 'Expected Bearer token type');
+
 	const res = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
 		headers: {
-			Authorization: `Bearer ${tokens.accessToken}`
+			Authorization: `Bearer ${tokens.accessToken()}`
 		}
 	});
 

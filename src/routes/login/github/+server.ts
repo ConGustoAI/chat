@@ -5,7 +5,6 @@ import dbg from 'debug';
 
 const debug = dbg('app:login:github');
 
-const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET);
 
 // import type { RequestEvent } from '@sveltejs/kit';
 import { db } from '$lib/db';
@@ -14,6 +13,7 @@ import { authUsersTable } from '$lib/db/schema';
 import { randomUUID } from 'crypto';
 import type { RequestHandler } from './$types';
 import { eq } from 'drizzle-orm';
+import { assert } from '$lib/utils/utils';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
@@ -26,6 +26,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		error(400, 'Invalid state or code');
 	}
 
+	const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, url.origin + '/login/github' );
+
 	let tokens;
 	try {
 		tokens = await github.validateAuthorizationCode(code);
@@ -33,16 +35,21 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		debug('Error validating code', e);
 		error(400, 'Error validating code');
 	}
+
+	assert(tokens.tokenType() === 'bearer', 'Expected Bearer token type');
+
+
+	debug('tokens', tokens);
 	const githubUserResponse = await fetch('https://api.github.com/user', {
 		headers: {
-			Authorization: `Bearer ${tokens.accessToken}`
+			Authorization: `Bearer ${tokens.accessToken()}`
 		}
 	});
 	const githubUser: GitHubUser = await githubUserResponse.json();
 
 	const emailsResponse = await fetch('https://api.github.com/user/public_emails', {
 		headers: {
-			Authorization: `Bearer ${tokens.accessToken}`
+			Authorization: `Bearer ${tokens.accessToken()}`
 		}
 	});
 	const emails: Array<{ email: string; primary: boolean; verified: boolean; visibility: 'public' }> =

@@ -55,8 +55,9 @@ export const actions: Actions = {
 		const state = generateState();
 		const redirectURI = url.origin + '/login/github';
 		debug('github', state, redirectURI);
-		const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, {redirectURI: url.origin + '/login/github'});
-		const githubURL = await github.createAuthorizationURL(state);
+		const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, url.origin + '/login/github');
+		const scopes = ['user:email', 'read:user'];
+		const githubURL = await github.createAuthorizationURL(state, scopes);
 
 		cookies.set('github_oauth_state', state, {
 			path: '/',
@@ -75,8 +76,9 @@ export const actions: Actions = {
 		debug('google', state, redirectURI);
 		const google = new Google(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, url.origin + '/login/google');
 		const codeVerifier = generateCodeVerifier();
+		const scopes = ['email'];
 
-		const googleURL = await google.createAuthorizationURL(state, codeVerifier, {scopes: ['email', 'profile']});
+		const googleURL = await google.createAuthorizationURL(state, codeVerifier, scopes);
 
 		cookies.set('google_oauth_state', state, {
 			path: '/',
