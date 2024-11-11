@@ -9,7 +9,7 @@ import { getUploadURL, s3 } from '$lib/utils/files_server';
 import dbg from 'debug';
 const debug = dbg('app:api:file');
 
-export async function POST({ request, locals: { dbUser }, url }) {
+export async function POST({ request, locals: { session }, url }) {
 	const file: FileInterface = (await request.json()) as FileInterface;
 
 	// We want to upload a new file - update status and generate upload urls.
@@ -17,7 +17,7 @@ export async function POST({ request, locals: { dbUser }, url }) {
 
 	debug('POST <- %o', { file, uploadurl });
 
-	if (!dbUser) error(401, 'Unauthorized');
+	if (!session) error(401, 'Unauthorized');
 	if (!s3) error(500, 'S3 not configured');
 
 	// Note: The file size in the header might be wrong, this it just the fast path to give an error imm3diately.
@@ -30,7 +30,7 @@ export async function POST({ request, locals: { dbUser }, url }) {
 	if (!file.mimeType) error(400, 'No mime type');
 
 	const insertedFile = (await DBupsertFile({
-		dbUser,
+		session,
 		file
 	})) as FileInterface;
 

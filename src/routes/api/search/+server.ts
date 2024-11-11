@@ -5,17 +5,17 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:search');
 
-export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
+export const POST: RequestHandler = async ({ request, locals: { session } }) => {
 	const { search } = await request.json();
 
-	if (!dbUser) return error(401, 'Unauthorized');
+	if (!session) return error(401, 'Unauthorized');
 
-	debug('Searching conversations for user %s with query: %s', dbUser.id, search);
+	debug('Searching conversations for user %s with query: %s', session.userID, search);
 
 	const res =  await db.query.messagesTable.findMany({
         where: (table, { eq, ilike, and }) =>
             and(
-                eq(table.userID, dbUser.id),
+                eq(table.userID, session.userID),
                 ilike(table.text, `%${search}%`),
             ),
         columns: {

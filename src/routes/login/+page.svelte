@@ -11,7 +11,7 @@
 	let { form } = $props();
 	$inspect(form);
 
-	if (A.dbUser) {
+	if (A.user) {
 		goto('/login/logout', { invalidateAll: true });
 	}
 

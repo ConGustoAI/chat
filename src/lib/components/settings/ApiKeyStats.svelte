@@ -14,7 +14,7 @@
 	let updateTimer: number | undefined | NodeJS.Timeout;
 
 	async function updateKeyNow() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			goto('/login', { invalidateAll: true });
 		}
 		if (status !== 'changed') return;

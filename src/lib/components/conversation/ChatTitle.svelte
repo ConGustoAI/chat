@@ -50,7 +50,7 @@
 
 	async function cloneConversation() {
 		debug('cloneConversation', { conversation: A.conversation });
-		if (!A.conversation || !A.dbUser) return;
+		if (!A.conversation || !A.user) return;
 
 		cloningConversation = true;
 
@@ -64,12 +64,12 @@
 		clone.summary = trimLineLength('+' + (clone.summary ?? 'New Chat'), 128);
 		clone.public = false;
 		clone.order = undefined;
-		clone.userID = A.dbUser.id;
+		clone.userID = A.user.id;
 		clone.updatedAt = undefined;
 		clone.createdAt = undefined;
 
 		// Make it a $state?
-		clone = await APIupsertConversation(clone) as ConversationInterface;
+		clone = (await APIupsertConversation(clone)) as ConversationInterface;
 		debug('inserted clone conversation: ', clone);
 		assert(clone.id);
 		clone.messages = [];
@@ -83,7 +83,7 @@
 			let mediaClone = { ...media } as MediaInterface;
 			mediaClone.id = undefined;
 			mediaClone.conversationID = clone.id;
-			mediaClone.userID = A.dbUser!.id;
+			mediaClone.userID = A.user!.id;
 			mediaClone.createdAt = undefined;
 			mediaClone.updatedAt = undefined;
 
@@ -100,10 +100,10 @@
 
 		// We have to inser one by one to make sure the order is set correctly.
 		const messagePromises = (A.conversation.messages ?? []).map(async (m) => {
-			let messageClone = { ...$state.snapshot(m) } as MessageInterface
+			let messageClone = { ...$state.snapshot(m) } as MessageInterface;
 			messageClone.id = undefined;
 			messageClone.conversationID = clone.id;
-			messageClone.userID = A.dbUser!.id;
+			messageClone.userID = A.user!.id;
 			// Note: We don't reset the message order. The order does not have to be unique between conversations.
 			messageClone.createdAt = undefined;
 			messageClone.updatedAt = undefined;
@@ -158,7 +158,11 @@
 				<span class="loading loading-spinner loading-xs"></span>
 			{:else}
 				<label class="swap" aria-label="Star conversation">
-					<input aria-label="Star conversation" type="checkbox" bind:checked={A.conversation.like} onchange={updateLike} />
+					<input
+						aria-label="Star conversation"
+						type="checkbox"
+						bind:checked={A.conversation.like}
+						onchange={updateLike} />
 					<div class="swap-on"><Star color="var(--star)" fill="var(--star)" /></div>
 					<div class="swap-off"><Star color="var(--star)" /></div>
 				</label>

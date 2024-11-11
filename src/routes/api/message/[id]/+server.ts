@@ -4,9 +4,9 @@ import dbg from 'debug';
 import type { RequestHandler } from './$types';
 const debug = dbg('app:api:message:id');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id } }) => {
+export const GET: RequestHandler = async ({ locals: { session }, params: { id } }) => {
 	debug('GET <- %o', id);
-	const message = await DBgetMessage({ dbUser, id });
+	const message = await DBgetMessage({ session, id });
 	debug('GET %o -> %o', id, message);
 	return json(message);
 };

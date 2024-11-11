@@ -7,11 +7,11 @@ import dbg from 'debug';
 
 const debug = dbg('app:db:utils:messages');
 
-export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBgetMessage({ session, id }: { session?: SessionInterface; id: string }) {
+	if (!session) error(401, 'Unauthorized');
 	const message = await db.query.messagesTable.findFirst({
 		where: (table, { eq, and, or }) =>
-			and(eq(table.id, id), or(eq(table.userID, dbUser.id), eq(table.userID, defaultsUUID))),
+			and(eq(table.id, id), or(eq(table.userID, session.userID), eq(table.userID, defaultsUUID))),
 		with: { prompt: true }
 	});
 
@@ -22,14 +22,14 @@ export async function DBgetMessage({ dbUser, id }: { dbUser?: UserInterface; id:
 	return message;
 }
 
-export async function DBupsertMessages({ dbUser, messages }: { dbUser?: UserInterface; messages: MessageInterface[] }) {
-	debug('DBupsertMessages', dbUser);
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBupsertMessages({ session, messages }: { session?: SessionInterface; messages: MessageInterface[] }) {
+	debug('DBupsertMessages', session);
+	if (!session) error(401, 'Unauthorized');
 	if (!messages.length) error(400, 'Messages array is required');
 
 	// I don't think we can db.update() multiple messages at the same time, so we'll use Promise.all
 	const result = await Promise.all(
-		messages.map((message) => DBupsertMessage({ dbUser, message: messageInterfaceFilter(message) }))
+		messages.map((message) => DBupsertMessage({ session, message: messageInterfaceFilter(message) }))
 	);
 
 	if (result.length != messages.length) error(500, 'Failed to upsert all messages');
@@ -37,14 +37,14 @@ export async function DBupsertMessages({ dbUser, messages }: { dbUser?: UserInte
 }
 
 export async function DBupsertMessage({
-	dbUser,
+	session,
 	message
 }: {
-	dbUser?: UserInterface;
+	session?: SessionInterface;
 	message: MessageInterface;
 }): Promise<MessageInterface> {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (message.userID !== dbUser.id && (!dbUser.admin || message.userID !== defaultsUUID))
+	if (!session) error(401, 'Unauthorized');
+	if (message.userID !== session.userID && (!session.user?.admin || message.userID !== defaultsUUID))
 		error(401, 'Tried to update a message that does not belong to the user');
 
 	if (!message.conversationID) error(400, 'Conversation ID is required');
@@ -73,14 +73,14 @@ export async function DBupsertMessage({
 	return insert[0] as MessageInterface;
 }
 
-export async function DBmarkDeletedMessage({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBmarkDeletedMessage({ session, ids }: { session?: SessionInterface; ids: string[] }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!ids.length) error(400, 'Messages array is required');
 
 	const res = await db
 		.update(messagesTable)
 		.set({ deleted: true })
-		.where(and(inArray(messagesTable.id, ids), eq(messagesTable.userID, dbUser.id))).returning({id: messagesTable.id})
+		.where(and(inArray(messagesTable.id, ids), eq(messagesTable.userID, session.userID))).returning({id: messagesTable.id})
 
 	const deletedIds = res.map((r) => r.id)
 	if (!deletedIds.length) error(400, "No messages deleted")
@@ -89,10 +89,10 @@ export async function DBmarkDeletedMessage({ dbUser, ids }: { dbUser?: UserInter
 	return deletedIds;
 }
 
-export async function DBdeleteMessage({ dbUser, message }: { dbUser?: UserInterface; message: MessageInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteMessage({ session, message }: { session?: SessionInterface; message: MessageInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!message.id) error(400, 'Message ID is required');
-	if (message.userID !== dbUser.id && (!dbUser.admin || message.userID !== defaultsUUID))
+	if (message.userID !== session.userID && (!session.user?.admin || message.userID !== defaultsUUID))
 		error(401, 'Tried to delete a message that does not belong to the user');
 
 	const del = await db

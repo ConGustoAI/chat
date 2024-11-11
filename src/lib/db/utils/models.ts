@@ -4,21 +4,22 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { defaultsUUID, modelsTable } from '../schema';
 
-export async function DBgetModels({ dbUser }: { dbUser?: UserInterface }) {
+export async function DBgetModels({ session }: { session?: SessionInterface }) {
 	// Note: If the user is not authorized, we only return the default models.
 	const models = await db.query.modelsTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
+		where: (table, { eq, or }) =>
+			or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)),
 		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return models;
 }
 
-export async function DBgetModel({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+export async function DBgetModel({ session, id }: { session?: SessionInterface; id: string }) {
 	// Note: If the user is not authorized, we only return the default models.
 	const model = await db.query.modelsTable.findFirst({
 		where: (table, { eq, or, and }) =>
-			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!model) error(404, 'Model not found or does not belong to the user');
@@ -26,9 +27,9 @@ export async function DBgetModel({ dbUser, id }: { dbUser?: UserInterface; id: s
 	return model;
 }
 
-export async function DBupsertModel({ dbUser, model }: { dbUser?: UserInterface; model: ModelInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (model.userID != dbUser.id && (!dbUser.admin || model.userID !== defaultsUUID))
+export async function DBupsertModel({ session, model }: { session?: SessionInterface; model: ModelInterface }) {
+	if (!session) error(401, 'Unauthorized');
+	if (model.userID != session.userID && (!session.user?.admin || model.userID !== defaultsUUID))
 		error(401, 'Tried to update a model that does not belong to the user');
 
 	model = modelInterfaceFilter(model);
@@ -48,10 +49,10 @@ export async function DBupsertModel({ dbUser, model }: { dbUser?: UserInterface;
 	return insert[0];
 }
 
-export async function DBdeleteModel({ dbUser, model }: { dbUser?: UserInterface; model: ModelInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteModel({ session, model }: { session?: SessionInterface; model: ModelInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!model.id) error(400, 'Model ID is required');
-	if (model.userID != dbUser.id && (!dbUser.admin || model.userID !== defaultsUUID))
+	if (model.userID != session.userID && (!session.user?.admin || model.userID !== defaultsUUID))
 		error(401, 'Tried to delete a model that does not belong to the user');
 
 	const del = await db

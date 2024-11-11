@@ -1,16 +1,17 @@
 import { conversationInterfaceFilter } from '$lib/api';
+import { getDownloadURL } from '$lib/utils/files_server';
 import { trimLineLength } from '$lib/utils/utils';
 import { error } from '@sveltejs/kit';
 import dbg from 'debug';
 import { and, eq, inArray, not } from 'drizzle-orm';
 import { db } from '../index';
 import { conversationsTable, defaultsUUID } from '../schema';
-import { getDownloadURL } from '$lib/utils/files_server';
 
 const debug = dbg('app:db:utils:conversations');
 
 export async function DBgetDefaultConversations() {
 	const conversations = await db.query.conversationsTable.findMany({
+		// XXX I don't think we use .deleted anymore
 		where: (table, { eq, and, not }) => and(eq(table.userID, defaultsUUID), not(eq(table.deleted, true))),
 		orderBy: (table, { desc }) => [desc(table.order)]
 	});
@@ -52,7 +53,7 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 			media: {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
-					original: true,
+					original: true
 				}
 			}
 		}
@@ -76,10 +77,10 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 	return conversation;
 }
 
-export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBgetConversations({ session }: { session?: SessionInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	const conversations = await db.query.conversationsTable.findMany({
-		where: (table, { eq }) => and(eq(table.userID, dbUser.id), not(eq(table.deleted, true))),
+		where: (table, { eq }) => and(eq(table.userID, session.userID), not(eq(table.deleted, true))),
 		orderBy: (table, { desc }) => [desc(table.order)]
 	});
 
@@ -87,10 +88,10 @@ export async function DBgetConversations({ dbUser }: { dbUser?: UserInterface })
 	return conversations;
 }
 
-export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBgetConversation({ session, id }: { session: SessionInterface; id: string }) {
+	if (!session) error(401, 'Unauthorized');
 	const conversation = await db.query.conversationsTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, dbUser.id)),
+		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, session.userID)),
 		with: {
 			messages: {
 				where: (table, { eq, not }) => not(eq(table.deleted, true)),
@@ -100,7 +101,7 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 			media: {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
-					original: true,
+					original: true
 				}
 			}
 		}
@@ -121,23 +122,21 @@ export async function DBgetConversation({ dbUser, id }: { dbUser?: UserInterface
 		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
 
 		debug('media: %o', m);
-
-
 	}
-
 
 	return conversation;
 }
 
-export async function DBupsertConversation({
-	dbUser,
+export async function  DBupsertConversation({
+	session,
 	conversation
 }: {
-	dbUser?: UserInterface;
+	session?: SessionInterface;
 	conversation: ConversationInterface;
 }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (conversation.userID != dbUser.id) error(401, 'Tried to update a conversation that does not belong to the user');
+	if (!session) error(401, 'Unauthorized');
+	if (conversation.userID != session.userID)
+		error(401, 'Tried to update a conversation that does not belong to the user');
 
 	conversation = conversationInterfaceFilter(conversation);
 	if (conversation.summary) conversation.summary = trimLineLength(conversation.summary, 128);
@@ -163,13 +162,13 @@ export async function DBupsertConversation({
 	return insert[0];
 }
 
-export async function DBdeleteConversations({ dbUser, ids }: { dbUser?: UserInterface; ids: string[] }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteConversations({ session, ids }: { session?: SessionInterface; ids: string[] }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!Array.isArray(ids) || ids.length === 0) error(400, 'At least one conversation ID is required');
 
 	const res = await db
 		.delete(conversationsTable)
-		.where(and(inArray(conversationsTable.id, ids), eq(conversationsTable.userID, dbUser.id)))
+		.where(and(inArray(conversationsTable.id, ids), eq(conversationsTable.userID, session.userID)))
 		.returning({ id: conversationsTable.id });
 	debug('delete conversation res: %o', res);
 	if (!res.length) error(500, 'Failed to delete conversation');

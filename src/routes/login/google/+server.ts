@@ -1,108 +1,92 @@
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '$env/static/private';
 import { error, redirect } from '@sveltejs/kit';
 import { Google } from 'arctic';
-import dbg from 'debug';
 
-const debug = dbg('app:login:github');
-
-// import type { RequestEvent } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
-import { lucia } from '$lib/db/auth';
-import { randomUUID } from 'crypto';
-import { authUsersTable } from '$lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { usersTable } from '$lib/db/schema';
+import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/utils/auth';
 import { assert } from '$lib/utils/utils';
+import { randomUUID } from 'crypto';
+import { eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
-// http://localhost:5173/login/google?
-// state=N9r2FiFnk9yMUhDEDCHNUs4PjPDxxjgDOh9CfVJ6G2M&
-// code=4%2F0AQlEd8z2XHARlVZpna2KhreF542WZT9gKwDpx5vfrvzpTLtppvq-bf3r7e0aP77d6fSyZQ&
-// scope=openid&authuser=0&prompt=none
+import dbg from 'debug';
+const debug = dbg('app:login:google');
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state');
-	// const codeVerifier = url.searchParams.get('google_oauth_state');
 	const storedState = cookies.get('google_oauth_state') ?? null;
-	const storedCodeVerifier = cookies.get('github_oauth_code_verifier') ?? null;
+	const storedCodeVerifier = cookies.get('google_oauth_code_verifier') ?? null;
 
-	debug('GET <- code: %s, state: %s, storedState: %s', code, state, storedState, storedCodeVerifier);
+	debug('GET <- code: %s, state: %s, storedState: %s, storedVerifier', code, state, storedState, storedCodeVerifier);
 
 	if (!code || !state || !storedState || !storedCodeVerifier || state !== storedState) {
 		error(400, 'Invalid state or code or verifier');
 	}
 
+	const google = new Google(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, url.origin + '/login/google');
+
 	let tokens;
 	try {
-		const google = new Google(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, url.origin + '/login/google');
 		tokens = await google.validateAuthorizationCode(code, storedCodeVerifier);
 	} catch (e) {
 		debug('Error validating code', e);
 		error(400, 'Error validating code');
 	}
 
-	debug('tokens', tokens);
-
 	assert(tokens.tokenType().toLowerCase() === 'bearer', 'Expected Bearer token type');
 
+	debug('tokens', tokens);
 	const res = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
 		headers: {
 			Authorization: `Bearer ${tokens.accessToken()}`
 		}
 	});
+	const googleUser: GoogleUser = await res.json();
 
-	const googleUser: GoogleUserInterface = await res.json();
-
-	// IDK how you can have google id without a verified email, but let's check it anyway
 	if (!googleUser.email) error(400, 'No email provided by Google');
 	if (!googleUser.email_verified) error(400, 'Email not verified');
 
-	const existingUser = await db.query.authUsersTable.findFirst({
+	const existingUser = await db.query.usersTable.findFirst({
 		where: (table, { eq }) => eq(table.email, googleUser.email)
 	});
 
 	if (existingUser) {
 		const update = await db
-			.update(authUsersTable)
+			.update(usersTable)
 			.set({
 				google_id: googleUser.sub.toString(),
-				avatar_url: googleUser.picture
+				avatar: googleUser.picture
 			})
-			.where(eq(authUsersTable.email, googleUser.email))
+			.where(eq(usersTable.email, googleUser.email))
 			.returning();
 
 		if (!update) error(500, 'Failed to update user');
 
-		const session = await lucia.createSession(existingUser.id, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+		const sessionToken = generateSessionToken();
+		const session = await createSession(sessionToken, existingUser.id);
+		setSessionTokenCookie(cookies, sessionToken, session.expiresAt);
 	} else {
 		const userId = randomUUID();
 
-		const insert = await db.insert(authUsersTable).values({
+		const insert = await db.insert(usersTable).values({
 			id: userId,
 			google_id: googleUser.sub.toString(),
-			username: googleUser.name ?? 'Unknown',
+			name: googleUser.name ?? '',
 			email: googleUser.email,
-			avatar_url: googleUser.picture
+			avatar: googleUser.picture
 		});
 		if (!insert) error(500, 'Failed to create user');
 
-		const session = await lucia.createSession(userId, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+		const sessionToken = generateSessionToken();
+		const session = await createSession(sessionToken, userId);
+		setSessionTokenCookie(cookies, sessionToken, session.expiresAt);
 	}
 	redirect(303, '/chat');
-	// return new Response('OK');
 };
 
-interface GoogleUserInterface {
+interface GoogleUser {
 	sub: number;
 	name: string;
 	picture: string;

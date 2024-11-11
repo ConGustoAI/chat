@@ -40,7 +40,7 @@
 	});
 
 	function updateAssistantNow() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			goto('/login', { invalidateAll: true });
 		}
 		if (status !== 'changed') return;
@@ -88,7 +88,7 @@
 	let detailsToggled = $state(false);
 
 	async function toggleHidden() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 			return;
 		}
@@ -108,7 +108,7 @@
 	let yourProviders = $derived(
 		Object.fromEntries(
 			Object.entries(A.providers).filter(
-				([pidx, provider]) => provider.userID === A.dbUser?.id && !A.hiddenItems.has(provider.id!)
+				([pidx, provider]) => provider.userID === A.user?.id && !A.hiddenItems.has(provider.id!)
 			)
 		)
 	);

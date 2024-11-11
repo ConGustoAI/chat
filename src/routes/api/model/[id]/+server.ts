@@ -6,9 +6,9 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:model:id');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id } }) => {
+export const GET: RequestHandler = async ({ locals: { session }, params: { id } }) => {
 	debug('GET <- %o', id);
-	const model = await DBgetModel({ dbUser, id });
+	const model = await DBgetModel({ session, id });
 	debug('GET %o -> %o', id, model);
 
 	return json(model);

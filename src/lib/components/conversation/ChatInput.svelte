@@ -26,7 +26,7 @@
 		debug('onSubmit', { input, connversation: A.conversation });
 		if (!A.conversation) return;
 
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login');
 			return;
 		}
@@ -83,7 +83,7 @@
 		if (!input) return;
 		if (!A.conversation) return;
 
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login');
 			return;
 		}
@@ -116,7 +116,7 @@
 			event instanceof KeyboardEvent &&
 			event.key === 'Enter'
 		) {
-			if (A.dbUser?.advancedInput) {
+			if (A.user?.advancedInput) {
 				if (event.ctrlKey && event.shiftKey) {
 					event.preventDefault();
 					A.conversationUploadOpen = false;
@@ -227,7 +227,7 @@
 					{/if}
 
 					{#if !prefillEnabled}
-						{#if A.dbUser?.advancedInput}
+						{#if A.user?.advancedInput}
 							<div class="absolute -bottom-4 right-2 z-20 text-xs">
 								<span class="text-xs"
 									><p>

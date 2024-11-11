@@ -5,9 +5,9 @@ import { DBgetHiddenItems } from '$lib/db/utils';
 
 const debug = dbg('app:api:hidden');
 
-export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
+export const GET: RequestHandler = async ({ locals: { session } }) => {
 	debug('GET');
-	const hiddenItems = await DBgetHiddenItems({ dbUser });
+	const hiddenItems = await DBgetHiddenItems({ session });
 	debug('GET -> %o', hiddenItems);
 	return json(Array.from(hiddenItems));
 };

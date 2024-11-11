@@ -32,7 +32,7 @@
 	});
 
 	function debounceUserUpdate() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			status = null;
 			return;
 		}
@@ -41,7 +41,7 @@
 			clearTimeout(updateTimer);
 			updateTimer = setTimeout(() => {
 				status = 'saving';
-				APIupdateUser($state.snapshot(A.dbUser!))
+				APIupdateUser($state.snapshot(A.user!))
 					.then(() => {
 						status = 'saved';
 						updateTimer = setTimeout(() => {
@@ -62,12 +62,12 @@
 	}
 </script>
 
-{#if A.dbUser}
+{#if A.user}
 	<section class="flex max-w-screen-md flex-col gap-2">
 		<div class="flex items-end gap-4">
 			<div class="flex flex-col gap-4">
 				<h2 class="text-2xl font-bold">User Profile</h2>
-				<p>{A.dbUser.email}</p>
+				<p>{A.user.email}</p>
 				<p class="btn btn-disabled btn-outline" data-sveltekit-reload>Change Password</p>
 			</div>
 			<div class="relative self-start">
@@ -87,14 +87,14 @@
 				<input
 					type="text"
 					class="input input-bordered w-full"
-					bind:value={A.dbUser.name}
+					bind:value={A.user.name}
 					oninput={statusChanged}
 					spellcheck="false" />
 			</div>
 
 			<label class="flex flex-col">
 				<span class="text-sm">Default Assistant</span>
-				<select class="select select-bordered w-full" bind:value={A.dbUser.assistant} onchange={statusChanged}>
+				<select class="select select-bordered w-full" bind:value={A.user.assistant} onchange={statusChanged}>
 					<option value={defaultsUUID}>Last one used</option>
 					{#each Object.values(A.assistants) as assistant}
 						<option value={assistant.id}>{assistant.name}</option>
@@ -108,7 +108,7 @@
 			<span class="text-sm">About you</span>
 			<GrowInput
 				class="textarea-bordered whitespace-pre-wrap text-wrap"
-				bind:value={A.dbUser.aboutUser}
+				bind:value={A.user.aboutUser}
 				oninput={statusChanged} />
 		</div>
 
@@ -116,7 +116,7 @@
 			<span class="text-sm">Instructions</span>
 			<GrowInput
 				class="textarea-bordered whitespace-pre-wrap text-wrap"
-				bind:value={A.dbUser.assistantInstructions}
+				bind:value={A.user.assistantInstructions}
 				oninput={statusChanged} />
 		</div>
 
@@ -130,27 +130,27 @@
 			<div class="flex items-center text-warning">Show cost above</div>
 			<div class="flex items-center text-error">Show cost above</div>
 
-			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showEstimate} onchange={statusChanged} />
-			<input type="checkbox" class="checkbox" bind:checked={A.dbUser.showInfo} onchange={statusChanged} />
+			<input type="checkbox" class="checkbox" bind:checked={A.user.showEstimate} onchange={statusChanged} />
+			<input type="checkbox" class="checkbox" bind:checked={A.user.showInfo} onchange={statusChanged} />
 
 			<input
 				type="number"
 				class="input input-sm input-bordered w-32"
-				bind:value={A.dbUser.costShow}
+				bind:value={A.user.costShow}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
 				class="input input-sm input-bordered w-32"
-				bind:value={A.dbUser.costWarn1}
+				bind:value={A.user.costWarn1}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
 			<input
 				type="number"
 				class="input input-sm input-bordered w-32"
-				bind:value={A.dbUser.costWarn2}
+				bind:value={A.user.costWarn2}
 				oninput={statusChanged}
 				min="0"
 				step="0.01" />
@@ -164,7 +164,10 @@
 				<div class="relative font-bold">
 					$ Remainder
 					<InfoPopup title="Remaining balance">
-						<p>The balance is calculated based on the usage in this app only, we can't request the current value from the provider</p>
+						<p>
+							The balance is calculated based on the usage in this app only, we can't request the current value from the
+							provider
+						</p>
 					</InfoPopup>
 				</div>
 				<div></div>

@@ -5,25 +5,25 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:assistant');
 
-export const POST: RequestHandler = async ({ request, locals: { dbUser } }) => {
+export const POST: RequestHandler = async ({ request, locals: { session } }) => {
 	const assistant = await request.json();
 	debug('POST <- %o', assistant);
-	const updatedAssistant = await DBupsertsAssistant({ dbUser, assistant });
+	const updatedAssistant = await DBupsertsAssistant({ session, assistant });
 	debug('POST -> %o', updatedAssistant);
 	return json(updatedAssistant);
 };
 
-export const GET: RequestHandler = async ({ locals: { dbUser } }) => {
+export const GET: RequestHandler = async ({ locals: { session } }) => {
 	debug('GET');
-	const assistants = await DBgetAssistants({ dbUser });
+	const assistants = await DBgetAssistants({ session });
 	debug('GET -> %o', assistants);
 	return json(assistants);
 };
 
-export const DELETE: RequestHandler = async ({ locals: { dbUser }, request }) => {
+export const DELETE: RequestHandler = async ({ locals: { session }, request }) => {
 	const assistant = await request.json();
 	debug('DELETE <- %o', assistant);
-	const del = await DBdeleteAssistant({ dbUser, assistant });
+	const del = await DBdeleteAssistant({ session, assistant });
 	debug('DELETE -> %o', del);
 	return json(del);
 };

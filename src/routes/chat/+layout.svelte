@@ -9,12 +9,11 @@
 	import { ChevronUp, Plus, Star } from 'lucide-svelte';
 
 	import GitHub from '$lib/components/icons/GitHub.svelte';
+	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
+	import { handleDataTransfer } from '$lib/utils/media_utils.svelte';
 	import dbg from 'debug';
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
-	import MediaEditor from '$lib/components/media/MediaEditor.svelte';
-	import { preventDefault } from 'svelte/legacy';
-	import { handleDataTransfer } from '$lib/utils/media_utils.svelte';
 
 	const debug = dbg('app:ui:chat');
 
@@ -59,8 +58,8 @@
 
 	let { data, children } = $props();
 
-	$inspect(A.dbUser).with((type, value) => {
-		debug('dbUser: %s %o', type, value);
+	$inspect(A.user).with((type, value) => {
+		debug('A.user: %s %o', type, value);
 	});
 
 	// $effect(() => {
@@ -79,13 +78,13 @@
 			assistantId = A.conversation?.assistantID;
 		}
 
-		A.conversation = newConversation(A.dbUser, assistantId, A.assistants);
+		A.conversation = newConversation(A.user, assistantId, A.assistants);
 		await goto('/chat');
 	}
 
 	async function deleteConversations(ids: string[]) {
 		A.conversationOrder = A.conversationOrder.filter((c) => !ids.includes(c));
-		if (A.dbUser) {
+		if (A.user) {
 			const delIds = await APIdeleteConversations(ids);
 			if (delIds?.length !== ids.length) {
 				debug('Not all conversations have been deleted:');
@@ -141,14 +140,14 @@
 					<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
 						<div class="divider w-full py-2">Your assistants</div>
 						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
-							{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+							{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 									>{assistant.name}</button>
 							{/if}
 						{/each}
 						<div class="divider w-full py-2">Default assistants</div>
 						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
-							{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+							{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 									>{assistant.name}</button>
 							{/if}
@@ -237,7 +236,7 @@
 							GitHub
 						</span>
 					</a>
-					{#if !A.dbUser}
+					{#if !A.user}
 						<a href="/login" class="btn btn-outline mt-16 text-xl">
 							<p class="mx-2">Login to start chatting</p>
 						</a>

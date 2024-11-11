@@ -57,7 +57,7 @@
 		<ArrowLeftCircle />Back to Chat
 	</a>
 
-	<SidebarNav items={sidebarNavItems} adminItems={A.dbUser?.admin ? adminSidebarItems : []}>
+	<SidebarNav items={sidebarNavItems} adminItems={A.user?.admin ? adminSidebarItems : []}>
 		<div class="mb-20">
 			{@render children()}
 		</div>

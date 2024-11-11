@@ -4,23 +4,24 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '..';
 import { assistantsTable, defaultsUUID } from '../schema';
 
-export async function DBgetAssistants({ dbUser }: { dbUser?: UserInterface }) {
+export async function DBgetAssistants({ session }: { session?: SessionInterface }) {
 	// Note: If the user is not authorized, we only return the default assistants.
 	const assistants = await db.query.assistantsTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
+		where: (table, { eq, or }) =>
+			or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)),
 		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return assistants;
 }
 
-export async function DBgetAssistant({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+export async function DBgetAssistant({ session, id }: { session?: SessionInterface; id: string }) {
 	// Note: If the user is not authorized, we only return the default assistant.
 	if (!id) error(400, 'Assistant ID is required');
 
 	const assistant = await db.query.assistantsTable.findFirst({
 		where: (table, { eq, and, or }) =>
-			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!assistant) {
@@ -31,14 +32,14 @@ export async function DBgetAssistant({ dbUser, id }: { dbUser?: UserInterface; i
 }
 
 export async function DBupsertsAssistant({
-	dbUser,
+	session,
 	assistant
 }: {
-	dbUser?: UserInterface;
+	session?: SessionInterface;
 	assistant: AssistantInterface;
 }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (assistant.userID != dbUser.id && (!dbUser.admin || assistant.userID !== defaultsUUID))
+	if (!session) error(401, 'Unauthorized');
+	if (assistant.userID != session.userID && (!session.user?.admin || assistant.userID !== defaultsUUID))
 		error(401, 'Tried to delete an assistant that does not belong to the user');
 
 	assistant = assistantInterfaceFilter(assistant);
@@ -63,15 +64,15 @@ export async function DBupsertsAssistant({
 }
 
 export async function DBdeleteAssistant({
-	dbUser,
+	session,
 	assistant
 }: {
-	dbUser?: UserInterface;
+	session?: SessionInterface;
 	assistant: AssistantInterface;
 }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	if (!session) error(401, 'Unauthorized');
 	if (!assistant.id) error(400, 'Assistant ID is required');
-	if (assistant.userID != dbUser.id && (!dbUser.admin || assistant.userID !== defaultsUUID))
+	if (assistant.userID != session.userID && (!session.user?.admin || assistant.userID !== defaultsUUID))
 		error(401, 'Tried to delete an assistant that does not belong to the user');
 
 	const res = await db

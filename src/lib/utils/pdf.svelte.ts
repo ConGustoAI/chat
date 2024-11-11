@@ -48,7 +48,7 @@ export async function PDFThumbnail(media: MediaInterface): Promise<FileInterface
 
 		debug('pdfThumbnail done');
 		return {
-			userID: A.dbUser?.id ?? 'anon',
+			userID: A.user?.id ?? 'anon',
 			mimeType: 'image/png',
 			size: blob?.size,
 			file,
@@ -132,5 +132,3 @@ export async function PDFGetDocument(media: MediaInterface): Promise<pdfjs.PDFDo
 	assert(media.original?.file);
 	return pdfjs.getDocument({ data: await media.original.file.arrayBuffer() }).promise;
 }
-
-

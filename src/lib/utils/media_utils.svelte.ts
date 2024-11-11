@@ -79,7 +79,7 @@ export async function resizeImage(
 		debug('blob', blob);
 
 		return {
-			userID: A.dbUser?.id ?? 'anon',
+			userID: A.user?.id ?? 'anon',
 			url: URL.createObjectURL(blob),
 			mimeType: blob.type,
 			size: blob.size,
@@ -246,8 +246,7 @@ export async function uploadChangedMedia(media: MediaInterface, apiKey?: ApiKeyI
 		Object.assign(media, updatedMedia);
 	}
 
-	if (apiKey) await googleUploadIfNeeded(media.original, media.filename, apiKey);
-
+	// if (apiKey) await googleUploadIfNeeded(media.original, media.filename, apiKey);
 }
 
 export async function uploadConversationMedia(apiKey?: ApiKeyInterface) {
@@ -429,7 +428,7 @@ export async function syncMedia(media: MediaInterface) {
 }
 
 export async function fileToMedia(file: File): Promise<MediaInterface> {
-	if (!A.dbUser) throw new Error('User not logged in');
+	if (!A.user) throw new Error('User not logged in');
 
 	const type = await typeFromFile(file);
 	debug('fileToMedia', type);
@@ -437,14 +436,14 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 	const m: MediaInterface = {
 		active: true,
 		repeat: true,
-		userID: A.dbUser.id,
+		userID: A.user.id,
 		title: file.webkitRelativePath || file.name,
 		filename: file.name,
 		type,
 		original: {
 			mimeType: file.type || (type === 'text' ? 'text/plain' : 'application/octet-stream'),
 			size: file.size,
-			userID: A.dbUser.id,
+			userID: A.user.id,
 			file: file
 		}
 	};
@@ -513,8 +512,7 @@ export async function handleDataTransfer({
 		const numLines = newText.split('\n').length;
 
 		if (numLines > 20 || newText.length > 1000) {
-
-			let filename = "pasted";
+			let filename = 'pasted';
 			let i = 1;
 			while (A.conversation?.media?.some((m) => m.filename === filename)) {
 				filename = `pasted-${i++}`;
@@ -535,26 +533,28 @@ export async function handleDataTransfer({
 		}
 	} else {
 		// If we got file data, handle it as media.
-		await Promise.all(Array.from(data.items ?? []).map(async (item) => {
-			if (item.kind === 'file') {
-				const file = item.getAsFile();
+		await Promise.all(
+			Array.from(data.items ?? []).map(async (item) => {
+				if (item.kind === 'file') {
+					const file = item.getAsFile();
 
-				if (file) {
-					// Don't add a file more than once
-					if (
-						!A.conversation?.media?.some(
-							(m) =>
-								m.original?.size === file.size &&
-								m.original?.file?.lastModified === file.lastModified &&
-								m.filename === file.name
-						)
-					) {
-						debug('pushing ', file);
-						newMedia.push(await fileToMedia(file));
+					if (file) {
+						// Don't add a file more than once
+						if (
+							!A.conversation?.media?.some(
+								(m) =>
+									m.original?.size === file.size &&
+									m.original?.file?.lastModified === file.lastModified &&
+									m.filename === file.name
+							)
+						) {
+							debug('pushing ', file);
+							newMedia.push(await fileToMedia(file));
+						}
 					}
 				}
-			}
-		}));
+			})
+		);
 
 		if (newMedia.length) {
 			assert(A.conversation);
@@ -569,7 +569,10 @@ export async function handleDataTransfer({
 				A.conversationUploadOpen = true;
 			}
 
-			debug('Added media to conversation ', {newMedia: $state.snapshot(newMedia), conversation: $state.snapshot(A.conversation)});
+			debug('Added media to conversation ', {
+				newMedia: $state.snapshot(newMedia),
+				conversation: $state.snapshot(A.conversation)
+			});
 		}
 	}
 }

@@ -20,9 +20,9 @@
 		} else if (assistant) {
 			let prompt = '';
 			prompt += assistant.systemPrompt ?? '';
-			prompt += assistant.aboutUserFromUser ? (A.dbUser?.aboutUser ?? '') : (assistant.aboutUser ?? '');
+			prompt += assistant.aboutUserFromUser ? (A.user?.aboutUser ?? '') : (assistant.aboutUser ?? '');
 			prompt += assistant.assistantInstructionsFromUser
-				? (A.dbUser?.assistantInstructions ?? '')
+				? (A.user?.assistantInstructions ?? '')
 				: (assistant.assistantInstructions ?? '');
 			inputTokens += prompt.length / 4.5;
 		}
@@ -54,6 +54,6 @@
 	});
 </script>
 
-{#if A.dbUser?.showEstimate}
+{#if A.user?.showEstimate}
 	~{tokensEstimate?.toFixed()} tokens <Cost total={costEstimate ?? 0} />
 {/if}

@@ -52,7 +52,7 @@
 	});
 
 	function updateProviderNow() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			goto('/login', { invalidateAll: true });
 		}
 		if (status !== 'changed') return;
@@ -80,7 +80,7 @@
 
 	async function copyProvider(provider: ProviderInterface) {
 		debug('copy provider', provider);
-		if (!A.dbUser || !newProviderUserID || !newChildUserID) {
+		if (!A.user || !newProviderUserID || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 
@@ -98,7 +98,7 @@
 		// If the new provider is a user provider, copy both default and user models.
 		Object.entries(A.models).forEach(([modelId, model]) => {
 			if (model.providerID === provider.id) {
-				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === A.dbUser?.id)) {
+				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === A.user?.id)) {
 					newModels.push({
 						...model,
 						id: undefined,
@@ -119,7 +119,7 @@
 
 	async function deleteProvider(provider: ProviderInterface) {
 		debug('delete provider', provider);
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 
@@ -129,7 +129,7 @@
 	}
 
 	async function toggleHidden() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 			return;
 		}

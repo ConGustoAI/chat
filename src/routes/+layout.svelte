@@ -13,20 +13,26 @@
 	});
 
 	import dbg from 'debug';
-	import { APIfetchAssistants, APIfetchHidden, APIfetchKeys, APIfetchModels, APIfetchProviders } from '$lib/api';
+	import {
+		APIfetchAssistants,
+		APIfetchHidden,
+		APIfetchKeys,
+		APIfetchModels,
+		APIfetchProviders,
+		APIfetchUser
+	} from '$lib/api';
 	import { toIdMap } from '$lib/utils/utils';
 	import { untrack } from 'svelte';
-	const debug = dbg('app:ui:settings:layout');
+	const debug = dbg('app:layout');
 
 	let { data, children } = $props();
 
 	$effect(() => {
 		untrack(() => {
-			debug('root layout effect: %o', { data_dbUser: data.dbUser, A_dbUser: A.dbUser });
+			debug('root layout effect: %o', { session: data.session, A_user: A.user });
 
-			// if (data.dbUser) {
-			if (!data.dbUser || data.dbUser.id !== A.dbUser?.id) {
-				debug('dbUser changed, fetching data', $state.snapshot(A.dbUser));
+			if (!data.session || data.session.userID !== A.user?.id) {
+				debug('user changed, fetching data', $state.snapshot(A.user));
 
 				Promise.all([
 					APIfetchAssistants(),
@@ -47,27 +53,17 @@
 							assistants: A.assistants,
 							providers: A.providers,
 							models: A.models,
-							dbUser: A.dbUser,
+							user: A.user,
 							apiKeys: Object.keys(A.apiKeys)
 						})
 					);
 				});
 			}
-
-			// else {
-			// 	debug('No dbUser, clearing data');
-			// 	A.assistants = {};
-			// 	A.providers = {};
-			// 	A.models = {};
-			// 	A.apiKeys = {};
-			// }
 		});
-		A.dbUser = data.dbUser;
+		A.user = data.session?.user;
 	});
 </script>
 
 <ModeWatcher />
 
 {@render children()}
-
-<!-- <pre>{JSON.stringify($dbUser , null, 2)}</pre> -->

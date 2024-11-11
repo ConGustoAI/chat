@@ -50,17 +50,17 @@ export function errorToMessage(error: unknown): string {
 }
 
 export function newConversation(
-	dbUser: UserInterface | undefined,
+	user: UserInterface | undefined,
 	assistantID: string | undefined,
 	assistants: { [key: string]: AssistantInterface } | undefined
 ): ConversationInterface {
-	if (!dbUser) return { userID: 'anon' };
+	if (!user) return { userID: 'anon' };
 	if (!assistantID || assistantID == defaultsUUID)
-		assistantID = dbUser?.assistant === defaultsUUID ? dbUser?.lastAssistant : dbUser?.assistant;
+		assistantID = user?.assistant === defaultsUUID ? user?.lastAssistant : user?.assistant;
 	if (!assistantID && assistants && Object.keys(assistants).length) assistantID = Object.keys(assistants)[0];
 
 	return {
-		userID: dbUser.id,
+		userID: user.id,
 		assistantID: assistantID
 	};
 }
@@ -85,8 +85,8 @@ export function toIdMap<T extends MappableInterface>(array: Array<T>) {
 	}, {});
 }
 
-export function censorKey(dbUser: UserInterface | undefined, key: ApiKeyInterface) {
-	if (dbUser?.admin || key.userID === dbUser?.id) return key;
+export function censorKey(session: SessionInterface | undefined, key: ApiKeyInterface) {
+	if (session?.user?.admin || key.userID === session?.userID) return key;
 	return { ...key, key: `${key.key.slice(0, 5)}...${key.key.slice(-2)}` };
 }
 
@@ -124,6 +124,10 @@ export function trimLineLength(text: string, maxLength: number) {
 export function filterNull<T>(value: T): T {
 	if (typeof value !== 'object' || value === null) {
 		return value;
+	}
+
+	if (value instanceof Date) {
+		return value as T;
 	}
 
 	if (Array.isArray(value)) {
@@ -164,7 +168,7 @@ export async function addMessage({
 	assert(A.conversation);
 	if (!A.conversation.messages) A.conversation.messages = [];
 
-	const newMessage: MessageInterface = { userID: A.dbUser?.id ?? 'unknown', role, text: '', editing };
+	const newMessage: MessageInterface = { userID: A.user?.id ?? 'unknown', role, text: '', editing };
 	if (parent) {
 		const messageIdx = A.conversation.messages.findIndex((m) => m === parent);
 		if (messageIdx === undefined) throw new Error("Can't find the message in conversation messages");

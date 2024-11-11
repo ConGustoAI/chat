@@ -4,7 +4,7 @@
 </script>
 
 {#if A.conversation}
-	{#if !A.conversation.id || A.dbUser?.hacker}
+	{#if !A.conversation.id || A.user?.hacker}
 		<select
 			class="select select-bordered select-sm"
 			bind:value={A.conversation.assistantID}
@@ -12,13 +12,13 @@
 			aria-label="Select assistant">
 			<option disabled>Your assistants</option>
 			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
-				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+				{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
 			{/each}
 			<option disabled>Default assistants</option>
 			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
-				{#if !A.hiddenItems.has(id) || A.dbUser?.assistant === id}
+				{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
 			{/each}
@@ -34,7 +34,7 @@
 		{@const providerKey = Object.entries(A.apiKeys).find(([id, key]) => key.providerID === provider?.id)}
 		{@const assistantKey = Object.entries(A.apiKeys).find(([id, key]) => key.id === assistant?.apiKeyID)}
 
-		{#if assistant && A.dbUser}
+		{#if assistant && A.user}
 			{#if !model}
 				<div class="flex flex-col text-sm">
 					<span class="text-error">Assistant has no model</span>

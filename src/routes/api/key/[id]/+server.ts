@@ -6,9 +6,9 @@ import { censorKey } from '$lib/utils/utils';
 
 const debug = dbg('app:api:key/:id');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id } }) => {
+export const GET: RequestHandler = async ({ locals: { session }, params: { id } }) => {
 	debug('GET <- %o', id);
-	const key = censorKey(dbUser, await DBgetKey({ dbUser, id }));
+	const key = censorKey(session, await DBgetKey({ session, id }));
 
 	debug('GET %o -> %o', id, key);
 	return json(key);

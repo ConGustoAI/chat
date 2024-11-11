@@ -24,7 +24,7 @@
 	let addingAssistant = $state(false);
 	async function addAssistant() {
 		debug('add assistant');
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingAssistant = true;
@@ -45,7 +45,7 @@
 
 	async function copyAssistant(assistant: AssistantInterface) {
 		debug('copy assistant', assistant);
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 		const newAssistant = await APIupsertAssistant({
@@ -60,7 +60,7 @@
 
 	async function deleteAssistant(assistant: AssistantInterface) {
 		debug('delete assistant', assistant);
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 		const del = await APIdeleteAssistant(assistant);

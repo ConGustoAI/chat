@@ -5,12 +5,12 @@ import type { RequestHandler } from './$types';
 
 const debug = dbg('app:api:conversation:id');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id }, url }) => {
+export const GET: RequestHandler = async ({ locals: { session }, params: { id }, url }) => {
 	const withURLs = url.searchParams.get('url') === 'true';
-	debug('GET <- %o', { id, dbUser: dbUser ? dbUser.id : 'anon', withURLs });
+	debug('GET <- %o', { id, session: session ? session.userID : 'anon', withURLs });
 
 	let conversation;
-	if (dbUser) conversation = (await DBgetConversation({ dbUser, id })) as ConversationInterface;
+	if (session) conversation = (await DBgetConversation({ session, id })) as ConversationInterface;
 	else conversation = (await DBgetDefaultConversation({ id })) as ConversationInterface;
 
 	debug('GET %o -> %o', id, conversation);

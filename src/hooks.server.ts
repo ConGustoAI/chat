@@ -6,9 +6,9 @@ const debug = dbg('app:hooks');
 
 export const sse = false;
 
-import { userInterfaceFilter } from '$lib/api';
-import { lucia } from '$lib/db/auth';
-import { DBGetPublicConversation, DBgetUser, DBinsertUser, DBupdateUser } from '$lib/db/utils';
+// import { lucia } from '$lib/db/auth';
+import { DBGetPublicConversation } from '$lib/db/utils';
+import { getSessionTokenCookie, validateSession } from '$lib/utils/auth';
 import { filterNull } from '$lib/utils/utils';
 
 function makeDescription(conversation: ConversationInterface | undefined) {
@@ -19,56 +19,23 @@ function makeDescription(conversation: ConversationInterface | undefined) {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const sessionId = event.cookies.get(lucia.sessionCookieName);
+	debug('event path: %o', event.url.pathname);
 
-	const { session, user } = await lucia.validateSession(sessionId ?? '');
-	if (session && session.fresh) {
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		// sveltekit types deviates from the de-facto standard
-		// you can use 'as any' too
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+	let session: SessionInterface | undefined = undefined;
+
+	// For public messages, we want them to look the way they would look to an
+	// anonymous user, even if the user is logged in
+	if (!event.url.password.startsWith('/public/')) {
+		const sessionCookie = getSessionTokenCookie(event);
+
+		if (sessionCookie) {
+			session = await validateSession(event, sessionCookie);
+		}
 	}
-	if (!session) {
-		const sessionCookie = lucia.createBlankSessionCookie();
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
-	}
+
+	debug('session %o', session);
 
 	event.locals.session = session;
-	// debug('session', session);
-	// debug('user', user);
-
-	if (user) {
-		event.locals.dbUser = filterNull(await DBgetUser({ id: user.id })) as UserInterface | undefined;
-
-		if (!event.locals.dbUser) {
-			event.locals.dbUser = (await DBinsertUser({
-				user: {
-					id: user.id,
-					email: user.email,
-					name: user.username,
-					avatar: user.avatar_url
-				}
-			})) as UserInterface;
-		}
-
-		// The user had no avattar before, but the new log in method was used that provides an avatar
-		if (!event.locals.dbUser.avatar && user.avatar_url) {
-			await DBupdateUser({
-				dbUser: userInterfaceFilter(event.locals.dbUser),
-				updatedUser: { ...event.locals.dbUser, avatar: user.avatar_url }
-			});
-
-			event.locals.dbUser.avatar = user.avatar_url;
-		}
-	} else {
-		event.locals.dbUser = undefined;
-	}
 
 	let meta_tags = '';
 	if (event.url.pathname.match(/^\/public\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
@@ -77,7 +44,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const conversation = filterNull(await DBGetPublicConversation({ id })) as ConversationInterface | undefined;
 		const description = makeDescription(conversation);
 		const summary = conversation?.summary || 'New Chat';
-		debug('public conversation %o', conversation);
+		// debug('public conversation %o', conversation);
 
 		meta_tags = `
 			<meta name="description" content="${summary}">

@@ -225,6 +225,13 @@
       "when": 1730676861107,
       "tag": "0031_thin_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1731135491828,
+      "tag": "0032_easy_alex_power",
+      "breakpoints": true
     }
   ]
 }

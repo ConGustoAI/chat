@@ -19,8 +19,8 @@
 			edit={true}
 			editDefaultChildren={false}
 			editCustomChildren={true}
-			newProviderUserID={A.dbUser?.id ?? 'anon'}
-			newChildUserID={A.dbUser?.id ?? 'anon'} />
+			newProviderUserID={A.user?.id ?? 'anon'}
+			newChildUserID={A.user?.id ?? 'anon'} />
 
 		<div class="divider w-full">Default providers</div>
 		<ProvidersGrid
@@ -31,7 +31,7 @@
 			editDefaultChildren={false}
 			editCustomChildren={true}
 			edit={false}
-			newProviderUserID={A.dbUser?.id ?? 'anon'}
-			newChildUserID={A.dbUser?.id ?? 'anon'} />
+			newProviderUserID={A.user?.id ?? 'anon'}
+			newChildUserID={A.user?.id ?? 'anon'} />
 	</div>
 </div>

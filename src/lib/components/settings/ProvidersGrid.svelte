@@ -36,7 +36,7 @@
 	let addingProvider = $state(false);
 	async function addProvider() {
 		debug('add provider');
-		if (!A.dbUser || !newProviderUserID) {
+		if (!A.user || !newProviderUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 

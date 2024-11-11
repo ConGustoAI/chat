@@ -193,7 +193,7 @@
 			<div
 				class="absolute right-0 top-0 flex items-start gap-1 rounded-md bg-primary bg-opacity-30 p-1"
 				transition:fade={{ duration: 100 }}>
-				{#if !A.dbUser || A.dbUser.hacker}
+				{#if !A.user || A.user.hacker}
 					<label
 						class="swap swap-rotate btn-xs z-40 p-0.5"
 						title={media.repeat ? 'Send the file for every chat turn' : 'Send the file once'}>

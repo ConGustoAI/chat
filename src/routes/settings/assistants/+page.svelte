@@ -5,7 +5,6 @@
 	const debug = dbg('app:ui:settings:assistants');
 
 	$inspect(A.assistants).with((t, c) => debug('A.assistants', { t, c }));
-
 </script>
 
 <div class="flex max-w-screen-xl flex-col gap-4">
@@ -13,9 +12,9 @@
 
 	<div class="w-full">
 		<div class="divider w-full">Your assistants</div>
-		<AssistantGrid edit={true} newItemUserID={A.dbUser?.id} />
+		<AssistantGrid edit={true} newItemUserID={A.user?.id} />
 
 		<div class="divider w-full">Default assistants</div>
-		<AssistantGrid showDefault={true} edit={false} newItemUserID={A.dbUser?.id} />
+		<AssistantGrid showDefault={true} edit={false} newItemUserID={A.user?.id} />
 	</div>
 </div>

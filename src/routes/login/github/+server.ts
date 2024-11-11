@@ -1,19 +1,17 @@
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from '$env/static/private';
 import { error, redirect } from '@sveltejs/kit';
 import { GitHub } from 'arctic';
-import dbg from 'debug';
 
-const debug = dbg('app:login:github');
-
-
-// import type { RequestEvent } from '@sveltejs/kit';
 import { db } from '$lib/db';
-import { lucia } from '$lib/db/auth';
-import { authUsersTable } from '$lib/db/schema';
-import { randomUUID } from 'crypto';
-import type { RequestHandler } from './$types';
-import { eq } from 'drizzle-orm';
+import { usersTable } from '$lib/db/schema';
+import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/utils/auth';
 import { assert } from '$lib/utils/utils';
+import { randomUUID } from 'crypto';
+import { eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
+
+import dbg from 'debug';
+const debug = dbg('app:login:github');
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
@@ -26,30 +24,29 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		error(400, 'Invalid state or code');
 	}
 
-	const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, url.origin + '/login/github' );
+	const github = new GitHub(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, url.origin + '/login/github');
 
-	let tokens;
+	let token;
 	try {
-		tokens = await github.validateAuthorizationCode(code);
+		token = await github.validateAuthorizationCode(code);
 	} catch (e) {
 		debug('Error validating code', e);
 		error(400, 'Error validating code');
 	}
 
-	assert(tokens.tokenType() === 'bearer', 'Expected Bearer token type');
+	assert(token.tokenType() === 'bearer', 'Expected Bearer token type');
 
-
-	debug('tokens', tokens);
+	debug('token', token);
 	const githubUserResponse = await fetch('https://api.github.com/user', {
 		headers: {
-			Authorization: `Bearer ${tokens.accessToken()}`
+			Authorization: `Bearer ${token.accessToken()}`
 		}
 	});
 	const githubUser: GitHubUser = await githubUserResponse.json();
 
 	const emailsResponse = await fetch('https://api.github.com/user/public_emails', {
 		headers: {
-			Authorization: `Bearer ${tokens.accessToken()}`
+			Authorization: `Bearer ${token.accessToken()}`
 		}
 	});
 	const emails: Array<{ email: string; primary: boolean; verified: boolean; visibility: 'public' }> =
@@ -63,46 +60,42 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	if (!primaryEmail) error(400, 'No primary email address');
 	if (!primaryEmail?.verified) error(400, 'Primary email address not verified');
 
-	const existingUser = await db.query.authUsersTable.findFirst({
+	const existingUser = await db.query.usersTable.findFirst({
 		where: (table, { eq }) => eq(table.email, primaryEmail.email)
 	});
 
 	if (existingUser) {
 		const update = await db
-			.update(authUsersTable)
+			.update(usersTable)
 			.set({
 				github_id: githubUser.id.toString(),
-				avatar_url: githubUser.avatar_url
+				avatar: githubUser.avatar_url
 			})
-			.where(eq(authUsersTable.email, primaryEmail.email))
+			.where(eq(usersTable.email, primaryEmail.email))
 			.returning();
 
 		if (!update) error(500, 'Failed to update user');
 
-		const session = await lucia.createSession(existingUser.id, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+		// This is a new session token.
+		// The DB stores the hash of the token to avoid leaking them if the DB is compromised.
+		const sessionToken = generateSessionToken();
+		const session = await createSession(sessionToken, existingUser.id);
+		setSessionTokenCookie(cookies, sessionToken, session.expiresAt);
 	} else {
 		const userId = randomUUID();
 
-		const insert = await db.insert(authUsersTable).values({
+		const insert = await db.insert(usersTable).values({
 			id: userId,
 			github_id: githubUser.id.toString(),
-			username: githubUser.name ?? githubUser.login,
+			name: githubUser.name ?? githubUser.login,
 			email: primaryEmail!.email,
-			avatar_url: githubUser.avatar_url
+			avatar: githubUser.avatar_url
 		});
 		if (!insert) error(500, 'Failed to create user');
 
-		const session = await lucia.createSession(userId, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+		const sessionToken = generateSessionToken();
+		const session = await createSession(sessionToken, userId);
+		setSessionTokenCookie(cookies, sessionToken, session.expiresAt);
 	}
 	redirect(303, '/chat');
 };

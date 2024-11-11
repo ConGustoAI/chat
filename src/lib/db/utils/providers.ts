@@ -4,30 +4,30 @@ import { and, eq, or } from 'drizzle-orm';
 import { db } from '..';
 import { defaultsUUID, providersTable } from '../schema';
 
-export async function DBgetProviders({ dbUser }: { dbUser?: UserInterface }) {
+export async function DBgetProviders({ session }: { session?: SessionInterface }) {
 	// Note: If the user is not authorized, we only return the default providers.
 	const providers = await db.query.providersTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser!.id) : undefined, eq(table.userID, defaultsUUID)),
+		where: (table, { eq, or }) => or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)),
 		orderBy: (table, { asc }) => asc(table.name)
 	});
 
 	return providers;
 }
 
-export async function DBgetProvider({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+export async function DBgetProvider({ session, id }: { session?: SessionInterface; id: string }) {
 	// Note: If the user is not authorized, we only return the default providers.
 	const provider = await db.query.providersTable.findFirst({
 		where: (table, { eq, and }) =>
-			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!provider) error(404, 'Provider not found or does not belong to the user');
 	return provider;
 }
 
-export async function DBupsertProvider({ dbUser, provider }: { dbUser?: UserInterface; provider: ProviderInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (provider.userID != dbUser.id && (!dbUser.admin || provider.userID !== defaultsUUID))
+export async function DBupsertProvider({ session, provider }: { session?: SessionInterface; provider: ProviderInterface }) {
+	if (!session) error(401, 'Unauthorized');
+	if (provider.userID != session.userID && (!session.user?.admin || provider.userID !== defaultsUUID))
 		error(401, 'Tried to delete a provider that does not belong to the user');
 
 	provider = providerInterfaceFilter(provider);
@@ -48,10 +48,10 @@ export async function DBupsertProvider({ dbUser, provider }: { dbUser?: UserInte
 	return insert[0];
 }
 
-export async function DBdeleteProvider({ dbUser, provider }: { dbUser?: UserInterface; provider: ProviderInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteProvider({ session, provider }: { session?: SessionInterface; provider: ProviderInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!provider.id) error(400, 'Provider ID is required');
-	if (provider.userID != dbUser.id && (!dbUser.admin || provider.userID !== defaultsUUID))
+	if (provider.userID != session.userID && (!session.user?.admin || provider.userID !== defaultsUUID))
 		error(401, 'Tried to delete a provider that does not belong to the user');
 
 	const res = await db

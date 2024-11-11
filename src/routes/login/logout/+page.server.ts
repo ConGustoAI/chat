@@ -1,30 +1,30 @@
+import { deleteAllSessions, deleteSession } from '$lib/utils/auth';
 import { redirect } from '@sveltejs/kit';
-import dbg from 'debug';
 import type { Actions } from './$types';
-import { lucia } from '$lib/db/auth';
 
+import dbg from 'debug';
 const debug = dbg('app:logout');
 
 export const actions: Actions = {
-	logout: async ({ locals }) => {
+	logout: async ({ locals: { session } }) => {
 		debug('signout');
-		if (!locals.session) {
+		if (!session) {
 			debug('no session');
 			redirect(303, '/login');
 		}
- 	 	await lucia.invalidateSession(locals.session.id);
+		await deleteSession(session.id);
 
 		debug('signout done');
 		redirect(303, '/login');
 	},
 
-	logoutAll: async ({ locals }) => {
+	logoutAll: async ({ locals: { session } }) => {
 		debug('signoutAll');
-		if (!locals.user) {
+		if (!session) {
 			debug('no user');
 			redirect(303, '/login');
 		}
-		await lucia.invalidateUserSessions(locals.user.id);
+		await deleteAllSessions(session.userID);
 
 		debug('signoutAll done');
 		redirect(303, '/login');

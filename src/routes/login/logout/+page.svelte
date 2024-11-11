@@ -4,15 +4,15 @@
 	let logoutSpinning = $state(false);
 	let logoutAllSpinning = $state(false);
 
-	if (!A.dbUser) {
+	if (!A.user) {
 		goto('/login');
 	}
 </script>
 
-<h2 class="card-title">Logged in as {A.dbUser?.name}</h2>
-<p><strong>Email:</strong> {A.dbUser?.email}</p>
-<p><strong>User ID:</strong> {A.dbUser?.id}</p>
-<div class="flex gap-4 mt-4">
+<h2 class="card-title">Logged in as {A.user?.name}</h2>
+<p><strong>Email:</strong> {A.user?.email}</p>
+<p><strong>User ID:</strong> {A.user?.id}</p>
+<div class="mt-4 flex gap-4">
 	<form method="POST" action="?/logout">
 		<button
 			class="btn btn-outline text-xl"

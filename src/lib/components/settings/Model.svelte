@@ -35,7 +35,7 @@
 	});
 
 	async function updateModelNow() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			goto('/login', { invalidateAll: true });
 		}
 		if (status !== 'changed') return;
@@ -64,7 +64,7 @@
 	}
 
 	async function toggleHidden() {
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 
@@ -115,7 +115,7 @@
 	}} />
 <input
 	type="number"
-	class="input input-bordered w-28 no-spinner"
+	class="no-spinner input input-bordered w-28"
 	bind:value={model.inputContext}
 	oninput={() => {
 		status = 'changed';
@@ -129,7 +129,7 @@
 
 <input
 	type="number"
-	class="input input-bordered w-16 no-spinner"
+	class="no-spinner input input-bordered w-16"
 	bind:value={model.inputCost}
 	oninput={() => {
 		status = 'changed';
@@ -142,7 +142,7 @@
 	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
-	class="input input-bordered w-28 no-spinner"
+	class="no-spinner input input-bordered w-28"
 	bind:value={model.outputContext}
 	oninput={() => {
 		status = 'changed';
@@ -156,7 +156,7 @@
 
 <input
 	type="number"
-	class="input input-bordered w-16 no-spinner"
+	class="no-spinner input input-bordered w-16"
 	bind:value={model.outputCost}
 	oninput={() => {
 		status = 'changed';
@@ -169,7 +169,7 @@
 	disabled={!edit || status === 'deleting'} />
 <input
 	type="number"
-	class="input input-bordered w-14 no-spinner"
+	class="no-spinner input input-bordered w-14"
 	bind:value={model.maxTemp}
 	oninput={() => {
 		status = 'changed';

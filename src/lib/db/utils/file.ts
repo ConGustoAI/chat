@@ -3,10 +3,10 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { fileTable } from '../schema/file';
 
-export async function DBgetFile({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBgetFile({ session, id }: { session?: SessionInterface; id: string }) {
+	if (!session) error(401, 'Unauthorized');
 	const file = await db.query.fileTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, dbUser.id))
+		where: (table, { eq, and }) => and(eq(table.id, id), eq(table.userID, session.userID))
 	});
 
 	if (!file) error(404, 'File not found or does not belong to the user');
@@ -14,31 +14,30 @@ export async function DBgetFile({ dbUser, id }: { dbUser?: UserInterface; id: st
 	return file;
 }
 
-export async function DBgetFiles({ dbUser }: { dbUser?: UserInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBgetFiles({ session }: { session?: SessionInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	const files = await db.query.fileTable.findMany({
-		where: (table, { eq }) => eq(table.userID, dbUser.id)
+		where: (table, { eq }) => eq(table.userID, session.userID)
 	});
 
 	if (!files) error(500, 'Failed to fetch files');
 
 	return files;
 }
-
 export async function DBupsertFile({
-	dbUser,
+	session,
 	file
 }: {
-	dbUser?: UserInterface;
+	session?: SessionInterface;
 	file: FileInterface;
 }) {
-	if (!dbUser) error(401, 'Unauthorized');
+	if (!session) error(401, 'Unauthorized');
 
 	if (file.id) {
 		const update = await db
 			.update(fileTable)
 			.set(file)
-			.where(and(eq(fileTable.id, file.id), eq(fileTable.userID, dbUser.id)))
+			.where(and(eq(fileTable.id, file.id), eq(fileTable.userID, session.userID)))
 			.returning();
 
 		if (!update.length) {
@@ -52,7 +51,7 @@ export async function DBupsertFile({
 		.insert(fileTable)
 		.values({
 			...file,
-			userID: dbUser.id
+			userID: session.userID
 		})
 		.returning();
 
@@ -61,18 +60,15 @@ export async function DBupsertFile({
 	return insert[0];
 }
 
-export async function DBdeleteFile({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteFile({ session, id }: { session?: SessionInterface; id: string }) {
+	if (!session) error(401, 'Unauthorized');
 
 	const res = await db
 		.delete(fileTable)
-		.where(and(eq(fileTable.id, id), eq(fileTable.userID, dbUser.id)))
+		.where(and(eq(fileTable.id, id), eq(fileTable.userID, session.userID)))
 		.returning({ id: fileTable.id });
 
 	if (!res.length) error(500, 'Failed to delete file');
 
 	return res[0];
 }
-
-
-

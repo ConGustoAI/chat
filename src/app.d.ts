@@ -1,5 +1,4 @@
 import type { ProviderType } from '@prisma/client';
-import { User, Session } from 'lucia';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 declare global {
@@ -26,16 +25,11 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
-			user: User | null;
-			session: Session | null;
-			dbUser: UserInterface | undefined;
-			assistants: AssistantInterface[];
-			hiddenItems: Set<string>;
+			session: SessionInterface |  undefined;
 		}
-		interface PageData {
-			session: Session | null;
-		}
+		// interface PageData {
+		// 	// session: Session | null;
+		// }
 
 		// interface PageState {}
 		// interface Platform {}
@@ -46,6 +40,8 @@ declare global {
 		name?: string;
 		email?: string;
 		avatar?: string;
+		github_id?: string;
+		google_id?: string;
 		admin?: boolean;
 		hacker?: boolean;
 		assistant?: string;
@@ -60,6 +56,15 @@ declare global {
 		advancedInput?: boolean;
 		createdAt?: Date;
 		updatedAt?: Date;
+	}
+
+	interface SessionInterface {
+		id: string;
+		userID: string;
+		expiresAt: Date;
+
+		// We get the minimal user infor from the DB for every API call, because we often need to check if the user is admin.
+		user?: UserInterface;
 	}
 
 	interface ProviderInterface {

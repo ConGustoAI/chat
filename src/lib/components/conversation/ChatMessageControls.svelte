@@ -55,7 +55,6 @@
 		await deleteMessage();
 	}
 
-
 	async function reGenerate() {
 		debug('reGenerate', { conversation: A.conversation, message });
 
@@ -106,8 +105,6 @@
 	// $inspect(message).with((t, c) => {
 	// 	debug('message', t, c);
 	// });
-
-
 </script>
 
 <div class="absolute right-0 top-0 flex flex-col pr-2">
@@ -122,7 +119,7 @@
 				hour12: false
 			})}
 		{/if}
-		{#if A.dbUser?.showInfo && message.role == 'assistant' && message.id}
+		{#if A.user?.showInfo && message.role == 'assistant' && message.id}
 			<div class="mr-2 flex gap-4 text-xs text-base-content">
 				{#if shouldShowAssistantInfo()}
 					<span>
@@ -149,7 +146,7 @@
 			<button class="btn btn-ghost btn-xs rounded-md p-0 px-1" title="Generate a new response" onclick={reGenerate}
 				><Repeat size={15} /></button>
 		{/if}
-		{#if (message.role !== 'assistant' || !A.dbUser || A.dbUser.hacker) && !isPublicPage()}
+		{#if (message.role !== 'assistant' || !A.user || A.user.hacker) && !isPublicPage()}
 			<button
 				title="Edit message"
 				class="btn btn-ghost btn-xs rounded-md p-0 px-1"
@@ -172,10 +169,9 @@
 				class="dropdown-end"
 				btnClass="btn-xs btn-ghost rounded-md p-1"
 				deleteAction={deleteMessage}
-				deleteWithMediaAction={(message.role === 'user' && message.media?.length) ? deleteMessageWithMedia : undefined}
-				/>
+				deleteWithMediaAction={message.role === 'user' && message.media?.length ? deleteMessageWithMedia : undefined} />
 		{/if}
-		{#if !A.dbUser || A.dbUser.hacker || isPublicPage()}
+		{#if !A.user || A.user.hacker || isPublicPage()}
 			<button
 				title="Toggle markdown"
 				class="btn btn-ghost btn-outline btn-xs h-5 min-h-4 rounded-md p-0 px-1"
@@ -184,7 +180,7 @@
 					markdown = !markdown;
 				}}>{markdown ? 'md' : 'raw'}</button>
 		{/if}
-		{#if A.dbUser?.hacker && !isPublicPage()}
+		{#if A.user?.hacker && !isPublicPage()}
 			<div class="dropdown dropdown-end">
 				<button class="btn btn-ghost btn-xs rounded-md p-1" title="More options">
 					<Menu size="fit-h" />

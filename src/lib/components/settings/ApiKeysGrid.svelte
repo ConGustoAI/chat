@@ -27,7 +27,7 @@
 
 	async function addKey() {
 		debug('add key');
-		if (!A.dbUser || !newChildUserID) {
+		if (!A.user || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingKey = true;
@@ -37,7 +37,7 @@
 			label: provider.name + ' Key',
 			key: '',
 			usage: 0,
-			remainder: 0,
+			remainder: 0
 		});
 		A.apiKeys[apiKey.id!] = apiKey;
 
@@ -47,7 +47,7 @@
 
 	async function deleteKey(apiKey: ApiKeyInterface) {
 		debug('delete key', apiKey);
-		if (!A.dbUser) {
+		if (!A.user) {
 			await goto('/login', { invalidateAll: true });
 		}
 

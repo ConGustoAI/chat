@@ -311,7 +311,7 @@
 				class="dropdown-bottom  text-error "
 				deleteAction={async () => await deleteMedia(media)}
 				title="Delete file" />
-			{#if !A.dbUser || A.dbUser.hacker}
+			{#if !A.user || A.user.hacker}
 				<label
 					class="swap swap-rotate btn-xs p-0.5"
 					title={media.repeat ? 'Send the file for every chat turn' : 'Send the file once'}>

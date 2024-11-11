@@ -12,7 +12,7 @@
 		// If the previous conversation was a new conversation, keep the assistant ID.
 		// const oldAssistantId = A.conversation?.id ? A.conversation?.assistant : undefined;
 		const oldAssistantId = A.conversation?.assistantID;
-		A.conversation = newConversation(data.dbUser, oldAssistantId, A.assistants);
+		A.conversation = newConversation(data.session?.user, oldAssistantId, A.assistants);
 		debug('New conversation:', oldAssistantId, $state.snapshot(A.conversation));
 	}
 

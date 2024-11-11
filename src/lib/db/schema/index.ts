@@ -11,6 +11,4 @@ export * from './prompts';
 export * from './media';
 export * from './file';
 
-export * from './auth';
-
 export * from './seed';

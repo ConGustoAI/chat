@@ -4,34 +4,34 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '..';
 import { apiKeysTable, defaultsUUID } from '../schema';
 
-export async function DBgetKeys({ dbUser }: { dbUser?: UserInterface }) {
+export async function DBgetKeys({ session }: { session?: SessionInterface }) {
 	// Note: If the user is not authorized, we only return the default keys.
-	// The default keys values are censorsd, and an anonymous user can not use
+	// The default keys values are censored, and an anonymous user can not use
 	// the chat, so it's just to demo the settings page.
 	const keys = await db.query.apiKeysTable.findMany({
-		where: (table, { eq, or }) => or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)),
+		where: (table, { eq, or }) => or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)),
 		orderBy: (table, { asc }) => asc(table.label)
 	});
 
 	return keys;
 }
 
-export async function DBgetKey({ dbUser, id }: { dbUser?: UserInterface; id: string }) {
+export async function DBgetKey({ session, id }: { session?: SessionInterface; id: string }) {
 	// Note: If the user is not authorized, we only return the default keys.
-	// The default keys values are censorsd, and an anonymous user can not use
+	// The default keys values are censored, and an anonymous user can not use
 	// the chat, so it's just to demo the settings page.
 	const key = await db.query.apiKeysTable.findFirst({
 		where: (table, { eq, or, and }) =>
-			and(eq(table.id, id), or(dbUser ? eq(table.userID, dbUser.id) : undefined, eq(table.userID, defaultsUUID)))
+			and(eq(table.id, id), or(session ? eq(table.userID, session.userID) : undefined, eq(table.userID, defaultsUUID)))
 	});
 
 	if (!key) error(404, 'Key not found or does not belong to the user');
 	return key;
 }
 
-export async function DBupsertKey({ dbUser, key }: { dbUser?: UserInterface; key: ApiKeyInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
-	if (key.userID != dbUser.id && (!dbUser.admin || key.userID !== defaultsUUID))
+export async function DBupsertKey({ session, key }: { session?: SessionInterface; key: ApiKeyInterface }) {
+	if (!session) error(401, 'Unauthorized');
+	if (key.userID != session.userID && (!session.user?.admin || key.userID !== defaultsUUID))
 		error(401, 'Tried to update a key that does not belong to the user');
 
 	key = apiKeyInterfaceFilter(key);
@@ -53,10 +53,10 @@ export async function DBupsertKey({ dbUser, key }: { dbUser?: UserInterface; key
 	return insert[0];
 }
 
-export async function DBdeleteKey({ dbUser, key }: { dbUser?: UserInterface; key: ApiKeyInterface }) {
-	if (!dbUser) error(401, 'Unauthorized');
+export async function DBdeleteKey({ session, key }: { session?: SessionInterface; key: ApiKeyInterface }) {
+	if (!session) error(401, 'Unauthorized');
 	if (!key.id) error(400, 'Key ID is required');
-	if (key.userID != dbUser.id && (!dbUser.admin || key.userID !== defaultsUUID))
+	if (key.userID != session.userID && (!session.user?.admin || key.userID !== defaultsUUID))
 		error(401, 'Tried to delete a key that does not belong to the user');
 
 	const del = await db

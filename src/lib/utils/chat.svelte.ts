@@ -17,7 +17,7 @@ export let abortController: AbortController | undefined = undefined;
 export async function _submitConversationClientSide() {
 	debug('submitConversation', $state.snapshot(A.conversation));
 
-	if (!A.dbUser) {
+	if (!A.user) {
 		debug('submitConversation', 'not logged in, redirecting to login');
 		await goto('/login');
 		return;
@@ -76,9 +76,9 @@ export async function _submitConversationClientSide() {
 
 	const oldMessages = A.conversation.messages.slice(0, -2);
 
-	const userProfile = (assistant.aboutUserFromUser ? A.dbUser.aboutUser : assistant.aboutUser) ?? '';
+	const userProfile = (assistant.aboutUserFromUser ? A.user.aboutUser : assistant.aboutUser) ?? '';
 	const assistantInstrictions =
-		(assistant.assistantInstructionsFromUser ? A.dbUser.assistantInstructions : assistant.assistantInstructions) ?? '';
+		(assistant.assistantInstructionsFromUser ? A.user.assistantInstructions : assistant.assistantInstructions) ?? '';
 
 	let systemPromptText = (assistant.systemPrompt ?? '')
 		.replace('{profile}', userProfile)
@@ -489,7 +489,7 @@ export async function _submitConversationClientSide() {
 	): Promise<void> {
 		debug('streamText result:', JSON.stringify(result, null, 2));
 		assert(A.conversation);
-		assert(A.dbUser);
+		assert(A.user);
 		assert(apiKey);
 
 		const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
@@ -530,8 +530,6 @@ export async function _submitConversationClientSide() {
 		if (AM.tokensReasoningCost)
 			A.conversation.tokensReasoningCost = (A.conversation.tokensReasoningCost ?? 0) + AM.tokensReasoningCost;
 
-		A.dbUser.lastAssistant = assistant.id;
-
 		debug('Assistant message after stats: %o', $state.snapshot(AM));
 
 		// insert the user messages first to avoid inserting them out of order.
@@ -542,14 +540,15 @@ export async function _submitConversationClientSide() {
 		const [iAM, iC, iU, iAK] = await Promise.all([
 			APIupsertMessage($state.snapshot(AM)),
 			APIupsertConversation($state.snapshot(A.conversation)),
-			async () => {
-				if (A.dbUser) {
-					if (A.dbUser.lastAssistant != assistant.id) {
-						A.dbUser.lastAssistant = assistant.id;
+			(async () => {
+				debug('Updating user after conversation', $state.snapshot(A.user), $state.snapshot(assistant));
+				if (A.user) {
+					if (A.user.lastAssistant != assistant.id) {
+						A.user.lastAssistant = assistant.id;
 					}
-					await APIupdateUser(A.dbUser);
+					await APIupdateUser(A.user);
 				}
-			},
+			})(),
 			APIupsertKey({
 				...apiKey,
 				usage: apiKey.usage + AM.tokensInCost + AM.tokensOutCost,
@@ -557,7 +556,7 @@ export async function _submitConversationClientSide() {
 			})
 		]);
 
-		Object.assign(A.dbUser, iU);
+		Object.assign(A.user, iU);
 		Object.assign(UM, iUM);
 		Object.assign(AM, iAM);
 		Object.assign(A.conversation, iC);

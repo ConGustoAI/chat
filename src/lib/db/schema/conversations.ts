@@ -22,7 +22,7 @@ export const conversationsTable = pgTable('conversations', {
 
 	summary: text('summary'),
 	like: boolean('like').default(false),
-	deleted: boolean('deleted').default(false),
+	deleted: boolean('deleted').default(false), // XXX This is not used, remove it later.
 	order: serial('order').notNull(),
 	public: boolean('public').default(false),
 	tokensIn: integer('tokens_in').notNull().default(0),

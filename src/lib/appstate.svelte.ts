@@ -1,7 +1,7 @@
 // Here be the state of the app.
 
 interface AppState {
-	dbUser: UserInterface | undefined;
+	user: UserInterface | undefined;
 	assistants: { [key: string]: AssistantInterface };
 	conversations: { [key: string]: ConversationInterface };
 	conversationOrder: string[];
@@ -28,7 +28,7 @@ interface AppState {
 }
 
 export const A: AppState = $state({
-	dbUser: undefined,
+	user: undefined,
 	assistants: {},
 	conversations: {},
 	conversationOrder: [],

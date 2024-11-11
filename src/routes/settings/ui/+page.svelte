@@ -16,11 +16,11 @@
 
 	let updatingUser = $state(false);
 	async function updateUserData() {
-		if (!A.dbUser) throw new Error('No user');
+		if (!A.user) throw new Error('No user');
 		updatingUser = true;
 		try {
-			const newData = await APIupdateUser($state.snapshot(A.dbUser!));
-			Object.assign(A.dbUser, newData);
+			const newData = await APIupdateUser($state.snapshot(A.user!));
+			Object.assign(A.user, newData);
 		} finally {
 			updatingUser = false;
 		}
@@ -35,14 +35,14 @@
 		<input type="checkbox" checked={$theme === 'dark'} onclick={cycleTheme} class="theme-controller toggle" />
 		<Moon />
 
-		{#if A.dbUser}
+		{#if A.user}
 			<span class="label-text">Advanced Input</span>
 			<div></div>
 			<div></div>
 			<input
 				type="checkbox"
 				class="toggle"
-				bind:checked={A.dbUser.advancedInput}
+				bind:checked={A.user.advancedInput}
 				disabled={updatingUser}
 				onchange={updateUserData} />
 			{#if updatingUser}
@@ -53,7 +53,7 @@
 		{/if}
 	</div>
 
-	{#if A.dbUser?.advancedInput}
+	{#if A.user?.advancedInput}
 		<div
 			class="col-span-full grid w-fit grid-cols-[max-content,max-content] items-baseline gap-2 rounded-md border border-primary-content px-1 py-1">
 			<kbd class="kbd kbd-sm w-fit rounded-md px-1 py-1">Enter</kbd>

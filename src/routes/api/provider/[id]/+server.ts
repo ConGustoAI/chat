@@ -6,9 +6,9 @@ import dbg from 'debug';
 
 const debug = dbg('app:api:provider:id');
 
-export const GET: RequestHandler = async ({ locals: { dbUser }, params: { id } }) => {
+export const GET: RequestHandler = async ({ locals: { session }, params: { id } }) => {
 	debug('GET %o', id);
-	const assistant = await DBgetProvider({ dbUser, id });
+	const assistant = await DBgetProvider({ session, id });
 	debug('GET %o -> %o', id, assistant);
 
 	return json(assistant);

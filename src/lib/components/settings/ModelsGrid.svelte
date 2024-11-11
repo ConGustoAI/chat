@@ -28,7 +28,7 @@
 	let addingModel = $state(false);
 	async function addModel() {
 		debug('add model');
-		if (!A.dbUser || !newChildUserID) {
+		if (!A.user || !newChildUserID) {
 			await goto('/login', { invalidateAll: true });
 		}
 		addingModel = true;
@@ -51,7 +51,7 @@
 
 	async function deleteModel(model: ModelInterface) {
 		debug('delete model', model);
-		const user = A.dbUser;
+		const user = A.user;
 		if (!user) {
 			await goto('/login', { invalidateAll: true });
 		}
@@ -79,7 +79,8 @@
 			<div class="relative font-bold">
 				Input
 				<div class="absolute -top-5">
-					<InfoPopup class="text-sm" title="Input context length">Maximum number of input tokens the model can process</InfoPopup>
+					<InfoPopup class="text-sm" title="Input context length"
+						>Maximum number of input tokens the model can process</InfoPopup>
 				</div>
 			</div>
 			<div class="relative font-bold" title="Input cost $ for 1M tokens">
