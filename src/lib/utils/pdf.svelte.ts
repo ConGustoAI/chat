@@ -62,7 +62,7 @@ export async function PDFThumbnail(media: MediaInterface): Promise<FileInterface
 }
 
 // Note: This returns ann array of promises that resolve to the URLs of the images.
-export async function PDFToImages(media: MediaInterface): Promise<Promise<PDFImageInterface>[]> {
+export async function PDFToImages(media: MediaInterface): Promise<Promise<DerivedImageInterface>[]> {
 	assert(media.type === 'pdf');
 	assert(media.PDFDocument);
 	assert(media.original?.url);
@@ -71,7 +71,7 @@ export async function PDFToImages(media: MediaInterface): Promise<Promise<PDFIma
 	A.mediaProcessing = (A.mediaProcessing ?? 0) + 1;
 	media.processing = (media.processing ?? 0) + 1;
 
-	const PDFImageURLs: Promise<PDFImageInterface>[] = [];
+	const PDFImageURLs: Promise<DerivedImageInterface>[] = [];
 
 	const pdfDocument = await media.PDFDocument;
 	try {
@@ -91,10 +91,13 @@ export async function PDFToImages(media: MediaInterface): Promise<Promise<PDFIma
 				assert(blob);
 				return {
 					url: URL.createObjectURL(blob),
-					blob,
+					userID: media.userID,
+					size: blob.size,
+					mimeType: 'image/png',
+					file: new File([blob], `${media.filename}-${page}.png`),
 					width: canvas.width,
 					height: canvas.height
-				};
+				} as DerivedImageInterface;
 			});
 			PDFImageURLs.push(url);
 		}

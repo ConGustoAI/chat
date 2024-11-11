@@ -12,10 +12,10 @@
 	let { message }: { message: MessageInterface } = $props();
 	let provider = $derived(A.providers[A.models[message.modelID ?? 'unknown']?.providerID ?? 'Unknown']);
 
-	function tokenStatsFromMessage(): TokenStats {
+	function tokenStatsFromMessage(): TokenStatsInterface {
 		if (!message) return {};
 
-		const stats: TokenStats = {
+		const stats: TokenStatsInterface = {
 			tokensIn: message.tokensIn,
 			tokensOut: message.tokensOut,
 			tokensInCost: message.tokensInCost,

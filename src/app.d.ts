@@ -103,6 +103,14 @@ declare global {
 		inputCost?: number; // Cost in dollars per 1,000,000 tokens
 		outputCost?: number;
 		maxTemp: number;
+
+		maxImages?: number;
+		imageTokens?: number; // tokens per pixel
+		maxAudio?: number;
+		audioTokens?: number; // tokens per second
+		maxVideo?: number;
+		videoTokens?: number; // tokens per second
+
 		providerID: string;
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -283,7 +291,6 @@ declare global {
 
 		originalID?: string | null;
 
-
 		createdAt?: Date;
 		updatedAt?: Date;
 
@@ -359,7 +366,7 @@ declare global {
 
 	type undefinedNull = undefined | null;
 
-	interface TokenStats {
+	interface TokenStatsInterface {
 		tokensIn?: number;
 		tokensOut?: number;
 		tokensInCost?: number;

@@ -23,7 +23,7 @@ export const run = async () => {
 
 	for (const conversation of conversations) {
 		debug('conversation', conversation);
-		const a = conversation.assistant;
+		const a = conversation.assistantID;
 		if (a) {
 			const assistant = assistants.find((assistant) => assistant.id === a);
 			if (assistant) {
@@ -34,8 +34,8 @@ export const run = async () => {
 					const model = models.find((model) => model.id === m);
 					if (model) {
 						conversation.modelName = model.name;
-						conversation.model = model.id;
-						conversation.provider = model.provider.id;
+						conversation.modelID = model.id;
+						conversation.providerID = model.provider.id;
 						conversation.providerName = model.provider.name;
 					}
 				}

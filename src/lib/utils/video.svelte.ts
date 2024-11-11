@@ -56,8 +56,11 @@ export function videoToImages(media: MediaInterface, fps = 1): Promise<Promise<D
 					canvas.toBlob((blob) => {
 						assert(blob);
 						resolve({
+							userID: media.userID,
+							size: blob.size,
+							mimeType: 'image/jpeg',
 							url: URL.createObjectURL(blob),
-							blob,
+							file: new File([blob], `${media.filename}-${timestamp}.jpg`),
 							width: canvas.width,
 							height: canvas.height,
 							timestamp

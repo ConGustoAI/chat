@@ -9,7 +9,7 @@ export async function DBhideItem({ dbUser, itemID }: { dbUser?: UserInterface; i
 	return await db
 		.insert(hiddenItems)
 		.values({
-			userId: dbUser.id,
+			userID: dbUser.id,
 			itemID
 		})
 		.onConflictDoNothing();

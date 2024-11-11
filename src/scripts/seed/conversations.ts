@@ -40,7 +40,7 @@ export const seedConversations = async (tx: typeof db) => {
       {
         id: lastDigitsOfPiID,
         userID: defaultsUUID,
-        assistant: sonnet35ID,
+        assistantID: sonnet35ID,
         summary: '20 last digits of Pi in Python',
         public: true,
         tokensIn: 1206,

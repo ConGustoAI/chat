@@ -50,10 +50,10 @@
 		return infoArray;
 	}
 
-	function tokenStatsFromMessages(conversation?: ConversationInterface): TokenStats {
+	function tokenStatsFromMessages(conversation?: ConversationInterface): TokenStatsInterface {
 		if (!conversation?.messages) return {};
 
-		const stats: TokenStats = {
+		const stats: TokenStatsInterface = {
 			tokensIn: 0,
 			tokensOut: 0,
 			tokensInCost: 0,
@@ -78,10 +78,10 @@
 
 	let statsFromMessages = $derived.by(() => tokenStatsFromMessages(A.conversation));
 
-	function tokenStatsFromConversation(conversation?: ConversationInterface): TokenStats {
+	function tokenStatsFromConversation(conversation?: ConversationInterface): TokenStatsInterface {
 		if (!conversation) return {};
 
-		const stats: TokenStats = {
+		const stats: TokenStatsInterface = {
 			tokensIn: conversation.tokensIn ?? 0,
 			tokensOut: conversation.tokensOut ?? 0,
 			tokensInCost: conversation.tokensInCost ?? 0,
@@ -97,7 +97,7 @@
 
 	let statsFromConversation = $derived.by(() => tokenStatsFromConversation(A.conversation));
 
-	function compareStats(a: TokenStats, b: TokenStats): boolean {
+	function compareStats(a: TokenStatsInterface, b: TokenStatsInterface): boolean {
 		return a.tokensIn === b.tokensIn && a.tokensOut === b.tokensOut && a.tokensReasoning === b.tokensReasoning;
 	}
 
