@@ -19,7 +19,7 @@ export const messagesTable = pgTable('messages', {
 		.notNull(),
 	assistantID: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
 	assistantName: text('assistant_name'),
-	model: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
+	modelID: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
 	modelName: text('model_name'),
 	promptID: varchar('prompt', { length: 16 }).references(() => promptsTable.id, { onDelete: 'set null' }),
 	temperature: real('temperature'),
@@ -69,7 +69,7 @@ export const messageTableRelations = relations(messagesTable, ({ one }) => ({
 		references: [assistantsTable.id]
 	}),
 	model: one(modelsTable, {
-		fields: [messagesTable.model],
+		fields: [messagesTable.modelID],
 		references: [modelsTable.id]
 	}),
 	prompt: one(promptsTable, {

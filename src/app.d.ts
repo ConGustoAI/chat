@@ -148,7 +148,7 @@ declare global {
 		conversationID?: string;
 		assistantID?: string;
 		assistantName?: string;
-		model?: string;
+		modelID?: string;
 		modelName?: string;
 		promptID?: string;
 		role: 'user' | 'assistant';
@@ -241,6 +241,7 @@ declare global {
 
 	interface MediaInterface {
 		id?: string;
+		order?: number;
 		userID: string;
 		conversationID?: string;
 		repeat?: boolean;
@@ -281,6 +282,7 @@ declare global {
 		trimEnd?: number;
 
 		originalID?: string | null;
+
 
 		createdAt?: Date;
 		updatedAt?: Date;

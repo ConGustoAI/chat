@@ -3,7 +3,7 @@ import { usersTable } from './users';
 
 export const hiddenItems = pgTable('hidden_items', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	userId: uuid('user_id')
+	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	itemID: uuid('item_id').notNull(), // This can reference assistants/models/providers/apikeys.

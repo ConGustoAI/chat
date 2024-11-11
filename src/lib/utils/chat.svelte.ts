@@ -504,7 +504,7 @@ export async function _submitConversationClientSide() {
 		// AM.text += result.text;
 		AM.assistantID = assistant.id;
 		AM.assistantName = assistant.name;
-		AM.model = model.id;
+		AM.modelID = model.id;
 		AM.modelName = model.name;
 		AM.temperature = assistant.temperature;
 		AM.topP = assistant.topP;
@@ -646,7 +646,7 @@ export async function submitConversationClientSide() {
 						finishReason: 'aborted',
 						assistantID: A.conversation.assistantID,
 						assistantName: A.assistants[A.conversation.assistantID ?? 'unknown']?.name ?? 'Unknown',
-						model: A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'Unknown',
+						modelID: A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'Unknown',
 						modelName:
 							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.name ?? 'Unknown',
 						temperature: A.assistants[A.conversation.assistantID ?? 'unknown']?.temperature ?? 0,

@@ -12,12 +12,12 @@ export const conversationsTable = pgTable('conversations', {
 	userID: uuid('user_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	assistant: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
+	assistantID: uuid('assistant_id').references(() => assistantsTable.id, { onDelete: 'set null' }),
 	// Used for search.
 	assistantName: text('assistant_name'),
-	model: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
+	modelID: uuid('model_id').references(() => modelsTable.id, { onDelete: 'set null' }),
 	modelName: text('model_name'),
-	provider: uuid('provider_id').references(() => providersTable.id, { onDelete: 'set null' }),
+	providerID: uuid('provider_id').references(() => providersTable.id, { onDelete: 'set null' }),
 	providerName: text('provider_name'),
 
 	summary: text('summary'),
@@ -46,7 +46,7 @@ export const conversationTableRelations = relations(conversationsTable, ({ one, 
 		references: [usersTable.id]
 	}),
 	assistant: one(assistantsTable, {
-		fields: [conversationsTable.assistant],
+		fields: [conversationsTable.assistantID],
 		references: [assistantsTable.id]
 	}),
 	messages: many(messagesTable),

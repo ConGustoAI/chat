@@ -20,7 +20,7 @@ export async function DBunhideItem({ dbUser, itemID }: { dbUser?: UserInterface;
 
 	return await db
 		.delete(hiddenItems)
-		.where(and(eq(hiddenItems.userId, dbUser.id), eq(hiddenItems.itemID, itemID)))
+		.where(and(eq(hiddenItems.userID, dbUser.id), eq(hiddenItems.itemID, itemID)))
 		.returning();
 }
 
@@ -28,7 +28,7 @@ export async function DBgetHiddenItems({ dbUser }: { dbUser?: UserInterface }) {
 	if (!dbUser) return new Set();
 
 	const items = await db.query.hiddenItems.findMany({
-		where: eq(hiddenItems.userId, dbUser.id)
+		where: eq(hiddenItems.userID, dbUser.id)
 	});
 	return new Set(items.map((item) => item.itemID));
 }

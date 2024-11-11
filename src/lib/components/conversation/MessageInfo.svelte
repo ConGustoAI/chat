@@ -10,7 +10,7 @@
 	const debug = dbg('app:ui:components:conversation:MessageInfo');
 
 	let { message }: { message: MessageInterface } = $props();
-	let provider = $derived(A.providers[A.models[message.model ?? 'unknown']?.providerID ?? 'Unknown']);
+	let provider = $derived(A.providers[A.models[message.modelID ?? 'unknown']?.providerID ?? 'Unknown']);
 
 	function tokenStatsFromMessage(): TokenStats {
 		if (!message) return {};
@@ -97,7 +97,7 @@
 		<span><strong>Model:</strong></span>
 		{#if message.modelName}
 			{#if provider}
-				<a class="link" href="/settings/providers/#{provider.id}-{message.model}"
+				<a class="link" href="/settings/providers/#{provider.id}-{message.modelID}"
 					>{provider.name} / {message.modelName}</a>
 			{:else}
 				{message.modelName}
@@ -164,7 +164,10 @@
 					</div>
 				</div>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="collapse-content bg-primary text-primary-content break-all" onkeydown={handleKeydownSelectAll} tabindex="-1">
+				<div
+					class="collapse-content break-all bg-primary text-primary-content"
+					onkeydown={handleKeydownSelectAll}
+					tabindex="-1">
 					<JsonView json={JSON.parse(message.messagesSent)} depth={3} />
 				</div>
 			</div>
@@ -200,7 +203,10 @@
 					</div>
 				</div>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="collapse-content bg-primary text-primary-content break-all" onkeydown={handleKeydownSelectAll} tabindex="-1">
+				<div
+					class="collapse-content break-all bg-primary text-primary-content"
+					onkeydown={handleKeydownSelectAll}
+					tabindex="-1">
 					<JsonView json={JSON.parse(message.result)} depth={2} />
 				</div>
 			</div>
