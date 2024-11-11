@@ -17,13 +17,13 @@
 	}: {
 		model: ModelInterface;
 		edit: boolean;
-		deleteModel: any;
+		deleteModel: (model: ModelInterface) => Promise<void>;
 		allowHiding?: boolean;
 	} = $props();
 
 	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | null | undefined = $state(undefined);
 	let errorMessage: string | null = $state(null);
-	let updateTimer: number | undefined | NodeJS.Timeout;
+	let updateTimer: ReturnType<typeof setTimeout> | undefined;
 
 	// Don't let the user navigate off if changes are unsaved
 	beforeNavigate((navigation) => {

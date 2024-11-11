@@ -12,16 +12,15 @@
 		}
 	});
 
-	import dbg from 'debug';
 	import {
 		APIfetchAssistants,
 		APIfetchHidden,
 		APIfetchKeys,
 		APIfetchModels,
-		APIfetchProviders,
-		APIfetchUser
+		APIfetchProviders
 	} from '$lib/api';
 	import { toIdMap } from '$lib/utils/utils';
+	import dbg from 'debug';
 	import { untrack } from 'svelte';
 	const debug = dbg('app:layout');
 

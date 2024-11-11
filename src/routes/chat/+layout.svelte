@@ -56,15 +56,11 @@
 		);
 	});
 
-	let { data, children } = $props();
+	let { children } = $props();
 
 	$inspect(A.user).with((type, value) => {
 		debug('A.user: %s %o', type, value);
 	});
-
-	// $effect(() => {
-	// 	debug('A.conversation: ', $state.snapshot(A.conversation));
-	// });
 
 	let assistantSelectDropdown: HTMLDetailsElement | null = $state(null);
 
@@ -107,12 +103,12 @@
 
 	let conversationDragArea = $state<HTMLDivElement | null>(null);
 
-	function dragEnter(event: DragEvent) {
+	function dragEnter() {
 		debug('Drag enter');
 		A.conversationDragging++;
 	}
 
-	function dragLeave(event: DragEvent) {
+	function dragLeave() {
 		debug('Drag leave');
 		A.conversationDragging--;
 	}
@@ -139,14 +135,14 @@
 					<summary class="btn btn-outline join-item btn-sm h-full px-1"><ChevronUp class="rotate-180" /></summary>
 					<ul class="menu dropdown-content z-[20] w-52 bg-base-300 p-2 shadow">
 						<div class="divider w-full py-2">Your assistants</div>
-						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+						{#each Object.entries(A.assistants).filter(([_, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 							{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 									>{assistant.name}</button>
 							{/if}
 						{/each}
 						<div class="divider w-full py-2">Default assistants</div>
-						{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
+						{#each Object.entries(A.assistants).filter(([_, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
 							{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 								<button class="btn-base-300 btn btn-outline w-full" onclick={async () => await NewChat(assistant.id)}
 									>{assistant.name}</button>
@@ -173,7 +169,7 @@
 		<ChatTitle />
 		<div class="mb-auto flex w-full grow flex-col justify-start overflow-y-auto bg-transparent bg-opacity-10">
 			{#if A.conversation?.messages}
-				{#each A.conversation.messages as m, i}
+				{#each A.conversation.messages as _, i}
 					<ChatMessage
 						bind:message={A.conversation.messages[i]}
 						loading={i === A.conversation.messages.length - 1 && A.chatStreaming}

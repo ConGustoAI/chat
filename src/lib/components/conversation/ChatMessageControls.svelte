@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { APIdeleteMessages, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
+	import { Cost, DeleteMessageButton } from '$lib/components';
+	import { deleteMedia } from '$lib/utils/media_utils.svelte';
 	import { addMessage, assert, isPublicPage, updateMessage } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { Copy, Edit, Menu, Repeat } from 'lucide-svelte';
-	import { DeleteButton, Cost, DeleteMessageButton } from '$lib/components';
-	import { deleteMedia } from '$lib/utils/media_utils.svelte';
 
 	const debug = dbg('app:ui:components:ChatMessageControls');
 

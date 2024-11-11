@@ -102,8 +102,6 @@
 	}
 
 	let info = $derived.by(() => {
-		const _ = A.conversation; // Trigger dependency
-
 		if (A.conversation?.id && !A.chatStreaming) {
 			return collectInfo();
 		}

@@ -108,7 +108,7 @@
 		input = '';
 	}
 
-	async function inputKeyboardHandler(event: any) {
+	async function inputKeyboardHandler(event: KeyboardEvent) {
 		if (
 			!A.chatStreaming &&
 			!A.mediaUploading &&

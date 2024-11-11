@@ -19,7 +19,7 @@ export const run = async () => {
 	const messages = await db.query.messagesTable.findMany();
 
 	const conversationBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-	const messageBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+const messageBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
 	console.log('Updating conversations...');
 	conversationBar.start(conversations.length, 0);

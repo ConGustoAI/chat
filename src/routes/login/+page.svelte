@@ -1,7 +1,4 @@
 <script lang="ts">
-	// import { Notification } from '$lib/components';
-
-	// import { applyAction, enhance } from '$app/forms';
 	import { env } from '$env/dynamic/public';
 	import { A } from '$lib/appstate.svelte';
 	import { goto } from '$app/navigation';

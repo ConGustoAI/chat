@@ -344,7 +344,6 @@ export const seedModels = async (tx: typeof db) => {
 				inputCost: 0.375,
 				outputCost: 0.15
 			}
-
 		])
 		.onConflictDoNothing();
 };

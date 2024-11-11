@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { assert } from '$lib/utils/utils';
 	import * as pdfjs from 'pdfjs-dist';
-	import { onMount, untrack } from 'svelte';
+	import { untrack } from 'svelte';
 
 	import dbg from 'debug';
 	const debug = dbg('app:ui:components:PDFViewer');
@@ -14,7 +14,6 @@
 	let { media }: { media: MediaInterface } = $props();
 
 	let canvases: HTMLCanvasElement[] = $state([]);
-	let document: pdfjs.PDFDocumentProxy | undefined = $state();
 
 	let n = 100;
 

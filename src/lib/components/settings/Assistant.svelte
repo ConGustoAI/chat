@@ -28,7 +28,7 @@
 	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | 'copying' | null | undefined =
 		$state(undefined);
 	let errorMessage: string | null = $state(null);
-	let updateTimer: number | undefined | NodeJS.Timeout;
+	let updateTimer: ReturnType<typeof setTimeout>;
 
 	// Don't let the user navigate off if changes are unsaved
 	beforeNavigate((navigation) => {
@@ -108,14 +108,14 @@
 	let yourProviders = $derived(
 		Object.fromEntries(
 			Object.entries(A.providers).filter(
-				([pidx, provider]) => provider.userID === A.user?.id && !A.hiddenItems.has(provider.id!)
+				([_, provider]) => provider.userID === A.user?.id && !A.hiddenItems.has(provider.id!)
 			)
 		)
 	);
 	let defaultProviders = $derived(
 		Object.fromEntries(
 			Object.entries(A.providers).filter(
-				([pidx, provider]) => provider.userID === defaultsUUID && !A.hiddenItems.has(provider.id!)
+				([_, provider]) => provider.userID === defaultsUUID && !A.hiddenItems.has(provider.id!)
 			)
 		)
 	);
@@ -123,7 +123,6 @@
 	let model = $derived(assistant.modelID ? A.models[assistant.modelID] : null);
 	let provider = $derived(model ? A.providers[model.providerID] : null);
 
-	// $inspect(status);
 </script>
 
 <button
@@ -164,8 +163,8 @@
 	disabled={!edit}>
 	{#if Object.keys(yourProviders).length}
 		<option disabled class="text-lg font-bold">Your providers</option>
-		{#each Object.entries(yourProviders) as [pidx, provider]}
-			{#each Object.entries(A.models) as [midx, model]}
+		{#each Object.entries(yourProviders) as [_, provider]}
+			{#each Object.entries(A.models) as [_, model]}
 				{#if model.id && model.providerID === provider.id && !A.hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
 				{/if}
@@ -175,8 +174,8 @@
 
 	{#if Object.keys(defaultProviders).length}
 		<option disabled class="text-lg font-bold">Default providers</option>
-		{#each Object.entries(defaultProviders) as [pidx, provider]}
-			{#each Object.entries(A.models) as [midx, model]}
+		{#each Object.entries(defaultProviders) as [_, provider]}
+			{#each Object.entries(A.models) as [_, model]}
 				{#if model.id && model.providerID === provider.id && !A.hiddenItems.has(model.id)}
 					<option value={model.id}>{provider.name}/{model.displayName}</option>
 				{/if}
@@ -200,7 +199,7 @@
 		{#if provider}
 			<option value={defaultsUUID}>First available</option>
 
-			{#each Object.entries(A.apiKeys) as [kid, key]}
+			{#each Object.entries(A.apiKeys) as [_, key]}
 				{#if key.providerID === model.providerID}
 					<option value={key.id}>{provider.name}/{key.label}</option>
 				{/if}

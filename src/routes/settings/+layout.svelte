@@ -1,16 +1,13 @@
 <script lang="ts">
-	import { SidebarNav } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
+	import { SidebarNav } from '$lib/components';
 	import { ArrowLeftCircle } from 'lucide-svelte';
 
 	import dbg from 'debug';
-	import { APIfetchProviders } from '$lib/api/provider';
-	import { APIfetchModels } from '$lib/api/model';
-	import { APIfetchKeys } from '$lib/api/key';
-	import { toIdMap } from '$lib/utils/utils';
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const debug = dbg('app:ui:settings:layout');
 
-	let { data, children } = $props();
+	let { children } = $props();
 
 	const sidebarNavItems = [
 		{

@@ -103,8 +103,8 @@
 		if (newConversation) await goto(`/chat/${A.conversation.id}`);
 	}
 
-	async function inputKeyboardHandler(event: any) {
-		if (message.editing && A.conversation && event instanceof KeyboardEvent) {
+	async function inputKeyboardHandler(event: KeyboardEvent) {
+		if (message.editing && A.conversation) {
 			if (event.key === 'Enter' && event.ctrlKey) {
 				event.preventDefault();
 				message.markdownCache = undefined;

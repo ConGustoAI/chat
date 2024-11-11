@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { APIdeleteMedia, APIupsertConversation, APIupsertMessage } from '$lib/api';
+	import { APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
 	import { DeleteButton } from '$lib/components';
 	import { assistantSupportsMedia, deleteMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import {
+		AlertTriangle,
+		AudioLines,
 		Edit,
+		Plus,
 		RefreshCcwIcon,
 		RefreshCwOff,
 		Upload,
-		Plus,
-		AudioLines,
 		Volume1,
-		Volume2,
-		AlertTriangle
+		Volume2
 	} from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	const debug = dbg('app:ui:components:ConversatoinMediaPreview');
@@ -108,7 +108,7 @@
 	let volumeIcon = $state(1);
 
 	$effect(() => {
-		let interval: number | NodeJS.Timeout;
+		let interval: ReturnType<typeof setInterval>;
 		if (isPlaying) {
 			interval = setInterval(() => {
 				volumeIcon = volumeIcon === 1 ? 2 : 1;

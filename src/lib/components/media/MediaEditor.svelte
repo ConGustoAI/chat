@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Check } from 'lucide-svelte';
 
 	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
@@ -8,24 +7,21 @@
 		MediaAudioControls,
 		MediaImageControls,
 		MediaPDFControls,
-		PDFDocumentViewer,
 		PDFImageViewer,
 		PDFViewer
 	} from '$lib/components';
 	import {
 		assistantSupportsMedia,
-		mediaResizeFromPreset,
-		mediaUpdateText,
-		resizePresets
+		mediaUpdateText
 	} from '$lib/utils/media_utils.svelte';
 	import { assert, isPublicPage } from '$lib/utils/utils';
 
 	import dbg from 'debug';
-	import VideoImageViewer from './VideoImageViewer.svelte';
 	import MediaVideoControls from './MediaVideoControls.svelte';
+	import VideoImageViewer from './VideoImageViewer.svelte';
 	const debug = dbg('app:ui:components:MediaEditor');
 
-	let progressBar: HTMLProgressElement;
+	// let progressBar: HTMLProgressElement;
 
 	// function isVideo(media: MediaInterface) {
 	// 	return media.type === 'video';
@@ -201,7 +197,7 @@
 							type="text"
 							class="input input-sm input-bordered w-48 justify-self-end"
 							bind:value={A.mediaEditing.title}
-							onchange={async (e) => {
+							onchange={async () => {
 								titleUpdating = true;
 								await updateMediaMetadata();
 								titleUpdating = false;

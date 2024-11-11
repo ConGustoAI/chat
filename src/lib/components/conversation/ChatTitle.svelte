@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { APIupsertConversation, APIupsertMedia, APIupsertMessage, messageInterfaceFilter } from '$lib/api';
-	import { ConversationAssistant, ConversationInfo, Cost, ProfileCircle, ShareConversation } from '$lib/components';
+	import { goto } from '$app/navigation';
+	import { APIupsertConversation, APIupsertMedia, APIupsertMessage } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import dbg from 'debug';
-	import { ArrowLeftCircle, Edit, Info, Star, CopyPlus } from 'lucide-svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { trimLineLength, assert, isPublicPage } from '$lib/utils/utils';
+	import { ConversationAssistant, ConversationInfo, Cost, ProfileCircle, ShareConversation } from '$lib/components';
 	import { syncMedia, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
 	import { sanityCheckConversationMedia } from '$lib/utils/sanity-check.svelte';
+	import { assert, isPublicPage, trimLineLength } from '$lib/utils/utils';
+	import dbg from 'debug';
+	import { ArrowLeftCircle, CopyPlus, Edit, Info, Star } from 'lucide-svelte';
 
 	const debug = dbg('app:ui:conponents:ChatTitle');
 

@@ -14,7 +14,6 @@ import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.sve
 import { assert } from './utils';
 import { VideoGetMeta, videoToImages } from './video.svelte';
 import { googleUploadIfNeeded } from './googleUpload.svelte';
-// import { geminiUpload } from './geminiUpload.svelte';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -246,7 +245,7 @@ export async function uploadChangedMedia(media: MediaInterface, apiKey?: ApiKeyI
 		Object.assign(media, updatedMedia);
 	}
 
-	// if (apiKey) await googleUploadIfNeeded(media.original, media.filename, apiKey);
+	if (apiKey) await googleUploadIfNeeded(media.original, media.filename, apiKey);
 }
 
 export async function uploadConversationMedia(apiKey?: ApiKeyInterface) {

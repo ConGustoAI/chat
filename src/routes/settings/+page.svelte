@@ -1,20 +1,19 @@
 <script lang="ts">
 	import { beforeNavigate } from '$app/navigation';
-	import { APIfetchAssistants, APIupdateUser } from '$lib/api';
-	import GrowInput from '$lib/components/GrowInput.svelte';
-	import { Check } from 'lucide-svelte';
-	import { onMount, untrack } from 'svelte';
+	import { APIupdateUser } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
+	import GrowInput from '$lib/components/GrowInput.svelte';
 	import { defaultsUUID } from '$lib/db/schema';
+	import { Check } from 'lucide-svelte';
 
-	import dbg from 'debug';
-	import ApiKeyStats from '$lib/components/settings/ApiKeyStats.svelte';
 	import { InfoPopup } from '$lib/components';
+	import ApiKeyStats from '$lib/components/settings/ApiKeyStats.svelte';
+	import dbg from 'debug';
 	const debug = dbg('app:ui:settings:page');
 
 	let status: string | null = $state(null);
 	let statusMessage: string | null = $state(null);
-	let updateTimer: number | NodeJS.Timeout;
+	let updateTimer: ReturnType<typeof setTimeout>;
 
 	// Don't let the user navigate off if changes are unsaved
 	let hasUnsavedChanges = false;

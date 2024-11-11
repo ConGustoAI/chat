@@ -93,7 +93,7 @@
 	let isPlaying = $state(false);
 
 	$effect(() => {
-		let interval: number | NodeJS.Timeout;
+		let interval: ReturnType<typeof setInterval>;
 		if (isPlaying) {
 			interval = setInterval(() => {
 				volumeIcon = volumeIcon === 1 ? 2 : 1;

@@ -1,17 +1,13 @@
 <script lang="ts">
-	import { APIupsertMedia } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { PDFToImages } from '$lib/utils/pdf.svelte';
-	import { assert, isPublicPage, secondstoMMSS } from '$lib/utils/utils';
+	import { secondstoMMSS } from '$lib/utils/utils';
 	import dbg from 'debug';
-	import { untrack } from 'svelte';
-	import InfoPopup from '../InfoPopup.svelte';
-	import { addImageToSkip, removeImageFromSkip } from '$lib/utils/media_utils.svelte';
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const debug = dbg('app:ui:components:MediaAudioControls');
 
-	let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
-		return A.assistants[A.conversation?.assistantID ?? 'none'];
-	});
+	// let currentAssistant: AssistantInterface | undefined = $derived.by(() => {
+	// 	return A.assistants[A.conversation?.assistantID ?? 'none'];
+	// });
 </script>
 
 {#if A.mediaEditing}

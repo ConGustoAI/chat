@@ -11,7 +11,7 @@
 
 	let status: 'changed' | 'saving' | 'saved' | 'error' | undefined = $state(undefined);
 	let errorMessage: string | null = $state(null);
-	let updateTimer: number | undefined | NodeJS.Timeout;
+	let updateTimer: ReturnType<typeof setTimeout>;
 
 	async function updateKeyNow() {
 		if (!A.user) {

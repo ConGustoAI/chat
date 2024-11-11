@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
-	import { A } from '$lib/appstate.svelte';
-	import { Link, Star, ArrowDownFromLine, ChevronDown } from 'lucide-svelte';
-	import { slide, scale, fly } from 'svelte/transition';
-	import dbg from 'debug';
 	import { APISearchConversations } from '$lib/api';
+	import { A } from '$lib/appstate.svelte';
+	import { ConversationHistoryGroup, DeleteButton } from '$lib/components';
+	import dbg from 'debug';
+	import { ChevronDown, Link, Star } from 'lucide-svelte';
+	import { slide } from 'svelte/transition';
 	const debug = dbg('app:ui:components:ChatHistory');
 
 	let { deleteConversations }: { deleteConversations: (id: string[]) => Promise<void> } = $props();
@@ -345,7 +345,7 @@
 					<button
 						class="ampoption btn btn-ghost btn-xs cursor-pointer justify-start text-nowrap px-4 py-0 text-sm"
 						tabindex="0"
-						onclick={(e) => {
+						onclick={() => {
 							searchAMP = option;
 							searchAMPInput?.focus();
 						}}

@@ -136,7 +136,6 @@ export function filterNull<T>(value: T): T {
 
 	return Object.fromEntries(
 		Object.entries(value)
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			.filter(([_, v]) => v !== null)
 			.map(([k, v]) => {
 				if (typeof v === 'object' && v !== null) {

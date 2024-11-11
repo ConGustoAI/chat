@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { GrowInput } from '$lib/components';
 	import { A } from '$lib/appstate.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { GrowInput } from '$lib/components';
 
 	let {
 		assistant = $bindable(),

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { AssistantGrid } from '$lib/components';
 	import dbg from 'debug';
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const debug = dbg('app:ui:settings:assistants');
 </script>
 

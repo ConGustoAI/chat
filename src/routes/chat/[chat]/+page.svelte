@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { APIfetchConversation } from '$lib/api';
 	import { A } from '$lib/appstate.svelte';
-	import { mediaCreateThumbnail, imageProcessResize, syncMedia } from '$lib/utils/media_utils.svelte';
+	import { syncMedia } from '$lib/utils/media_utils.svelte';
 	import { assert } from '$lib/utils/utils';
 	import dbg from 'debug';
 	import { untrack } from 'svelte';

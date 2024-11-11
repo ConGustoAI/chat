@@ -15,13 +15,13 @@
 	}: {
 		apiKey: ApiKeyInterface;
 		edit?: boolean;
-		deleteKey: any;
+		deleteKey: (apiKey: ApiKeyInterface) => Promise<void>;
 	} = $props();
 
 	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | 'copying' | null | undefined =
 		$state(undefined);
 	let errorMessage: string | null = $state(null);
-	let updateTimer: number | undefined | NodeJS.Timeout = $state(undefined);
+	let updateTimer: ReturnType<typeof setTimeout>;
 
 	// Don't let the user navigate off if changes are unsaved
 	beforeNavigate((navigation) => {

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { APIdeleteProvider, APIhideItem, APIunhideItem, APIupsertModel, APIupsertProvider } from '$lib/api';
-	import { defaultsUUID, providerTypes } from '$lib/db/schema';
 	import { A } from '$lib/appstate.svelte';
-	import { assert, capitalize } from '$lib/utils/utils';
-	import { Check, Copy, Eye, EyeOff, Trash2 } from 'lucide-svelte';
 	import { ApiKeysGrid, DeleteButton, ModelsGrid } from '$lib/components';
+	import { defaultsUUID, providerTypes } from '$lib/db/schema';
+	import { assert, capitalize } from '$lib/utils/utils';
+	import { Check, Copy, Eye, EyeOff } from 'lucide-svelte';
 
-	import dbg from 'debug';
 	import { page } from '$app/stores';
+	import dbg from 'debug';
 	const debug = dbg('app:ui:components:Provider');
 
 	let {
@@ -36,7 +36,7 @@
 	let status: 'changed' | 'saving' | 'saved' | 'error' | 'deleting' | 'hiding' | 'copying' | null | undefined =
 		$state(undefined);
 	let errorMessage: string | null = $state(null);
-	let updateTimer: number | NodeJS.Timeout | undefined;
+	let updateTimer: ReturnType<typeof setTimeout>|undefined;
 
 	// Don't let the user navigate off if changes are unsaved
 	beforeNavigate((navigation) => {
@@ -96,7 +96,7 @@
 		// Copy all models associated with the provider.
 		// If the new provider is a default provider, only copy the default models.
 		// If the new provider is a user provider, copy both default and user models.
-		Object.entries(A.models).forEach(([modelId, model]) => {
+		Object.values(A.models).forEach((model) => {
 			if (model.providerID === provider.id) {
 				if (model.userID === defaultsUUID || (newProviderUserID !== defaultsUUID && model.userID === A.user?.id)) {
 					newModels.push({
@@ -322,7 +322,7 @@
 			<ApiKeysGrid {provider} edit={editCustomChildren} showCustom={true} showDefault={false} {newChildUserID} />
 		{/if}
 
-		{#if showDefaultChildren && (Object.entries(A.apiKeys).filter(([k, v]) => v.providerID === provider.id && v.userID === defaultsUUID).length || editDefaultChildren)}
+		{#if showDefaultChildren && (Object.values(A.apiKeys).filter((v) => v.providerID === provider.id && v.userID === defaultsUUID).length || editDefaultChildren)}
 			<div class="divider w-full">
 				{provider.name}: Default API Keys
 			</div>

@@ -7,16 +7,14 @@
 		btnClass = '',
 		class: className = '',
 		disabled = false,
-		children,
 		title = 'Delete'
-	} = $props<{
+	}: {
 		deleteAction: () => Promise<void> | void;
 		btnClass?: string;
 		class?: string;
 		disabled?: boolean;
-		children?: any;
 		title?: string | undefined;
-	}>();
+	} = $props();
 
 	let deleting = $state(false);
 	let button = $state<HTMLButtonElement | null>(null);
@@ -26,12 +24,10 @@
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div tabindex={0} class={cn(disabled ? 'btn-disabled' : '', btnClass)}>
 		{#if deleting}
-			<!-- svelte-ignore slot_element_deprecated -->
 			<div class="loading loading-sm"></div>
 		{:else}
 			<Trash2 size="fit-h" />
 		{/if}
-		<!-- {@render children?.()} -->
 	</div>
 
 	<ul class="dropdown-content z-50 w-fit p-2">

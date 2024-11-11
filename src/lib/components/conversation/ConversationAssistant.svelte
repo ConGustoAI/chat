@@ -11,13 +11,13 @@
 			name="select-assistant"
 			aria-label="Select assistant">
 			<option disabled>Your assistants</option>
-			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
+			{#each Object.entries(A.assistants).filter(([_, ass]) => ass.userID !== defaultsUUID) as [id, assistant]}
 				{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
 			{/each}
 			<option disabled>Default assistants</option>
-			{#each Object.entries(A.assistants).filter(([id, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
+			{#each Object.entries(A.assistants).filter(([_, ass]) => ass.userID === defaultsUUID) as [id, assistant]}
 				{#if !A.hiddenItems.has(id) || A.user?.assistant === id}
 					<option value={id}>{assistant.name}</option>
 				{/if}
@@ -31,8 +31,8 @@
 		{@const assistant = A.assistants[A.conversation?.assistantID ?? 'empty']}
 		{@const model = A.models[assistant?.modelID ?? 'empty']}
 		{@const provider = A.providers[model?.providerID ?? 'empty']}
-		{@const providerKey = Object.entries(A.apiKeys).find(([id, key]) => key.providerID === provider?.id)}
-		{@const assistantKey = Object.entries(A.apiKeys).find(([id, key]) => key.id === assistant?.apiKeyID)}
+		{@const providerKey = Object.values(A.apiKeys).find((key) => key.providerID === provider?.id)}
+		{@const assistantKey = Object.values(A.apiKeys).find((key) => key.id === assistant?.apiKeyID)}
 
 		{#if assistant && A.user}
 			{#if !model}

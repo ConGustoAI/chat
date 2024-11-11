@@ -6,7 +6,7 @@
 	import { JsonView } from '@zerodevx/svelte-json-view';
 
 	import dbg from 'debug';
-	import { ChevronDown, Copy, Download } from 'lucide-svelte';
+	import { Copy, Download } from 'lucide-svelte';
 	const debug = dbg('app:ui:components:conversation:MessageInfo');
 
 	let { message }: { message: MessageInterface } = $props();

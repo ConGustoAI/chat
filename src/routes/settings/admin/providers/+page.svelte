@@ -3,6 +3,7 @@
 	import { defaultsUUID } from '$lib/db/schema/users.js';
 	import dbg from 'debug';
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const debug = dbg('app:ui:settings:admin:providers');
 </script>
 

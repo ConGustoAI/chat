@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
-	import { PlusCircle, Upload, FileHeart, FolderHeart, CloudUpload, FilePlus, FolderPlus } from 'lucide-svelte';
+	import { CloudUpload, FilePlus, FolderPlus } from 'lucide-svelte';
 	import { ConversationMediaPreview } from '.';
 
 	import { goto } from '$app/navigation';
@@ -39,7 +39,6 @@
 
 			A.conversation.media.map(syncMedia);
 
-			// svelte-ignore state_snapshot_uncloneable
 			debug('Files added to conversation: ', $state.snapshot(A.conversation));
 			input.value = '';
 		}

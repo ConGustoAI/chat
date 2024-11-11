@@ -62,7 +62,7 @@
 		{#if !A.chatDataLoading}
 			<div class="g-transparent mb-auto w-full grow overflow-auto bg-opacity-10">
 				{#if A.conversation?.messages}
-					{#each A.conversation.messages as m, i}
+					{#each A.conversation.messages as _, i}
 						<ChatMessage message={A.conversation.messages[i]} submitConversation={async () => {}} />
 					{/each}
 					<div class="mb-20 w-full"></div>
