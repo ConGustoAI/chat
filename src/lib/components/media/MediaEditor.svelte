@@ -90,7 +90,7 @@
 		assert(A.mediaEditing, 'No media editing');
 		if (!A.conversation?.assistantID) return true;
 		const assistant = A.assistants[A.conversation.assistantID];
-		assert(assistant, 'Assistant not found');
+		if (!assistant) return true; // Can't fing assistant - assume it supports this media.
 
 		return assistantSupportsMedia(assistant, A.mediaEditing);
 	});
