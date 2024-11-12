@@ -427,7 +427,7 @@ export async function syncMedia(media: MediaInterface) {
 }
 
 export async function fileToMedia(file: File): Promise<MediaInterface> {
-	if (!A.user) throw new Error('User not logged in');
+	// if (!A.user) throw new Error('User not logged in');
 
 	const type = await typeFromFile(file);
 	debug('fileToMedia', type);
@@ -435,14 +435,14 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 	const m: MediaInterface = {
 		active: true,
 		repeat: true,
-		userID: A.user.id,
+		userID: A.user?.id ?? "",
 		title: file.webkitRelativePath || file.name,
 		filename: file.name,
 		type,
 		original: {
 			mimeType: file.type || (type === 'text' ? 'text/plain' : 'application/octet-stream'),
 			size: file.size,
-			userID: A.user.id,
+			userID: A.user?.id ?? "",
 			file: file
 		}
 	};
