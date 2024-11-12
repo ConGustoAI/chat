@@ -28,6 +28,12 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 			messages: {
 				where: (table, { eq, not }) => not(eq(table.deleted, true)),
 				orderBy: (table, { asc }) => [asc(table.order)]
+			},
+			media: {
+				orderBy: (table, { asc }) => [asc(table.order)],
+				with: {
+					original: true
+				}
 			}
 		}
 	});
@@ -38,6 +44,16 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 	for (const m of conversation.messages) {
 		if (m.userID !== conversation.userID) throw new Error('Message user ID mismatch');
 	}
+
+	for (const m of conversation.media as MediaInterface[]) {
+		if (m.userID !== conversation.userID) throw new Error('Media user ID mismatch');
+		if (m.original && m.original?.userID !== conversation.userID)
+			throw new Error("Media file 'original' user ID mismatch");
+
+		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
+	}
+
+
 
 	return conversation;
 }
