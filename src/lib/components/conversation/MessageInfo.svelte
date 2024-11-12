@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { A } from '$lib/appstate.svelte';
 	import { TokenStats } from '$lib/components';
-	import { assert } from '$lib/utils/utils';
+	import { assert, isPublicPage } from '$lib/utils/utils';
 
 	import { JsonView } from '@zerodevx/svelte-json-view';
 
@@ -134,7 +134,7 @@
 		{/if}
 	</div>
 	<div class="wrap flex w-full flex-col gap-2 break-words">
-		{#if message.messagesSent && A.user?.hacker}
+		{#if message.messagesSent && (A.user?.hacker || isPublicPage())}
 			<div class="collapse rounded-none bg-base-200 p-0">
 				<input bind:this={messagesSentDropdown} type="checkbox" class="peer min-h-0" />
 				<div class="collapse-title min-h-0 bg-base-200 p-2 text-primary-content peer-checked:bg-base-100">
@@ -173,7 +173,7 @@
 			</div>
 		{/if}
 
-		{#if message.result && A.user?.hacker}
+		{#if message.result && (A.user?.hacker || isPublicPage()) }
 			<div class="collapse rounded-none bg-base-200">
 				<input bind:this={resultDropdown} type="checkbox" class="peer min-h-0" />
 				<div class="collapse-title min-h-0 bg-base-200 p-2 text-primary-content peer-checked:bg-base-100">

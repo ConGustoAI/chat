@@ -363,7 +363,7 @@ declare global {
 
 	type undefinedNull = undefined | null;
 
-	interface TokenStats {
+	interface TokenStatsInterface {
 		tokensIn?: number;
 		tokensOut?: number;
 		tokensInCost?: number;
