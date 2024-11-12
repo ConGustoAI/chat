@@ -14,6 +14,7 @@ import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.sve
 import { assert } from './utils';
 import { VideoGetMeta, videoToImages } from './video.svelte';
 import { googleUploadIfNeeded } from './googleUpload.svelte';
+import type { defaultsUUID } from '$lib/db/schema';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -354,7 +355,6 @@ export async function syncMedia(media: MediaInterface) {
 	try {
 		assert(media.original);
 		await syncFileURL(media.original, media.filename);
-		// if (media.thumbnail) await syncFileURL(media.thumbnail, media.filename);
 
 		// This will only run once, when the new media is processed for the first time.
 		if (media.type === 'image') {
@@ -406,8 +406,8 @@ export async function syncMedia(media: MediaInterface) {
 			debug('audio duration', media.originalDuration);
 		} else if (media.type === 'text') {
 			assert(media.original.file);
+			if (!media.text)
 			media.text = await media.original.file.text();
-			debug('text', media.text);
 		} else if (media.type === 'pdf') {
 			if (!media.PDFDocument) media.PDFDocument = PDFGetDocument(media);
 			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);
@@ -416,10 +416,9 @@ export async function syncMedia(media: MediaInterface) {
 			if (media.PDFAsImages && !media.derivedImages) media.derivedImages = await PDFToImages(media);
 		}
 
-		// if (!media.thumbnail) {
+
 		media.thumbnail = mediaCreateThumbnail(media);
-		debug('added thumbnail', media.thumbnail);
-		// }
+
 	} finally {
 		media.processing--;
 		A.mediaProcessing--;
