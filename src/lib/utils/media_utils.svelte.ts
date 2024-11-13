@@ -405,8 +405,7 @@ export async function syncMedia(media: MediaInterface) {
 			debug('audio duration', media.originalDuration);
 		} else if (media.type === 'text') {
 			assert(media.original.file);
-			if (!media.text)
-			media.text = await media.original.file.text();
+			if (!media.text) media.text = await media.original.file.text();
 		} else if (media.type === 'pdf') {
 			if (!media.PDFDocument) media.PDFDocument = PDFGetDocument(media);
 			if (!media.PDFMeta) media.PDFMeta = PDFGetMeta(media);
@@ -415,9 +414,7 @@ export async function syncMedia(media: MediaInterface) {
 			if (media.PDFAsImages && !media.derivedImages) media.derivedImages = await PDFToImages(media);
 		}
 
-
 		media.thumbnail = mediaCreateThumbnail(media);
-
 	} finally {
 		media.processing--;
 		A.mediaProcessing--;
@@ -430,28 +427,46 @@ export async function fileToMedia(file: File): Promise<MediaInterface> {
 	const type = await typeFromFile(file);
 	debug('fileToMedia', type);
 
+	let assistantSupportsVideo = false;
+	let assistantSupportsPDF = false;
+
+	if (A.conversation?.assistantID) {
+		const assistant = A.assistants[A.conversation.assistantID];
+
+		if (assistant?.video) assistantSupportsVideo = true;
+		if (assistant?.pdf) assistantSupportsPDF = true;
+	}
+
 	const m: MediaInterface = {
 		active: true,
 		repeat: true,
-		userID: A.user?.id ?? "",
+		userID: A.user?.id ?? '',
 		title: file.webkitRelativePath || file.name,
 		filename: file.name,
 		type,
 		original: {
 			mimeType: file.type || (type === 'text' ? 'text/plain' : 'application/octet-stream'),
 			size: file.size,
-			userID: A.user?.id ?? "",
+			userID: A.user?.id ?? '',
 			file: file
 		}
 	};
 
 	if (m.type === 'pdf') {
-		m.PDFAsImages = true;
-		m.PDFAsImagesDPI = 150;
+		if (assistantSupportsPDF) {
+			m.PDFAsFile = true;
+		} else {
+			m.PDFAsImages = true;
+			m.PDFAsImagesDPI = 150;
+		}
 	}
 
 	if (m.type === 'video') {
-		m.videoAsImages = true;
+		if (assistantSupportsVideo) {
+			m.videoAsFile = true;
+		} else {
+			m.videoAsImages = true;
+		}
 	}
 
 	return m;
