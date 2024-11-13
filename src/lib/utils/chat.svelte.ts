@@ -235,9 +235,16 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (assistant.audio) {
+							let data;
+							if (provider.type === 'google') {
+								assert(media.original.googleUploadFileURI);
+								data = media.original.googleUploadFileURI;
+							} else {
+								data = await media.original.file.arrayBuffer();
+							}
 							contentChunks.push({
 								type: 'file',
-								data: await media.original.file.arrayBuffer(),
+								data,
 								mimeType: media.original.mimeType
 							});
 						} else {
@@ -371,8 +378,7 @@ export async function _submitConversationClientSide() {
 							text: `<PDF title="${media.title}" filename="${media.filename}" mimetype="${media.original.mimeType ?? 'application/pdf'}">`
 						});
 
-						if (media.derivedImages && assistant.images) {
-							assert(media.derivedImages);
+						if (media.PDFAsImages && assistant.images) {
 							assert(media.derivedImages);
 							for (let i = 0; i < media.derivedImages.length; i++) {
 								const image = await media.derivedImages[i];
