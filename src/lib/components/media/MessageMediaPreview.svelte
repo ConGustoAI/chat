@@ -166,13 +166,13 @@
 		{/if}
 	</div>
 
-	<div class="mx-1 flex w-full shrink-0 flex-col items-center text-nowrap text-center text-sm" title={media.title}>
+	<div class="mx-1 flex w-full shrink-0 flex-col items-start text-nowrap text-sm" title={media.title}>
 		{#if isHovered}
-			<div class="z-20 overflow-visible bg-base-300">
+			<div class="z-20 overflow-visible bg-base-300 border px-1 rounded-md">
 				{media.title}
 			</div>
 		{:else}
-			<p class="mx-1 w-full shrink-0 truncate">{media.title}</p>
+			<p class="mx-1 w-full shrink-0 truncate border border-transparent">{media.title}</p>
 		{/if}
 	</div>
 

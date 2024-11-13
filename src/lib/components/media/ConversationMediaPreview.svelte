@@ -137,7 +137,7 @@
 	let mediaSupported = $derived.by(() => {
 		if (!A.conversation?.assistantID) return true;
 		const assistant = A.assistants[A.conversation.assistantID];
-		assert(assistant, 'Assistant not found');
+		if (!assistant) return true; // Assume supported if assistant is not loaded
 
 		return assistantSupportsMedia(assistant, media);
 	});
@@ -277,13 +277,13 @@
 		{/await}
 	</div>
 
-	<div class="mx-1 flex w-full shrink-0 flex-col items-center text-nowrap text-center text-sm" title={media.title}>
+	<div class="mx-1 flex w-full shrink-0 flex-col items-start text-nowrap text-sm" title={media.title}>
 		{#if isHovered}
-			<div class="z-20 overflow-visible bg-base-300">
+			<div class="z-20 overflow-visible bg-base-300 px-1 border rounded-md">
 				{media.title}
 			</div>
 		{:else}
-			<p class="mx-1 w-full shrink-0 truncate">{media.title}</p>
+			<p class="mx-1 w-full shrink-0 truncate border border-transparent">{media.title}</p>
 		{/if}
 	</div>
 

@@ -10,11 +10,10 @@ import { A } from '$lib/appstate.svelte';
 import { uploadFile } from '$lib/utils/files_client.svelte';
 import dbg from 'debug';
 import { typeFromFile } from './filetype';
+import { googleUploadIfNeeded } from './googleUpload.svelte';
 import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
 import { VideoGetMeta, videoToImages } from './video.svelte';
-import { googleUploadIfNeeded } from './googleUpload.svelte';
-import type { defaultsUUID } from '$lib/db/schema';
 
 const debug = dbg('app:lib:media_utils');
 
