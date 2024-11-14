@@ -67,7 +67,8 @@
 		if (['image', 'pdf', 'video', 'audio'].includes(media.type)) {
 			if (media.thumbnail) {
 				debug('thumbnailURL: Picking thumbnail');
-				media.thumbnail.then((t) => (thumbnailURL = t.url));
+				thumbnailURL = media.thumbnail.url;
+				// media.thumbnail.then((t) => (thumbnailURL = t.url));
 			} else if (media.transformed) {
 				debug('thumbnailURL: Picking transformed');
 				media.transformed.then((r) => (thumbnailURL = r.url));
@@ -268,13 +269,13 @@
 			{/if}
 		</div>
 
-		{#await media.thumbnail then thumbnail}
-			{#if (!media.original || media.original.status === 'ok') && (!thumbnail || thumbnail.status === 'ok')}
+		<!-- {#await media.thumbnail then thumbnail} -->
+			{#if (!media.original || media.original.status === 'ok') && (!media.thumbnail || media.thumbnail.status === 'ok')}
 				<div class="absolute bottom-0.5 left-0 z-30 text-success">
 					<Upload size={14} strokeWidth={3} />
 				</div>
 			{/if}
-		{/await}
+		<!-- {/await} -->
 	</div>
 
 	<div class="mx-1 flex w-full shrink-0 flex-col items-start text-nowrap text-sm" title={media.title}>

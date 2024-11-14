@@ -232,6 +232,13 @@
       "when": 1731135491828,
       "tag": "0032_easy_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1731541645198,
+      "tag": "0033_uneven_lyja",
+      "breakpoints": true
     }
   ]
 }

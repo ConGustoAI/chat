@@ -48,7 +48,7 @@
 
 	$effect(() => {
 		meidaNeedsUpload = !!A.conversation?.media?.find(
-			async (m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && (await m.thumbnail).status !== 'ok')
+			async (m) => (m.original && m.original.status !== 'ok') || (m.thumbnail && m.thumbnail.status !== 'ok')
 		);
 	});
 
@@ -68,7 +68,7 @@
 					p += m.original.uploadProgress ?? 0;
 					count++;
 				}
-				const thumbnail = await m.thumbnail;
+				const thumbnail = m.thumbnail;
 				if (thumbnail && thumbnail.status === 'progress') {
 					p += thumbnail.uploadProgress ?? 0;
 					count++;

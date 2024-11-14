@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { Command } from 'commander';
 import { defaultsUUID } from '$lib/db/schema';
+import { assert } from '$lib/utils/utils';
 
 async function run(conversationID: string, newUserID: string = defaultsUUID) {
 
@@ -59,6 +60,7 @@ async function run(conversationID: string, newUserID: string = defaultsUUID) {
 
         // Update media original files
         for (const originalID of mediaOrignalFiles) {
+            assert(originalID);
             await tx
                 .update(schema.fileTable)
                 .set({ userID: newUserID })

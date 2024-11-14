@@ -78,6 +78,7 @@ export async function resizeImage(
 		debug('blob', blob);
 
 		return {
+			isThumbnail: true,
 			userID: A.user?.id ?? 'anon',
 			url: URL.createObjectURL(blob),
 			mimeType: blob.type,
@@ -156,8 +157,7 @@ export async function mediaUpdateText(media: MediaInterface) {
 		}
 	}
 
-	media.thumbnail = undefined;
-	await mediaCreateThumbnail(media);
+	if (!media.thumbnail) media.thumbnail = await mediaCreateThumbnail(media);
 }
 
 interface ResizePreset {
@@ -220,28 +220,39 @@ export async function mediaResizeFromPreset(
 		media.resizedWidth = undefined;
 		media.resizedHeight = undefined;
 		media.transformed = undefined;
-		mediaCreateThumbnail(media);
-		Object.assign(media, await APIupsertMedia(media));
 	} else if (width !== media.resizedWidth || height !== media.resizedHeight) {
 		media.resizedWidth = width;
 		media.resizedHeight = height;
 		media.transformed = resizeImage(media.original, width, height);
-		mediaCreateThumbnail(media);
-		Object.assign(media, await APIupsertMedia(media));
+		media.thumbnail = await mediaCreateThumbnail(media);
 	}
+	Object.assign(media, await APIupsertMedia(media));
 }
 
 export async function uploadChangedMedia(media: MediaInterface, apiKey?: ApiKeyInterface) {
 	assert(media.original);
 	assert(A.conversation?.id); // Conversation should be created at this point.
 
+	let mediaNeedsUpsert = false;
+
 	if (!media.original.id) {
 		Object.assign(media.original, await uploadFile(media.original));
 		assert(media.original.id);
 		media.originalID = media.original.id;
-		media.conversationID = A.conversation?.id;
+		mediaNeedsUpsert = true;
+	}
+
+	if (media.thumbnail && !media.thumbnail.id) {
+		Object.assign(media.thumbnail, await uploadFile(media.thumbnail));
+		assert(media.thumbnail.id);
+		media.thumbnailID = media.thumbnail.id;
+		mediaNeedsUpsert = true;
+	}
+
+	if (!media.id || !media.conversationID || mediaNeedsUpsert) {
+		media.conversationID = A.conversation.id;
 		const updatedMedia = await APIupsertMedia(media);
-		debug('media uploaded!', updatedMedia);
+		debug('media upserted after upload', $state.snapshot(updatedMedia));
 		Object.assign(media, updatedMedia);
 	}
 
@@ -414,7 +425,7 @@ export async function syncMedia(media: MediaInterface) {
 			if (media.PDFAsImages && !media.derivedImages) media.derivedImages = await PDFToImages(media);
 		}
 
-		media.thumbnail = mediaCreateThumbnail(media);
+		if (!media.thumbnail) media.thumbnail = await mediaCreateThumbnail(media);
 	} finally {
 		media.processing--;
 		A.mediaProcessing--;
@@ -618,7 +629,7 @@ export async function deleteMedia(media: MediaInterface) {
 
 	await Promise.all(promises);
 	URL.revokeObjectURL(media.original?.url ?? '');
-	URL.revokeObjectURL((await media.thumbnail)?.url ?? '');
+	URL.revokeObjectURL(media.thumbnail?.url ?? '');
 
 	A.conversation.media.splice(A.conversation.media.indexOf(media), 1);
 }

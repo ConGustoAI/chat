@@ -34,7 +34,7 @@ export async function _submitConversationClientSide() {
 
 	const model = A.models[assistant.modelID];
 	if (!model) throw new Error('Selected assistant model not available');
-	assert(model.providerID); // Can't have a model without provider.
+	assert(model.providerID, 'Model missing provider ID'); // Can't have a model without provider.
 
 	const provider = A.providers[model.providerID];
 	if (!provider) throw new Error('provider not found');
@@ -62,7 +62,7 @@ export async function _submitConversationClientSide() {
 
 	const mediaIDs =
 		UM.media?.map((m) => {
-			assert(m.id);
+			assert(m.id, "Media doesn't have an ID");
 			return m.id;
 		}) ?? [];
 
@@ -137,25 +137,26 @@ export async function _submitConversationClientSide() {
 		if (message.role === 'user') {
 			for (const mid of message.mediaIDs ?? []) {
 				const media = A.conversation?.media?.find((m) => m.id === mid);
-				assert(media); // Deleted?
+				assert(media, 'Media missing?'); // Deleted?
 
-				assert(media.id);
-				assert(media.conversationID === A.conversation?.id);
+				assert(media.id, "Media doesn't have an ID");
+				assert(media.conversationID === A.conversation?.id, "Media doesn't belong to the conversation");
 				assert(
 					media.type === 'image' ||
 						media.type === 'audio' ||
 						media.type === 'video' ||
 						media.type === 'text' ||
-						media.type === 'pdf'
+						media.type === 'pdf',
+					'Media type is not supported'
 				);
 
 				if (media.type === 'image') {
-					assert(media.original);
-					assert(media.originalWidth);
-					assert(media.originalHeight);
+					assert(media.original, 'Image missing original');
+					assert(media.originalWidth, 'Image missing original width');
+					assert(media.originalHeight, 'Image missing original height');
 
 					//Either both are set or both are not set
-					assert((media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth));
+					assert((media.resizedHeight && media.resizedWidth) || (!media.resizedHeight && !media.resizedWidth), 'Inconsistent image resize dimensions');
 
 					let file: FileInterface;
 					let width: number;
@@ -167,14 +168,14 @@ export async function _submitConversationClientSide() {
 						media.resizedHeight &&
 						media.resizedHeight !== media.originalHeight
 					) {
-						assert(media.transformed);
+						assert(media.transformed, 'Image missing transformed');
 						file = await media.transformed;
-						assert(file.file);
+						assert(file.file, 'Transformed image missing file');
 						width = media.resizedWidth;
 						height = media.resizedHeight;
 					} else {
 						file = media.original;
-						assert(file.file);
+						assert(file.file, 'Original image missing file');
 						width = media.originalWidth;
 						height = media.originalHeight;
 					}
@@ -197,7 +198,7 @@ export async function _submitConversationClientSide() {
 						if (assistant.images) {
 							let data;
 							if (provider.type === 'google') {
-								assert(file.googleUploadFileURI);
+								assert(file.googleUploadFileURI, 'Google upload file URI missing');
 								data = file.googleUploadFileURI;
 							} else {
 								data = await file.file.arrayBuffer();
@@ -215,9 +216,9 @@ export async function _submitConversationClientSide() {
 						contentChunks.push({ type: 'text', text: '</Image>' });
 					}
 				} else if (media.type === 'audio') {
-					assert(media.original);
-					assert(media.original.file);
-					assert(media.originalDuration);
+					assert(media.original, 'Audio missing original');
+					assert(media.original.file, 'Audio missing original file');
+					assert(media.originalDuration !== undefined, 'Audio missing original duration');
 
 					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
@@ -237,7 +238,7 @@ export async function _submitConversationClientSide() {
 						if (assistant.audio) {
 							let data;
 							if (provider.type === 'google') {
-								assert(media.original.googleUploadFileURI);
+								assert(media.original.googleUploadFileURI, 'Google upload file URI missing');
 								data = media.original.googleUploadFileURI;
 							} else {
 								data = await media.original.file.arrayBuffer();
@@ -257,11 +258,11 @@ export async function _submitConversationClientSide() {
 						contentChunks.push({ type: 'text', text: '</Audio>' });
 					}
 				} else if (media.type === 'video') {
-					assert(media.original);
-					assert(media.original.file);
-					assert(media.originalDuration);
-					assert(media.originalWidth);
-					assert(media.originalHeight);
+					assert(media.original, 'Video missing original');
+					assert(media.original.file, 'Video missing original file');
+					assert(media.originalDuration != undefined, 'Video missing original duration');
+					assert(media.originalWidth, 'Video missing original width');
+					assert(media.originalHeight, 'Video missing original height');
 
 					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
@@ -281,12 +282,11 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (media.videoAsImages && assistant.images) {
-							assert(media.derivedImages);
-							assert(media.derivedImages);
+							assert(media.derivedImages, 'Video missing derived images');
 
 							for (let i = 0; i < media.derivedImages.length; i++) {
 								const image = await media.derivedImages[i];
-								assert(image.file);
+								assert(image.file, 'Derived Image missing file');
 								contentChunks.push({
 									type: 'text',
 									text: `<Frame frame="${i}" timestamp="${image.timestamp} seconds" resolution="${image.width}x${image.height}">`
@@ -309,7 +309,7 @@ export async function _submitConversationClientSide() {
 
 							let data;
 							if (provider.type === 'google') {
-								assert(media.original.googleUploadFileURI);
+								assert(media.original.googleUploadFileURI, 'Google upload file URI missing');
 								data = media.original.googleUploadFileURI;
 							} else {
 								data = await media.original.file.arrayBuffer();
@@ -347,9 +347,8 @@ export async function _submitConversationClientSide() {
 						contentChunks.push({ type: 'text', text: '</Video>' });
 					}
 				} else if (media.type === 'text') {
-					assert(media.original);
-					assert(media.original.file);
-					assert(media.original);
+					assert(media.original, 'Text missing original');
+					assert(media.original.file, 'Text missing original file');
 
 					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
@@ -365,9 +364,8 @@ export async function _submitConversationClientSide() {
 						contentChunks.push({ type: 'text', text: '</Text>' });
 					}
 				} else if (media.type === 'pdf') {
-					assert(media.original);
-					assert(media.original.file);
-					assert(media.original);
+					assert(media.original, 'PDF missing original');
+					assert(media.original.file, 'PDF missing original file');
 
 					const shouldAddMedia = !addedMedia.includes(media.id) && (media.repeat || message === UM);
 
@@ -379,10 +377,10 @@ export async function _submitConversationClientSide() {
 						});
 
 						if (media.PDFAsImages && assistant.images) {
-							assert(media.derivedImages);
+							assert(media.derivedImages, 'PDF missing derived images');
 							for (let i = 0; i < media.derivedImages.length; i++) {
 								const image = await media.derivedImages[i];
-								assert(image.file);
+								assert(image.file, 'Derived PDF Image missing file');
 
 								contentChunks.push({
 									type: 'text',
@@ -406,7 +404,7 @@ export async function _submitConversationClientSide() {
 
 							let data;
 							if (provider.type === 'google') {
-								assert(media.original.googleUploadFileURI);
+								assert(media.original.googleUploadFileURI, 'Google upload file URI missing');
 								data = media.original.googleUploadFileURI;
 							} else {
 								data = await media.original.file.arrayBuffer();
@@ -494,9 +492,9 @@ export async function _submitConversationClientSide() {
 		result: NonNullable<Parameters<NonNullable<Parameters<typeof streamText>[0]['onFinish']>>>[0]
 	): Promise<void> {
 		debug('streamText result:', JSON.stringify(result, null, 2));
-		assert(A.conversation);
-		assert(A.user);
-		assert(apiKey);
+		assert(A.conversation, 'Conversation missing');
+		assert(A.user, 'User missing');
+		assert(apiKey, 'API key missing');
 
 		const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
 
@@ -582,7 +580,7 @@ export async function _submitConversationClientSide() {
 	let timestamp = Date.now();
 	async function onChunk(event: NonNullable<Parameters<NonNullable<Parameters<typeof streamText>[0]['onChunk']>>>[0]) {
 		const chunk = event.chunk;
-		assert(chunk);
+		assert(chunk, 'Chunk missing');
 
 		if (chunk.type == 'text-delta') {
 			AM.text += chunk.textDelta;

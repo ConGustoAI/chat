@@ -32,7 +32,8 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 			media: {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
-					original: true
+					original: true,
+					thumbnail: true
 				}
 			}
 		}
@@ -51,6 +52,7 @@ export async function DBgetDefaultConversation({ id }: { id: string }) {
 			throw new Error("Media file 'original' user ID mismatch");
 
 		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
+		if (m.thumbnail && m.thumbnail.size > 0) m.thumbnail.url = await getDownloadURL(m.thumbnail);
 	}
 
 
@@ -69,7 +71,8 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 			media: {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
-					original: true
+					original: true,
+					thumbnail: true
 				}
 			}
 		}
@@ -88,6 +91,7 @@ export async function DBGetPublicConversation({ id }: { id: string }) {
 			throw new Error("Media file 'original' user ID mismatch");
 
 		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
+		if (m.thumbnail && m.thumbnail.size > 0) m.thumbnail.url = await getDownloadURL(m.thumbnail);
 	}
 
 	return conversation;
@@ -117,7 +121,8 @@ export async function DBgetConversation({ session, id }: { session: SessionInter
 			media: {
 				orderBy: (table, { asc }) => [asc(table.order)],
 				with: {
-					original: true
+					original: true,
+					thumbnail: true
 				}
 			}
 		}
@@ -136,6 +141,7 @@ export async function DBgetConversation({ session, id }: { session: SessionInter
 			throw new Error("Media file 'original' user ID mismatch");
 
 		if (m.original && m.original.size > 0) m.original.url = await getDownloadURL(m.original);
+		if (m.thumbnail && m.thumbnail.size > 0) m.thumbnail.url = await getDownloadURL(m.thumbnail);
 
 		debug('media: %o', m);
 	}

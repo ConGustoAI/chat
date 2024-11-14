@@ -48,7 +48,7 @@
 				debug('displayedImageURL: Picking original');
 				displayedImageURL = A.mediaEditing.original.url;
 			} else {
-				debug('thumbnailURL: No preview URL available');
+				debug('displayedImageURL: No preview URL available');
 				displayedImageURL = undefined;
 			}
 		}

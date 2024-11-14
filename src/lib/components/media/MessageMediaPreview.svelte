@@ -16,7 +16,8 @@
 		if (['image', 'pdf', 'video', 'audio'].includes(media.type)) {
 			if (media.thumbnail) {
 				debug('thumbnailURL: Picking thumbnail');
-				media.thumbnail.then((t) => (thumbnailURL = t.url));
+				// media.thumbnail.then((t) => (thumbnailURL = t.url));
+				thumbnailURL = media.thumbnail.url;
 			} else if (media.transformed) {
 				debug('thumbnailURL: Picking resized');
 				media.transformed.then((r) => (thumbnailURL = r.url));
@@ -49,7 +50,7 @@
 		}
 
 		if (media.thumbnail) {
-			media.thumbnail.then((t) => {
+				const t = media.thumbnail;
 				if (t && t.status === 'progress') {
 					totalSize += t.size ?? 0;
 					totalProgress += ((t.uploadProgress ?? 0) * (t.size ?? 0)) / 100;
@@ -61,7 +62,7 @@
 					uploadProgress = undefined;
 				}
 				debug('media uploadProgress', uploadProgress);
-			});
+
 		} else {
 			if (totalSize) {
 				uploadProgress = (totalProgress / totalSize) * 100;

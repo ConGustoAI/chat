@@ -287,6 +287,7 @@ declare global {
 		trimEnd?: number;
 
 		originalID?: string | null;
+		thumbnailID?: string | null;
 
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -301,7 +302,7 @@ declare global {
 		// Only valid for text
 		text?: string;
 
-		thumbnail?: Promise<FileInterface>;
+		thumbnail?: FileInterface;
 
 		transformed?: Promise<FileInterface>;
 		// cropped?: FileInterface;

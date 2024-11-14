@@ -49,6 +49,7 @@ export const mediaTable = pgTable('media', {
 	trimEnd: real('duration_end'),
 
 	originalID: uuid('original_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
+	thumbnailID: uuid('thumbnail_id').references((): AnyPgColumn => fileTable.id, { onDelete: 'set null' }),
 
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at')
@@ -68,6 +69,10 @@ export const mediaTableRelations = relations(mediaTable, ({ one }) => ({
 	}),
 	original: one(fileTable, {
 		fields: [mediaTable.originalID],
+		references: [fileTable.id]
+	}),
+	thumbnail: one(fileTable, {
+		fields: [mediaTable.thumbnailID],
 		references: [fileTable.id]
 	})
 }));

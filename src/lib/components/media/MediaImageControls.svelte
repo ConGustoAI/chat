@@ -18,7 +18,8 @@
 		if (A.mediaEditing) {
 			if (A.mediaEditing.thumbnail) {
 				debug('thumbnailURL: Picking thumbnail');
-				A.mediaEditing.thumbnail.then((t) => (thumbnailURL = t.url));
+				// A.mediaEditing.thumbnail.then((t) => (thumbnailURL = t.url));
+				thumbnailURL = A.mediaEditing.thumbnail.url;
 			} else if (A.mediaEditing.original && A.mediaEditing.type === 'image') {
 				debug('thumbnailURL: Picking original');
 				thumbnailURL = A.mediaEditing.original.url;
