@@ -13,7 +13,7 @@ import { typeFromFile } from './filetype';
 import { googleUploadIfNeeded } from './googleUpload.svelte';
 import { PDFGetDocument, PDFGetMeta, PDFThumbnail, PDFToImages } from './pdf.svelte';
 import { assert } from './utils';
-import { VideoGetMeta, videoToImages } from './video.svelte';
+import { VideoGetMeta, VideoThumbnail, videoToImages } from './video.svelte';
 
 const debug = dbg('app:lib:media_utils');
 
@@ -230,21 +230,21 @@ export async function mediaResizeFromPreset(
 }
 
 export async function uploadChangedMedia(media: MediaInterface, apiKey?: ApiKeyInterface) {
-	assert(media.original);
-	assert(A.conversation?.id); // Conversation should be created at this point.
+	assert(media.original, 'Original media not found');
+	assert(A.conversation?.id, 'Conversation ID missing'); // Conversation should be created at this point.
 
 	let mediaNeedsUpsert = false;
 
 	if (!media.original.id) {
 		Object.assign(media.original, await uploadFile(media.original));
-		assert(media.original.id);
+		assert(media.original.id, 'Original media ID not found');
 		media.originalID = media.original.id;
 		mediaNeedsUpsert = true;
 	}
 
 	if (media.thumbnail && !media.thumbnail.id) {
 		Object.assign(media.thumbnail, await uploadFile(media.thumbnail));
-		assert(media.thumbnail.id);
+		assert(media.thumbnail.id, 'Thumbnail media ID not found');
 		media.thumbnailID = media.thumbnail.id;
 		mediaNeedsUpsert = true;
 	}
@@ -331,6 +331,8 @@ export function mediaCreateThumbnail(media: MediaInterface): Promise<FileInterfa
 
 			return resizeImage(media.original, Math.round(newWidth), Math.round(newHeight));
 		}
+	} else if (media.type === 'video') {
+		return VideoThumbnail(media);
 	} else if (media.type === 'pdf') {
 		return PDFThumbnail(media);
 	}

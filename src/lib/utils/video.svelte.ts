@@ -76,3 +76,55 @@ export function videoToImages(media: MediaInterface, fps = 1): Promise<Promise<D
 		};
 	});
 }
+
+export async function VideoThumbnail(media: MediaInterface): Promise<FileInterface> {
+	assert(media.type === 'video', 'Media is not a video');
+
+	return new Promise((resolve) => {
+		assert(media.original.url, 'Media has no original URL');
+		const video = document.createElement('video');
+		video.src = media.original.url;
+
+		const canvas = document.createElement('canvas');
+		canvas.width = 128;
+		canvas.height = 128;
+
+		const ctx = canvas.getContext('2d');
+		assert(ctx);
+
+		video.onloadedmetadata = () => {
+			// Seek to middle of video
+			video.currentTime = video.duration / 2;
+		};
+
+		video.onseeked = () => {
+			// Calculate dimensions to maintain aspect ratio
+			const aspectRatio = video.videoWidth / video.videoHeight;
+			let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+			if (aspectRatio > 1) {
+				drawHeight = 128;
+				drawWidth = drawHeight * aspectRatio;
+				offsetX = -(drawWidth - 128) / 2;
+			} else {
+				drawWidth = 128;
+				drawHeight = drawWidth / aspectRatio;
+				offsetY = -(drawHeight - 128) / 2;
+			}
+
+			ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
+
+			canvas.toBlob((blob) => {
+				assert(blob);
+				resolve({
+					userID: media.userID,
+					size: blob.size,
+					mimeType: 'image/jpeg',
+					url: URL.createObjectURL(blob),
+					file: new File([blob], `${media.filename}-thumbnail.jpg`),
+					isThumbnail: true
+				});
+			}, 'image/jpeg');
+		};
+	});
+}
