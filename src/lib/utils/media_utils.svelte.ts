@@ -377,6 +377,8 @@ export async function syncMedia(media: MediaInterface) {
 					img.onload = () => {
 						media.originalWidth = img.naturalWidth;
 						media.originalHeight = img.naturalHeight;
+						assert(media.originalHeight);
+						assert(media.originalWidth);
 						resolve();
 					};
 					img.onerror = (error) => {
@@ -518,7 +520,7 @@ export async function handleDataTransfer({
 	handle_string?: boolean;
 	message?: MessageInterface;
 }) {
-	const newMedia: MediaInterface[] = [];
+	const newMedia: MediaInterface[] = $state([]);
 	let newText: string | undefined;
 
 	if (handleString) {
