@@ -74,7 +74,6 @@ async function run(conversationID: string, newUserID: string = defaultsUUID) {
 
 }
 
-// Replace the manual argument parsing with this:
 const program = new Command();
 
 program
