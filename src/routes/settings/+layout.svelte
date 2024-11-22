@@ -38,10 +38,10 @@
 			title: 'Default Assistants',
 			href: '/settings/admin/assistants'
 		},
-		{
-			title: 'Manage users',
-			href: '/settings/admin/users'
-		}
+		// {
+		// 	title: 'Manage users',
+		// 	href: '/settings/admin/users'
+		// }
 	];
 </script>
 
