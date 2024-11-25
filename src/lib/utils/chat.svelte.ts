@@ -521,6 +521,7 @@ export async function _submitConversationClientSide() {
 		AM.messagesSent = JSON.stringify(sanitizeData(inputMessages));
 		AM.result = JSON.stringify({
 			...result,
+			request: undefined,
 			response: undefined,
 			steps: undefined,
 			responseMessages: undefined
