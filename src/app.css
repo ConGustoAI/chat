@@ -89,7 +89,7 @@
 
 .katex * {
 	margin: 0;
-	text-align: left;
+	/* text-align: left; */
 }
 
 .MathJax svg {
