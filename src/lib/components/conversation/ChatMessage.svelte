@@ -327,7 +327,12 @@
 					<div class="w-full whitespace-pre-wrap break-words py-2">{message.text}</div>
 				{/if}
 
-				{#if message.role === 'assistant' && A.conversation?.messages?.at(-1) === message && !isPublicPage()}
+				{#if
+					A.conversation?.messages?.at(-1) === message &&
+					message.role === 'assistant' &&
+					message.finishReason !== 'stop' &&
+					!isPublicPage() &&
+					!A.chatStreaming}
 					<button
 						class="btn btn-ghost btn-xs absolute bottom-2 right-2 rounded-md p-0 px-1"
 						title="Continue generating"
