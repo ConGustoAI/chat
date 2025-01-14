@@ -141,6 +141,8 @@
 		}
 	}
 
+	let lastMessageFromAssistant = $state(false);
+
 	let inputFocus = $state(false);
 	let prefillFocus = $state(false);
 
@@ -170,6 +172,12 @@
 						}
 					}
 				}
+			}
+
+			if (A.conversation.messages[A.conversation.messages.length - 1].role === 'assistant') {
+				lastMessageFromAssistant = true;
+			} else {
+				lastMessageFromAssistant = false;
 			}
 		}
 	});

@@ -12,7 +12,7 @@
 	} from '$lib/components';
 	import 'highlight.js/styles/github-dark.min.css';
 	import 'katex/dist/katex.min.css';
-	import { Computer, PlusCircle, Smile } from 'lucide-svelte';
+	import { Computer, PlusCircle, Smile, StepForward } from 'lucide-svelte';
 
 	import { ChatMessageControls, Notification } from '$lib/components';
 	import { handleDataTransfer, uploadConversationMedia } from '$lib/utils/media_utils.svelte';
@@ -37,7 +37,7 @@
 
 	let detailsOpen = $state(false);
 
-	let summaryElement: HTMLElement;
+	let summaryElement: HTMLElement|undefined = undefined;
 
 	function closeDetails() {
 		console.log('closeDetails');
@@ -320,10 +320,23 @@
 						<div class=" ml-auto text-sm">Ctrl/⌘ + Enter ⇒ Save & Send</div>
 					</div>
 				</div>
-			{:else if markdown}
-				<MarkdownMessage bind:message />
 			{:else}
-				<div class="w-full whitespace-pre-wrap break-words py-2">{message.text}</div>
+				{#if markdown}
+					<MarkdownMessage bind:message />
+				{:else}
+					<div class="w-full whitespace-pre-wrap break-words py-2">{message.text}</div>
+				{/if}
+
+				{#if message.role === 'assistant' && A.conversation?.messages?.at(-1) === message && !isPublicPage()}
+					<button
+						class="btn btn-ghost btn-xs absolute bottom-2 right-2 rounded-md p-0 px-1"
+						title="Continue generating"
+						onclick={submitConversation}
+					>
+						<StepForward size={15} />
+					</button>
+				{/if}
+
 			{/if}
 
 			{#if message.finishReason === 'content-filter'}

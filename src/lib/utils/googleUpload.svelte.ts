@@ -2,7 +2,7 @@ import { A } from '$lib/appstate.svelte';
 import dbg from 'debug';
 import { assert } from './utils';
 import { APIupsertFile } from '$lib/api';
-const debug = dbg('app:utils/geminiUpload');
+const debug = dbg('app:utils:geminiUpload');
 
 export async function doGeminiUpload(file: FileInterface, displayName: string, apiKey: string) {
 	// Get the upload URL to which we will send the file
