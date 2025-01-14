@@ -5,7 +5,7 @@
 			"command": "npm run dev",
 			"name": "Run development server",
 			"env": {
-				"DEBUG": "app*"
+				"DEBUG": "app:*"
 			},
 			"request": "launch",
 			"type": "node-terminal"
