@@ -4,11 +4,11 @@
 	"private": true,
 	"license": "MIT",
 	"engines": {
-		"node": "^20"
+		"bun": "2.0"
 	},
 	"scripts": {
 		"dev": "vite dev",
-		"build": "npm run copy-pdfjs && vite build && npm run db:migrate && npm run db:seed",
+		"build": "bun run copy-pdfjs && vite build && bun run db:migrate && bun run db:seed",
 		"copy-pdfjs": "cp node_modules/pdfjs-dist/build/pdf.worker.mjs* static/",
 		"start": "node ./build",
 		"preview": "vite preview",
