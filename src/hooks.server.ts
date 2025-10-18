@@ -10,6 +10,7 @@ export const sse = false;
 import { DBGetPublicConversation } from '$lib/db/utils';
 import { getSessionTokenCookie, validateSession } from '$lib/utils/auth';
 import { filterNull } from '$lib/utils/utils';
+import { DEV_LOGIN_USER } from '$env/static/private';
 
 function makeDescription(conversation: ConversationInterface | undefined) {
 	if (!conversation?.messages?.length) return '';
@@ -34,6 +35,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	debug('session %o', session);
+
+	if (!session && DEV_LOGIN_USER) {
+		session = {
+			id: 'dev-session-' + DEV_LOGIN_USER,
+			userID: DEV_LOGIN_USER,
+			expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+			user: { id: DEV_LOGIN_USER, name: 'Dev User', admin: true }
+		};
+	}
 
 	event.locals.session = session;
 
