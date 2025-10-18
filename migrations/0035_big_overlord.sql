@@ -1,0 +1,1 @@
+ALTER TABLE "assistants" ADD COLUMN "temperature_enabled" boolean DEFAULT true NOT NULL;
