@@ -33,6 +33,7 @@
 			name: 'New assistant',
 			aboutUserFromUser: true,
 			temperature: 0,
+			temperature_enabled: true,
 			maxTokens: 0,
 			topK: 0,
 			topP: 0,

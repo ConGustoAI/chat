@@ -181,12 +181,6 @@
 	}}
 	disabled={!edit || status === 'deleting'} />
 
-<!-- <input
-	type="checkbox"
-	class="checkbox"
-	bind:checked={model.streaming}
-	oninput={() => {status = "chaged"}}
-	disabled={!edit || status === 'deleting'} /> -->
 <input
 	type="checkbox"
 	class="checkbox"
@@ -244,6 +238,62 @@
 	type="checkbox"
 	class="checkbox"
 	bind:checked={model.pdf}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.temperature_enabled}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.top_p_enabled}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.top_k_enabled}
+	oninput={() => {
+		status = 'changed';
+		debounceModelUpdate();
+	}}
+	onblur={() => {
+		clearTimeout(updateTimer);
+		updateModelNow();
+	}}
+	disabled={!edit || status === 'deleting'} />
+
+<input
+	type="checkbox"
+	class="checkbox"
+	bind:checked={model.max_tokens_enabled}
 	oninput={() => {
 		status = 'changed';
 		debounceModelUpdate();

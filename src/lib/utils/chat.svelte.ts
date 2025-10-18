@@ -496,7 +496,7 @@ export async function _submitConversationClientSide() {
 		assert(A.user, 'User missing');
 		assert(apiKey, 'API key missing');
 
-		const reasoningTokens = result.experimental_providerMetadata?.openai?.reasoningTokens as number | undefined;
+		const reasoningTokens = result.providerMetadata?.openai?.reasoningTokens as number | undefined;
 
 		AM.finishReason = result.finishReason;
 		AM.tokensIn = isNaN(result.usage.promptTokens) ? 0 : result.usage.promptTokens;
@@ -510,9 +510,9 @@ export async function _submitConversationClientSide() {
 		AM.assistantName = assistant.name;
 		AM.modelID = model.id;
 		AM.modelName = model.name;
-		AM.temperature = assistant.temperature;
-		AM.topP = assistant.topP;
-		AM.topK = assistant.topK;
+		AM.temperature = (assistant.temperature_enabled && model.temperature_enabled !== false) ? assistant.temperature : undefined;
+		AM.topP = (assistant.top_p_enabled && model.top_p_enabled !== false) ? assistant.topP : undefined;
+		AM.topK = (assistant.top_k_enabled && model.top_k_enabled !== false) ? assistant.topK : undefined;
 		AM.promptID = systemPromptHash;
 		AM.prompt = prompt;
 
@@ -599,10 +599,10 @@ export async function _submitConversationClientSide() {
 		model: client,
 		messages: inputMessages,
 		system: systemPromptText?.trim().length ? systemPromptText : undefined,
-		temperature: assistant.temperature,
-		topP: assistant.topP,
-		topK: assistant.topK,
-		maxTokens: assistant.maxTokens || undefined,
+		temperature: (assistant.temperature_enabled && model.temperature_enabled !== false) ? assistant.temperature : undefined,
+		topP: (assistant.top_p_enabled && model.top_p_enabled !== false) ? assistant.topP : undefined,
+		topK: (assistant.top_k_enabled && model.top_k_enabled !== false) ? assistant.topK : undefined,
+		maxTokens: (assistant.max_tokens_enabled && model.max_tokens_enabled !== false) ? assistant.maxTokens || undefined : undefined,
 		onFinish,
 		onChunk,
 		abortSignal: abortController.signal
@@ -653,9 +653,18 @@ export async function submitConversationClientSide() {
 						modelID: A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'Unknown',
 						modelName:
 							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.name ?? 'Unknown',
-						temperature: A.assistants[A.conversation.assistantID ?? 'unknown']?.temperature ?? 0,
-						topP: A.assistants[A.conversation.assistantID ?? 'unknown']?.topP ?? 0,
-						topK: A.assistants[A.conversation.assistantID ?? 'unknown']?.topK ?? 0,
+						temperature: (A.assistants[A.conversation.assistantID ?? 'unknown']?.temperature_enabled &&
+							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.temperature_enabled !== false)
+							? A.assistants[A.conversation.assistantID ?? 'unknown']?.temperature ?? 0
+							: undefined,
+						topP: (A.assistants[A.conversation.assistantID ?? 'unknown']?.top_p_enabled &&
+							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.top_p_enabled !== false)
+							? A.assistants[A.conversation.assistantID ?? 'unknown']?.topP ?? 0
+							: undefined,
+						topK: (A.assistants[A.conversation.assistantID ?? 'unknown']?.top_k_enabled &&
+							A.models[A.assistants[A.conversation.assistantID ?? 'unknown']?.modelID ?? 'unknown']?.top_k_enabled !== false)
+							? A.assistants[A.conversation.assistantID ?? 'unknown']?.topK ?? 0
+							: undefined,
 						conversationID: A.conversation.id
 					};
 

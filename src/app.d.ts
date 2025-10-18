@@ -108,6 +108,10 @@ declare global {
 		inputCost?: number; // Cost in dollars per 1,000,000 tokens
 		outputCost?: number;
 		maxTemp: number;
+		temperature_enabled?: boolean;
+		top_p_enabled?: boolean;
+		top_k_enabled?: boolean;
+		max_tokens_enabled?: boolean;
 		providerID: string;
 		createdAt?: Date;
 		updatedAt?: Date;
@@ -126,9 +130,13 @@ declare global {
 		assistantInstructionsFromUser: boolean;
 		systemPrompt?: string;
 		temperature: number;
+		temperature_enabled?: boolean;
 		topP: number;
+		top_p_enabled?: boolean;
 		topK: number;
+		top_k_enabled?: boolean;
 		maxTokens: number;
+		max_tokens_enabled?: boolean;
 		prefill?: boolean;
 		images?: boolean;
 		audio?: boolean;

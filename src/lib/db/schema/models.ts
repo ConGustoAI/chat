@@ -29,6 +29,10 @@ export const modelsTable = pgTable('models', {
 	inputCost: real('input_cost').default(0.0), // Cost in dollars per 1,000,000 tokens
 	outputCost: real('output_cost').default(0.0),
 	maxTemp: real('max_temp').notNull().default(2.0),
+	temperature_enabled: boolean('temperature_enabled').notNull().default(true),
+	top_p_enabled: boolean('top_p_enabled').notNull().default(true),
+	top_k_enabled: boolean('top_k_enabled').notNull().default(true),
+	max_tokens_enabled: boolean('max_tokens_enabled').notNull().default(true),
 	providerID: uuid('provider')
 		.notNull()
 		.references(() => providersTable.id, { onDelete: 'cascade' }),

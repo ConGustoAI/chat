@@ -73,7 +73,7 @@
 	{#if modelsToShow.length !== 0}
 		<h2 class="text-xl font-bold">{provider.name} Models</h2>
 		<div
-			class="grid grid-cols-[15rem,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,3.5rem,min-content] items-center gap-4 gap-y-2">
+			class="grid grid-cols-[15rem,max-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,min-content,3.5rem,min-content] items-center gap-4 gap-y-2">
 			<div class="font-bold">Display name</div>
 			<div class="font-bold">Model name</div>
 			<div class="relative font-bold">
@@ -133,6 +133,22 @@
 			<div class="relative flex text-xl font-bold" title="PDF">
 				🖨️
 				<div class="absolute -top-5"><InfoPopup title="Model supports PDF" /></div>
+			</div>
+			<div class="relative flex text-xl font-bold" title="Temperature enabled">
+				🌡
+				<div class="absolute -top-5"><InfoPopup title="Enable temperature parameter" /></div>
+			</div>
+			<div class="relative flex text-sm font-bold" title="Top-p enabled">
+				Top-p
+				<div class="absolute -top-5"><InfoPopup title="Enable top-p parameter" /></div>
+			</div>
+			<div class="relative flex text-sm font-bold" title="Top-k enabled">
+				Top-k
+				<div class="absolute -top-5"><InfoPopup title="Enable top-k parameter" /></div>
+			</div>
+			<div class="relative flex text-sm font-bold" title="Max tokens enabled">
+				Max tokens
+				<div class="absolute -top-5"><InfoPopup title="Enable max tokens parameter" /></div>
 			</div>
 			<div class="font-bold">Hide</div>
 			<div class="font-bold">Delete</div>
