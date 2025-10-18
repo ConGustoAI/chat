@@ -37,6 +37,7 @@ export const messagesTable = pgTable('messages', {
 
 	requestID: text('request_id'),
 	finishReason: text('finish_reason'),
+	error: text('error'),
 	deleted: boolean('deleted').default(false),
 	mediaIDs: uuid('media_id')
 		.references(() => mediaTable.id, { onDelete: 'set null' })

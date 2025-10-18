@@ -260,6 +260,13 @@
       "when": 1760796853119,
       "tag": "0036_crazy_zarda",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1760802641592,
+      "tag": "0037_aromatic_forgotten_one",
+      "breakpoints": true
     }
   ]
 }
