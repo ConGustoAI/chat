@@ -347,7 +347,14 @@
 			{#if message.finishReason === 'content-filter'}
 				<div class="text-warning">Content filtered by the provider</div>
 			{:else if message.finishReason == 'error'}
-				<div class="text-error">Request finished with an error</div>
+				<div class="text-error">
+					<strong>Request finished with an error:</strong>
+					{#if message.error}
+						<div class="mt-1 text-sm opacity-90">{message.error}</div>
+					{:else}
+						<div class="mt-1 text-sm opacity-90">Unknown error occurred</div>
+					{/if}
+				</div>
 			{/if}
 			<!-- </div> -->
 			<Notification messageType="error" bind:message={chatError} />

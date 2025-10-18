@@ -143,10 +143,10 @@ export async function _submitConversationClientSide() {
 				assert(media.conversationID === A.conversation?.id, "Media doesn't belong to the conversation");
 				assert(
 					media.type === 'image' ||
-						media.type === 'audio' ||
-						media.type === 'video' ||
-						media.type === 'text' ||
-						media.type === 'pdf',
+					media.type === 'audio' ||
+					media.type === 'video' ||
+					media.type === 'text' ||
+					media.type === 'pdf',
 					'Media type is not supported'
 				);
 
@@ -594,7 +594,29 @@ export async function _submitConversationClientSide() {
 		}
 	}
 
-	// try {
+	async function onError(event: { error: unknown }): Promise<void> {
+		debug('onError:', event);
+
+		// Save the error in the assistant message
+		AM.error = event?.error instanceof Error ? event.error.message :
+			typeof event?.error === 'string' ? event.error :
+				'Unknown error occurred during streaming';
+
+		// Create a minimal fake response for onFinish
+		const fakeResult = {
+			finishReason: 'error' as const,
+			usage: {
+				promptTokens: 0,
+				completionTokens: 0
+			},
+			experimental_providerMetadata: undefined,
+			text: AM.text
+		};
+
+		// Call onFinish with the fake result
+		await onFinish(fakeResult as any);
+	}
+
 	const res = await streamText({
 		model: client,
 		messages: inputMessages,
@@ -605,6 +627,7 @@ export async function _submitConversationClientSide() {
 		maxTokens: (assistant.max_tokens_enabled && model.max_tokens_enabled !== false) ? assistant.maxTokens || undefined : undefined,
 		onFinish,
 		onChunk,
+		onError,
 		abortSignal: abortController.signal
 	});
 

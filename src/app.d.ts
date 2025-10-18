@@ -177,6 +177,7 @@ declare global {
 		temperature?: number;
 		topP?: number;
 		topK?: number;
+		error?: string;
 		deleted?: boolean;
 
 		mediaIDs?: string[];
