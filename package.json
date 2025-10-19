@@ -4,13 +4,13 @@
 	"private": true,
 	"license": "MIT",
 	"engines": {
-		"bun": "2.0"
+		"bun": "*"
 	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "bun run copy-pdfjs && vite build && bun run db:migrate && bun run db:seed",
 		"copy-pdfjs": "cp node_modules/pdfjs-dist/build/pdf.worker.mjs* static/",
-		"start": "node ./build",
+		"start": "bun ./build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
