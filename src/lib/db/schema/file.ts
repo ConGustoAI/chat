@@ -25,38 +25,9 @@ export const fileTable = pgTable('file', {
 	updatedAt: timestamp('update_at').notNull().defaultNow()
 });
 
-export const imageFileTable = pgTable('file_image', {
-	id: uuid('id').primaryKey(),
-	userID: uuid('user_id')
-		.references(() => usersTable.id, { onDelete: 'cascade' })
-		.notNull(),
-
-	fileID: uuid('file_id')
-		.references(() => fileTable.id, { onDelete: 'cascade' })
-		.notNull(),
-
-	// For images
-	width: integer('width').notNull(),
-	height: integer('height').notNull(),
-
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('update_at').notNull().defaultNow()
-});
-
 export const fileTableRelations = relations(fileTable, ({ one }) => ({
 	user: one(usersTable, {
 		fields: [fileTable.userID],
 		references: [usersTable.id]
-	})
-}));
-
-export const imageFileTableRelations = relations(imageFileTable, ({ one }) => ({
-	user: one(usersTable, {
-		fields: [imageFileTable.userID],
-		references: [usersTable.id]
-	}),
-	file: one(fileTable, {
-		fields: [imageFileTable.fileID],
-		references: [fileTable.id]
 	})
 }));
